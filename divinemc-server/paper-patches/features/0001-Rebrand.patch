@@ -27,7 +27,7 @@ index be1bb14dca9367b9685841985b6198376986c496..58f16cdf593dbf874652a46799ecfa5c
                  metrics.addCustomChart(new Metrics.DrilldownPie("java_version", () -> {
                      Map<String, Map<String, Integer>> map = new HashMap<>();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
-index fe66e43c27e0798770e102d1385bacbaa90bda07..6e11b6d871a1122ac324ad19aa45a3dbecdc52e8 100644
+index fe66e43c27e0798770e102d1385bacbaa90bda07..8c72ac3376ee1ea6f2c98de4d4fdbea91df2cfd7 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 @@ -36,13 +36,13 @@ public class PaperVersionFetcher implements VersionFetcher {
@@ -35,7 +35,7 @@ index fe66e43c27e0798770e102d1385bacbaa90bda07..6e11b6d871a1122ac324ad19aa45a3db
      private static final int DISTANCE_UNKNOWN = -2;
      // Purpur start - Rebrand
 -    private static final String DOWNLOAD_PAGE = "https://purpurmc.org/downloads";
-+    private static final String DOWNLOAD_PAGE = "https://github.com/DivineMC/DivineMC/releases/latest"; // DivineMC - Rebrand
++    private static final String DOWNLOAD_PAGE = "https://github.com/BX-Team/DivineMC/releases/latest"; // DivineMC - Rebrand
      private static int distance = DISTANCE_UNKNOWN; public int distance() { return distance; }
      // Purpur end - Rebrand
  
@@ -51,7 +51,7 @@ index fe66e43c27e0798770e102d1385bacbaa90bda07..6e11b6d871a1122ac324ad19aa45a3db
              updateMessage = text("You are running a development version without access to version information", color(0xFF5300));
          } else {
 -            updateMessage = getUpdateStatusMessage("PurpurMC/Purpur", build); // Purpur - Rebrand
-+            updateMessage = getUpdateStatusMessage("DivineMC/DivineMC", build); // DivineMC - Branding
++            updateMessage = getUpdateStatusMessage("BX-Team/DivineMC", build); // DivineMC - Branding
          }
          final @Nullable Component history = this.getHistory();
  
@@ -171,7 +171,7 @@ index 99eb04643fce44c37fd96c99756837ccafe7b559..4aef151bd162c4c99a3eaec1854b5463
  
          if (stream != null) {
 diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
-index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..ce6c05dd9a83a4f169496e53e28398ec5e73b068 100644
+index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..26a3a0ab93ffd4d0a172e47fafeb26485c8d87ab 100644
 --- a/src/main/java/org/spigotmc/WatchdogThread.java
 +++ b/src/main/java/org/spigotmc/WatchdogThread.java
 @@ -77,14 +77,14 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
@@ -185,7 +185,7 @@ index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..ce6c05dd9a83a4f169496e53e28398ec
                      logger.log(Level.SEVERE, "If you see a world save or edit, then it means you did far more than your server can handle at once");
                      logger.log(Level.SEVERE, "\t If this is the case, consider increasing timeout-time in spigot.yml but note that this will replace the crash with LARGE lag spikes");
 -                    logger.log(Level.SEVERE, "If you are unsure or still think this is a Purpur bug, please report this to https://github.com/PurpurMC/Purpur/issues"); // Purpur - Rebrand
-+                    logger.log(Level.SEVERE, "If you are unsure or still think this is a DivineMC bug, please report this to https://github.com/DivineMC/DivineMC/issues"); // DivineMC - Rebrand
++                    logger.log(Level.SEVERE, "If you are unsure or still think this is a DivineMC bug, please report this to https://github.com/BX-Team/DivineMC/issues"); // DivineMC - Rebrand
                      logger.log(Level.SEVERE, "Be sure to include ALL relevant console errors and Minecraft crash reports");
 -                    logger.log(Level.SEVERE, "Purpur version: " + Bukkit.getServer().getVersion()); // Purpur - Rebrand
 +                    logger.log(Level.SEVERE, "DivineMC version: " + Bukkit.getServer().getVersion()); // DivineMC - Rebrand

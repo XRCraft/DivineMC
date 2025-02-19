@@ -1,13 +1,13 @@
-<img src="https://github.com/DivineMC/DivineMC/assets/76615486/12e5dfef-b2cb-4fe6-8587-342f0d116d23" height="240" alt="DivineMC Face" align="right">
+<img src="https://github.com/BX-Team/DivineMC/assets/76615486/12e5dfef-b2cb-4fe6-8587-342f0d116d23" height="240" alt="DivineMC Face" align="right">
 
 <div align="center">
   <h1>DivineMC</h1>
   <h3>Fork of Purpur compatible with Spigot plugins, offering the best performance for your server.</h3>
   <br>
   
-  [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/DivineMC/DivineMC/build.yml?logo=GoogleAnalytics&logoColor=ffffff&style=for-the-badge)](https://github.com/DivineMC/DivineMC/actions)
+  [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/BX-Team/DivineMC/build.yml?logo=GoogleAnalytics&logoColor=ffffff&style=for-the-badge)](https://github.com/BX-Team/DivineMC/actions)
   [![Discord](https://img.shields.io/discord/931595732752953375?color=5865F2&label=discord&style=for-the-badge)](https://discord.gg/p7cxhw7E2M)
-  [![Download](https://img.shields.io/github/downloads/DivineMC/DivineMC/total?style=for-the-badge)](https://github.com/DivineMC/DivineMC/releases/latest)
+  [![Download](https://img.shields.io/github/downloads/BX-Team/DivineMC/total?style=for-the-badge)](https://github.com/BX-Team/DivineMC/releases/latest)
 </div>
 
 ## ⚙️ Features
@@ -23,7 +23,7 @@
 
 ## ⬇️ Downloads
 
-In normal case, you can download the latest JAR file from releases tab [here](https://github.com/DivineMC/DivineMC/releases/latest)
+In normal case, you can download the latest JAR file from releases tab [here](https://github.com/BX-Team/DivineMC/releases/latest)
 
 **Please note:** Java >= 21 is required.
 
@@ -77,7 +77,7 @@ First, clone this repository (do not download it) and the run the following comm
 After that, project is ready to use and editing it.
 
 ### Creating a patch
-Patches are effectively just commits in either `paper-api`, `paper-server`, `purpur-api`, `purpur-server` or `divinemc-server`. If you want to learn how to work with patch system, you can read our [contributing documentation](https://docs.bxteam.org/documentation/divinemc/development/contributing).
+Patches are effectively just commits in either `paper-api`, `paper-server`, `purpur-api`, `purpur-server` or `divinemc-server`. If you want to learn how to work with patch system, you can read our [contributing documentation](https://bxteam.org/docs/divinemc/development/contributing).
 
 ### Compiling
 Use the command `./gradlew build` to build the API and server. Compiled JARs will be placed under `divinemc-api/build/libs` and `divinemc-server/build/libs`. **These JARs are not used to start a server**.

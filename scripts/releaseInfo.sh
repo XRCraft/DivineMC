@@ -39,7 +39,7 @@ mv divinemc-server/build/libs/divinemc-paperclip-"$version"-mojmap.jar "$jarName
 } >> "$GITHUB_ENV"
 
 {
-  echo "$divinemcid [![download](https://img.shields.io/github/downloads/DivineMC/DivineMC/$tagid/total?color=0)](https://github.com/DivineMC/DivineMC/releases/download/$tagid/$jarName)"
+  echo "$divinemcid [![download](https://img.shields.io/github/downloads/BX-Team/DivineMC/$tagid/total?color=0)](https://github.com/BX-Team/DivineMC/releases/download/$tagid/$jarName)"
   echo "====="
   echo ""
   if [ "$experimental" = "true" ]; then

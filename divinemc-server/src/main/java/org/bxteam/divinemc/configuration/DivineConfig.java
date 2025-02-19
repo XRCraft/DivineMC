@@ -26,8 +26,8 @@ public class DivineConfig {
             + "join us in our Discord server.\n"
             + "\n"
             + "Discord: https://discord.gg/p7cxhw7E2M \n"
-            + "Docs: https://docs.bxteam.org/documentation/divinemc/about \n"
-            + "New builds: https://github.com/DivineMC/DivineMC/releases/latest";
+            + "Docs: https://bxteam.org/docs/divinemc \n"
+            + "New builds: https://github.com/BX-Team/DivineMC/releases/latest";
     private static File CONFIG_FILE;
     public static YamlConfiguration config;
 
