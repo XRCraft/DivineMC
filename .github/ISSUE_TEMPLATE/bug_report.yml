@@ -49,7 +49,7 @@ body:
       label: Agreements
       description: Please agree to the following.
       options:
-        - label: I am running the latest version of DivineMC from [here](https://github.com/DivineMC/DivineMC/releases/latest).
+        - label: I am running the latest version of DivineMC from [here](https://github.com/BX-Team/DivineMC/releases/latest).
           required: true
         - label: I have searched for and ensured there isn't already an open issue regarding this.
           required: true
