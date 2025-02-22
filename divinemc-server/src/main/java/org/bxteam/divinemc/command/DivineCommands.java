@@ -2,7 +2,6 @@ package org.bxteam.divinemc.command;
 
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.command.Command;
-import org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
@@ -11,7 +10,7 @@ import java.util.Map;
 
 @DefaultQualifier(NonNull.class)
 public final class DivineCommands {
-    public static final String COMMAND_BASE_PERM = CraftDefaultPermissions.DIVINEMC_ROOT + ".command";
+    public static final String COMMAND_BASE_PERM = "divinemc.command";
 
     private DivineCommands() {}
 

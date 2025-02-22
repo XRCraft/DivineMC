@@ -8,7 +8,7 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.permissions.PermissionDefault;
 import org.bxteam.divinemc.command.DivineCommand;
 import org.bxteam.divinemc.command.DivineSubCommandPermission;
-import org.bxteam.divinemc.configuration.DivineConfig;
+import org.bxteam.divinemc.DivineConfig;
 
 import java.io.File;
 
@@ -37,7 +37,7 @@ public final class ReloadCommand extends DivineSubCommandPermission {
         MinecraftServer server = ((CraftServer) sender.getServer()).getServer();
         DivineConfig.init((File) server.options.valueOf("divinemc-settings"));
             for (ServerLevel level : server.getAllLevels()) {
-                level.divinemcConfig.init();
+                level.divineConfig.init();
                 level.resetBreedingCooldowns();
             }
             server.server.reloadCount++;

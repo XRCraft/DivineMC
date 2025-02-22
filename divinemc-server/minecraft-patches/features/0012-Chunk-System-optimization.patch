@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sat, 1 Feb 2025 00:33:03 +0300
+Subject: [PATCH] Chunk System optimization
+
+
+diff --git a/net/minecraft/world/level/LevelReader.java b/net/minecraft/world/level/LevelReader.java
+index 26c8c1e5598daf3550aef05b12218c47bda6618b..94c824ab1457939c425e1f99929d3222ee2c18a0 100644
+--- a/net/minecraft/world/level/LevelReader.java
++++ b/net/minecraft/world/level/LevelReader.java
+@@ -70,10 +70,27 @@ public interface LevelReader extends ca.spottedleaf.moonrise.patches.chunk_syste
+ 
+     @Override
+     default Holder<Biome> getNoiseBiome(int x, int y, int z) {
+-        ChunkAccess chunk = this.getChunk(QuartPos.toSection(x), QuartPos.toSection(z), ChunkStatus.BIOMES, false);
++        ChunkAccess chunk = this.fasterChunkAccess(this, QuartPos.toSection(x), QuartPos.toSection(z), ChunkStatus.BIOMES, false); // DivineMC - Chunk System optimization
+         return chunk != null ? chunk.getNoiseBiome(x, y, z) : this.getUncachedNoiseBiome(x, y, z);
+     }
+ 
++    // DivineMC start - Chunk System optimization
++    private @Nullable ChunkAccess fasterChunkAccess(LevelReader instance, int x, int z, ChunkStatus chunkStatus, boolean create) {
++        if (!create && instance instanceof net.minecraft.server.level.ServerLevel world) {
++            final net.minecraft.server.level.ChunkHolder holder = (world.getChunkSource().chunkMap).getVisibleChunkIfPresent(ChunkPos.asLong(x, z));
++            if (holder != null) {
++                final java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.LevelChunk>> future = holder.getFullChunkFuture();
++                final net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.LevelChunk> either = future.getNow(null);
++                if (either != null) {
++                    final net.minecraft.world.level.chunk.LevelChunk chunk = either.orElse(null);
++                    if (chunk != null) return chunk;
++                }
++            }
++        }
++        return instance.getChunk(x, z, chunkStatus, create);
++    }
++    // DivineMC end - Chunk System optimization
++
+     Holder<Biome> getUncachedNoiseBiome(int x, int y, int z);
+ 
+     boolean isClientSide();
+diff --git a/net/minecraft/world/level/chunk/storage/IOWorker.java b/net/minecraft/world/level/chunk/storage/IOWorker.java
+index 2199a9e2a0141c646d108f2687a27f1d165453c5..c28c2583b257f92207b822a1fdde8f5b7e480992 100644
+--- a/net/minecraft/world/level/chunk/storage/IOWorker.java
++++ b/net/minecraft/world/level/chunk/storage/IOWorker.java
+@@ -212,7 +212,38 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
+         });
+     }
+ 
++    // DivineMC start - Chunk System optimization
++    private void checkHardLimit() {
++        if (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheLimit) {
++            LOGGER.warn("Chunk data cache size exceeded hard limit ({} >= {}), forcing writes to disk (you can increase chunkDataCacheLimit in c2me.toml)", this.pendingWrites.size(), org.bxteam.divinemc.DivineConfig.chunkDataCacheLimit);
++            while (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit * 0.75) {
++                writeResult0();
++            }
++        }
++    }
++
++    private void writeResult0() {
++        java.util.Iterator<java.util.Map.Entry<net.minecraft.world.level.ChunkPos, net.minecraft.world.level.chunk.storage.IOWorker.PendingStore>> iterator = this.pendingWrites.entrySet().iterator();
++        if (iterator.hasNext()) {
++            java.util.Map.Entry<ChunkPos, IOWorker.PendingStore> entry = iterator.next();
++            iterator.remove();
++            this.runStore(entry.getKey(), entry.getValue());
++        }
++    }
++    // DivineMC end - Chunk System optimization
++
+     private void storePendingChunk() {
++        // DivineMC start - Chunk System optimization
++        if (!this.pendingWrites.isEmpty()) {
++            checkHardLimit();
++            if (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit) {
++                int writeFrequency = Math.min(1, (this.pendingWrites.size() - (int) org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit) / 16);
++                for (int i = 0; i < writeFrequency; i++) {
++                    writeResult0();
++                }
++            }
++        }
++        // DivineMC end - Chunk System optimization
+         Entry<ChunkPos, IOWorker.PendingStore> entry = this.pendingWrites.pollFirstEntry();
+         if (entry != null) {
+             this.runStore(entry.getKey(), entry.getValue());
+diff --git a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+index 6ebd1300c2561116b83cb2472ac7939ead36d576..16cd10ab8de69ca3d29c84cf93715645322fd72a 100644
+--- a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
++++ b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+@@ -244,7 +244,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
+ 
+     protected RegionFileStorage(RegionStorageInfo info, Path folder, boolean sync) { // Paper - protected
+         this.folder = folder;
+-        this.sync = sync;
++        this.sync = Boolean.parseBoolean(System.getProperty("com.ishland.c2me.chunkio.syncDiskWrites", String.valueOf(sync))); // DivineMC - C2ME: sync disk writes
+         this.info = info;
+         this.isChunkData = isChunkDataFolder(this.folder); // Paper - recalculate region file headers
+     }

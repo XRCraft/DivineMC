@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Mon, 27 Jan 2025 18:42:29 +0300
+Subject: [PATCH] Delete timings
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+index 14949b9b0a14e4b6f38bf04a6246f181db2a7b3f..534510a94694d013fc11f6985088c6cf14dbb695 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+@@ -1,6 +1,5 @@
+ package io.papermc.paper.plugin.manager;
+ 
+-import co.aikar.timings.TimedEventExecutor;
+ import com.destroystokyo.paper.event.server.ServerExceptionEvent;
+ import com.destroystokyo.paper.exception.ServerEventException;
+ import com.google.common.collect.Sets;
+@@ -102,7 +101,6 @@ class PaperEventManager {
+             throw new IllegalPluginAccessException("Plugin attempted to register " + event + " while not enabled");
+         }
+ 
+-        executor = new TimedEventExecutor(executor, plugin, null, event);
+         this.getEventListeners(event).register(new RegisteredListener(listener, executor, priority, plugin, ignoreCancelled));
+     }
+ 
+@@ -189,7 +187,7 @@ class PaperEventManager {
+                 }
+             }
+ 
+-            EventExecutor executor = new TimedEventExecutor(EventExecutor.create(method, eventClass), plugin, method, eventClass);
++            EventExecutor executor = EventExecutor.create(method, eventClass); // DivineMC - Delete timings
+             eventSet.add(new RegisteredListener(listener, executor, eh.priority(), plugin, eh.ignoreCancelled()));
+         }
+         return ret;
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginManagerImpl.java b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginManagerImpl.java
+index 097500a59336db1bbfffcd1aa4cff7a8586e46ec..69341cb3b11409e41b9ff756b11d9bd1b9e6da10 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginManagerImpl.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginManagerImpl.java
+@@ -232,7 +232,7 @@ public class PaperPluginManagerImpl implements PluginManager, DependencyContext
+ 
+     @Override
+     public boolean useTimings() {
+-        return co.aikar.timings.Timings.isTimingsEnabled();
++        return false; // DivineMC - Delete timings
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index c3c6e23b4da16025d0f6472290183732f5eb9880..652acceb96843e8242a0989518dec5c65fbcf953 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1048,10 +1048,8 @@ public final class CraftServer implements Server {
+             commands.performCommand(results, commandLine, commandLine, true);
+         } catch (CommandException ex) {
+             this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
+-            //target.timings.stopTiming(); // Spigot // Paper
+             throw ex;
+         } catch (Throwable ex) {
+-            //target.timings.stopTiming(); // Spigot // Paper
+             String msg = "Unhandled exception executing '" + commandLine + "' in " + target;
+             this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
+             throw new CommandException(msg, ex);

@@ -1,0 +1,144 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sat, 1 Feb 2025 15:59:29 +0300
+Subject: [PATCH] Some optimizations
+
+
+diff --git a/net/minecraft/server/level/ChunkTrackingView.java b/net/minecraft/server/level/ChunkTrackingView.java
+index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e681562b5b09cc 100644
+--- a/net/minecraft/server/level/ChunkTrackingView.java
++++ b/net/minecraft/server/level/ChunkTrackingView.java
+@@ -73,12 +73,12 @@ public interface ChunkTrackingView {
+     }
+ 
+     static boolean isWithinDistance(int centerX, int centerZ, int viewDistance, int x, int z, boolean includeOuterChunksAdjacentToViewBorder) {
+-        int i = includeOuterChunksAdjacentToViewBorder ? 2 : 1;
+-        long l = Math.max(0, Math.abs(x - centerX) - i);
+-        long l1 = Math.max(0, Math.abs(z - centerZ) - i);
+-        long l2 = l * l + l1 * l1;
+-        int i1 = viewDistance * viewDistance;
+-        return l2 < i1;
++        // DivineMC start - Some optimizations
++        int actualViewDistance = viewDistance + (includeOuterChunksAdjacentToViewBorder ? 1 : 0);
++        int xDistance = Math.abs(centerX - x);
++        int zDistance = Math.abs(centerZ - z);
++        return xDistance <= actualViewDistance && zDistance <= actualViewDistance;
++        // DivineMC end - Some optimizations
+     }
+ 
+     public record Positioned(ChunkPos center, int viewDistance) implements ChunkTrackingView {
+diff --git a/net/minecraft/util/ClassInstanceMultiMap.java b/net/minecraft/util/ClassInstanceMultiMap.java
+index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b892ad042 100644
+--- a/net/minecraft/util/ClassInstanceMultiMap.java
++++ b/net/minecraft/util/ClassInstanceMultiMap.java
+@@ -14,9 +14,9 @@ import java.util.Map.Entry;
+ import net.minecraft.Util;
+ 
+ public class ClassInstanceMultiMap<T> extends AbstractCollection<T> {
+-    private final Map<Class<?>, List<T>> byClass = Maps.newHashMap();
++    private final Map<Class<?>, List<T>> byClass = new it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap<>(); // DivineMC - Some optimizations
+     private final Class<T> baseClass;
+-    private final List<T> allInstances = Lists.newArrayList();
++    private final List<T> allInstances = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(); // DivineMC - Some optimizations
+ 
+     public ClassInstanceMultiMap(Class<T> baseClass) {
+         this.baseClass = baseClass;
+@@ -56,13 +56,27 @@ public class ClassInstanceMultiMap<T> extends AbstractCollection<T> {
+     }
+ 
+     public <S> Collection<S> find(Class<S> type) {
++        // DivineMC start - Some optimizations
++        List<T> cached = this.byClass.get(type);
++        if (cached != null) return (Collection<S>) cached;
++
+         if (!this.baseClass.isAssignableFrom(type)) {
+             throw new IllegalArgumentException("Don't know how to search for " + type);
+         } else {
+-            List<? extends T> list = this.byClass
+-                .computeIfAbsent(type, clazz -> this.allInstances.stream().filter(clazz::isInstance).collect(Util.toMutableList()));
+-            return (Collection<S>)Collections.unmodifiableCollection(list);
++            List<? extends T> list = this.byClass.computeIfAbsent(type,
++                typeClass -> {
++                    it.unimi.dsi.fastutil.objects.ObjectArrayList<T> ts = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(this.allInstances.size());
++                    for (Object _allElement : ((it.unimi.dsi.fastutil.objects.ObjectArrayList<T>) this.allInstances).elements()) {
++                        if (typeClass.isInstance(_allElement)) {
++                            ts.add((T) _allElement);
++                        }
++                    }
++                    return ts;
++                }
++            );
++            return (Collection<S>) list;
+         }
++        // DivineMC end - Some optimizations
+     }
+ 
+     @Override
+diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
+index 70ee86993d381445855ac7e7290da384d6675987..532d71cc1eaee799c193eb43085beb8c5892eac7 100644
+--- a/net/minecraft/world/entity/Mob.java
++++ b/net/minecraft/world/entity/Mob.java
+@@ -841,7 +841,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+         if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
+             this.discard(EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
+         } else if (!this.isPersistenceRequired() && !this.requiresCustomPersistence()) {
+-            Entity nearestPlayer = this.level().findNearbyPlayer(this, -1.0, EntitySelector.PLAYER_AFFECTS_SPAWNING); // Paper - Affects Spawning API
++            Entity nearestPlayer = this.divinemc$findNearbyPlayer(this.level(), this, -1.0); // Paper - Affects Spawning API // DivineMC - faster player lookup
+             if (nearestPlayer != null) {
+                 // Paper start - Configurable despawn distances
+                 final io.papermc.paper.configuration.WorldConfiguration.Entities.Spawning.DespawnRangePair despawnRangePair = this.level().paperConfig().entities.spawning.despawnRanges.get(this.getType().getCategory());
+@@ -870,6 +870,19 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+         }
+     }
+ 
++    // DivineMC start - faster player lookup
++    private Player divinemc$findNearbyPlayer(Level instance, Entity entity, double maxDistance) {
++        final Player closestPlayer = instance.getNearestPlayer(entity, this.getType().getCategory().getDespawnDistance());
++        if (closestPlayer != null) {
++            return closestPlayer;
++        } else {
++            final List<? extends Player> players = this.level().players();
++            if (players.isEmpty()) return null;
++            return players.get(0);
++        }
++    }
++    // DivineMC end - faster player lookup
++
+     @Override
+     protected final void serverAiStep() {
+         this.noActionTime++;
+diff --git a/net/minecraft/world/level/LocalMobCapCalculator.java b/net/minecraft/world/level/LocalMobCapCalculator.java
+index 9641219c190261dea0db5f95f040a705ba0a3ff9..7ba64e71cfed16f07a9e1283145653745adb6388 100644
+--- a/net/minecraft/world/level/LocalMobCapCalculator.java
++++ b/net/minecraft/world/level/LocalMobCapCalculator.java
+@@ -42,14 +42,14 @@ public class LocalMobCapCalculator {
+     }
+ 
+     static class MobCounts {
+-        private final Object2IntMap<MobCategory> counts = new Object2IntOpenHashMap<>(MobCategory.values().length);
++        private final int[] spawnGroupDensities = new int[MobCategory.values().length]; // DivineMC - Some optimizations
+ 
+         public void add(MobCategory category) {
+-            this.counts.computeInt(category, (key, value) -> value == null ? 1 : value + 1);
++            this.spawnGroupDensities[category.ordinal()] ++; // DivineMC - Some optimizations
+         }
+ 
+         public boolean canSpawn(MobCategory category) {
+-            return this.counts.getOrDefault(category, 0) < category.getMaxInstancesPerChunk();
++            return this.spawnGroupDensities[category.ordinal()] < category.getMaxInstancesPerChunk(); // DivineMC - Some optimizations
+         }
+     }
+ }
+diff --git a/net/minecraft/world/level/storage/DimensionDataStorage.java b/net/minecraft/world/level/storage/DimensionDataStorage.java
+index d9a3b5a2e6495b7e22c114506c2bd1e406f58f8f..a6e03345afd6d8a38e06a43c59103209618baa14 100644
+--- a/net/minecraft/world/level/storage/DimensionDataStorage.java
++++ b/net/minecraft/world/level/storage/DimensionDataStorage.java
+@@ -34,7 +34,7 @@ import org.slf4j.Logger;
+ 
+ public class DimensionDataStorage implements AutoCloseable {
+     private static final Logger LOGGER = LogUtils.getLogger();
+-    public final Map<String, Optional<SavedData>> cache = new HashMap<>();
++    public final Map<String, Optional<SavedData>> cache = new java.util.concurrent.ConcurrentHashMap<>(); // DivineMC - Concurrent HashMap
+     private final DataFixer fixerUpper;
+     private final HolderLookup.Provider registries;
+     private final Path dataFolder;

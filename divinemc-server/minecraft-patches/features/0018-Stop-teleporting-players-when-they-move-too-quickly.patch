@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sat, 1 Feb 2025 18:03:13 +0300
+Subject: [PATCH] Stop teleporting players when they move too quickly
+
+
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index aabce23007006fe2dca1e4ac7c0657d2a1cae30e..f52e0ba1ef613895c2f21f39da852593d2f7883f 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -1444,18 +1444,22 @@ public class ServerGamePacketListenerImpl
+                                 if (this.shouldCheckPlayerMovement(isFallFlying)) {
+                                     float f2 = isFallFlying ? 300.0F : 100.0F;
+                                     if (d7 - d6 > Math.max(f2, Mth.square(org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed))) {
+-                                        // CraftBukkit end
+-                                        // Paper start - Add fail move event
+-                                        io.papermc.paper.event.player.PlayerFailMoveEvent event = fireFailMove(io.papermc.paper.event.player.PlayerFailMoveEvent.FailReason.MOVED_TOO_QUICKLY,
+-                                            toX, toY, toZ, toYaw, toPitch, true);
+-                                        if (!event.isAllowed()) {
+-                                            if (event.getLogWarning()) {
+-                                                LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getName().getString(), d3, d4, d5);
++                                        // DivineMC start - Stop teleporting players when they move too quickly
++                                        if (!org.bxteam.divinemc.DivineConfig.alwaysAllowWeirdMovement && !(org.bxteam.divinemc.DivineConfig.ignoreMovedTooQuicklyWhenLagging && player.serverLevel().getServer().lagging)) {
++                                            // CraftBukkit end
++                                            // Paper start - Add fail move event
++                                            io.papermc.paper.event.player.PlayerFailMoveEvent event = fireFailMove(io.papermc.paper.event.player.PlayerFailMoveEvent.FailReason.MOVED_TOO_QUICKLY,
++                                                toX, toY, toZ, toYaw, toPitch, true);
++                                            if (!event.isAllowed()) {
++                                                if (event.getLogWarning()) {
++                                                    LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getName().getString(), d3, d4, d5);
++                                                }
++                                                this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
++                                                return;
+                                             }
+-                                            this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
+-                                            return;
++                                            // Paper end - Add fail move event
+                                         }
+-                                        // Paper end - Add fail move event
++                                        // DivineMC end - Stop teleporting players when they move too quickly
+                                     }
+                                 }
+                             }
+@@ -1516,6 +1520,7 @@ public class ServerGamePacketListenerImpl
+                             d7 = d3 * d3 + d4 * d4 + d5 * d5;
+                             boolean movedWrongly = false; // Paper - Add fail move event; rename
+                             if (!this.player.isChangingDimension()
++                                && !org.bxteam.divinemc.DivineConfig.alwaysAllowWeirdMovement // DivineMC - Stop teleporting players when they move too quickly
+                                 && d7 > org.spigotmc.SpigotConfig.movedWronglyThreshold // Spigot
+                                 && !this.player.isSleeping()
+                                 && !this.player.gameMode.isCreative()

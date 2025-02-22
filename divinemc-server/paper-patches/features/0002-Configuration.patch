@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Mon, 27 Jan 2025 20:53:24 +0300
+Subject: [PATCH] Configuration
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 6a08a42acdb2ee24b5e403b15fb825f3cb49c968..c3c6e23b4da16025d0f6472290183732f5eb9880 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1103,6 +1103,7 @@ public final class CraftServer implements Server {
+         org.spigotmc.SpigotConfig.init((File) this.console.options.valueOf("spigot-settings")); // Spigot
+         this.console.paperConfigurations.reloadConfigs(this.console);
+         org.purpurmc.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur - Purpur config files
++        org.bxteam.divinemc.DivineConfig.init((File) console.options.valueOf("divinemc-settings")); // DivineMC - Configuration
+         for (ServerLevel world : this.console.getAllLevels()) {
+             // world.serverLevelData.setDifficulty(config.difficulty); // Paper - per level difficulty
+             world.setSpawnSettings(world.serverLevelData.getDifficulty() != Difficulty.PEACEFUL && config.spawnMonsters); // Paper - per level difficulty (from MinecraftServer#setDifficulty(ServerLevel, Difficulty, boolean))
+@@ -1119,6 +1120,7 @@ public final class CraftServer implements Server {
+             }
+             world.spigotConfig.init(); // Spigot
+             world.purpurConfig.init(); // Purpur - Purpur config files
++            world.divineConfig.init(); // DivineMC - Configuration
+         }
+ 
+         Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
+@@ -3134,6 +3136,13 @@ public final class CraftServer implements Server {
+         }
+         // Purpur end - Purpur config files
+ 
++        // DivineMC start - Configuration
++        @Override
++        public YamlConfiguration getDivineConfig() {
++            return org.bxteam.divinemc.DivineConfig.config;
++        }
++        // DivineMC end - Configuration
++
+         @Override
+         public void restart() {
+             org.spigotmc.RestartCommand.restart();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index 2e1b7f613de8876095ef39bb0341a3f9520c8d5d..5eb36ddf8eea7a84299a91f28a031e2b750975ce 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -183,6 +183,15 @@ public class Main {
+                     .defaultsTo(new File("purpur.yml"))
+                     .describedAs("Yml file");
+                 // Purpur end - Purpur config files
++
++                // DivineMC start - Configuration
++                acceptsAll(asList("divinemc", "divinemc-settings"), "File for DivineMC settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("divinemc.yml"))
++                        .describedAs("Yml file");
++                // DivineMC end - Configuration
++
+                 // Paper start
+                 acceptsAll(asList("server-name"), "Name of the server")
+                         .withRequiredArg()

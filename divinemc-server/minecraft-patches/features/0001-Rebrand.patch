@@ -17,6 +17,75 @@ index 394443d00e661715439be1e56dddc129947699a4..480ad57a6b7b74e6b83e9c6ceb69ea1f
  
      public CrashReport(String title, Throwable exception) {
          io.papermc.paper.util.StacktraceDeobfuscator.INSTANCE.deobfuscateThrowable(exception); // Paper
+diff --git a/net/minecraft/server/Main.java b/net/minecraft/server/Main.java
+index 1485186d4989874ef89c4e83830f26358a43759c..680369af59fd2aa36bf1cf4e28b598854383abe3 100644
+--- a/net/minecraft/server/Main.java
++++ b/net/minecraft/server/Main.java
+@@ -62,6 +62,14 @@ import org.slf4j.Logger;
+ 
+ public class Main {
+     private static final Logger LOGGER = LogUtils.getLogger();
++    // DivineMC start - Log experimental warning
++    static {
++        io.papermc.paper.ServerBuildInfo info = io.papermc.paper.ServerBuildInfo.buildInfo();
++        if (io.papermc.paper.ServerBuildInfoImpl.IS_EXPERIMENTAL) {
++            LOGGER.warn("Running an experimental version of {}, please proceed with caution.", info.brandName());
++        }
++    }
++    // DivineMC end - Log experimental warning
+ 
+     @SuppressForbidden(
+         reason = "System.out needed before bootstrap"
+@@ -114,6 +122,18 @@ public class Main {
+             org.purpurmc.purpur.PurpurConfig.registerMinecraftDebugCommands = purpurConfiguration.getBoolean("settings.register-minecraft-debug-commands"); // Purpur - register minecraft debug commands
+             // Purpur end - Add toggle for enchant level clamping - load config files early
+ 
++            // DivineMC start - Server startup settings
++            org.bukkit.configuration.file.YamlConfiguration divinemcConfiguration = io.papermc.paper.configuration.PaperConfigurations.loadLegacyConfigFile((File) optionSet.valueOf("divinemc-settings"));
++            boolean divinemcNativeMathEnabled = divinemcConfiguration.getBoolean("settings.chunk-generation.native-acceleration-enabled", true);
++            if (divinemcNativeMathEnabled) {
++                try {
++                    Class.forName("org.bxteam.divinemc.math.NativeLoader").getField("lookup").get(null);
++                } catch (Throwable e) {
++                    e.printStackTrace();
++                }
++            }
++            // DivineMC end - Server startup settings
++
+             io.papermc.paper.plugin.PluginInitializerManager.load(optionSet); // Paper
+             Bootstrap.bootStrap();
+             Bootstrap.validate();
+diff --git a/net/minecraft/server/gui/MinecraftServerGui.java b/net/minecraft/server/gui/MinecraftServerGui.java
+index 614c7d9f673c926562acc8fa3b3788623900db41..33456c7c106abbddf743e1203a6e8122cf10b797 100644
+--- a/net/minecraft/server/gui/MinecraftServerGui.java
++++ b/net/minecraft/server/gui/MinecraftServerGui.java
+@@ -51,7 +51,7 @@ public class MinecraftServerGui extends JComponent {
+         } catch (Exception var3) {
+         }
+ 
+-        final JFrame jFrame = new JFrame("Purpur Minecraft server"); // Purpur - Improve GUI
++        final JFrame jFrame = new JFrame("DivineMC Minecraft server"); // Purpur - Improve GUI // DivineMC - Rebrand
+         final MinecraftServerGui minecraftServerGui = new MinecraftServerGui(server);
+         jFrame.setDefaultCloseOperation(2);
+         jFrame.add(minecraftServerGui);
+@@ -59,7 +59,7 @@ public class MinecraftServerGui extends JComponent {
+         jFrame.setLocationRelativeTo(null);
+         jFrame.setVisible(true);
+         // Paper start - Improve ServerGUI
+-        jFrame.setName("Purpur Minecraft server"); // Purpur - Improve GUI
++        jFrame.setName("DivineMC Minecraft server"); // Purpur - Improve GUI // DivineMC - Rebrand
+         try {
+             jFrame.setIconImage(javax.imageio.ImageIO.read(java.util.Objects.requireNonNull(MinecraftServerGui.class.getClassLoader().getResourceAsStream("logo.png"))));
+         } catch (java.io.IOException ignore) {
+@@ -69,7 +69,7 @@ public class MinecraftServerGui extends JComponent {
+             @Override
+             public void windowClosing(WindowEvent event) {
+                 if (!minecraftServerGui.isClosing.getAndSet(true)) {
+-                    jFrame.setTitle("Purpur Minecraft server - shutting down!"); // Purpur - Improve GUI
++                    jFrame.setTitle("DivineMC Minecraft server - shutting down!"); // Purpur - Improve GUI // DivineMC - Rebrand
+                     server.halt(true);
+                     minecraftServerGui.runFinalizers();
+                 }
 diff --git a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
 index 80ed0e4b8c867d031413b4140e52af1342fdcb54..6ebd1300c2561116b83cb2472ac7939ead36d576 100644
 --- a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java

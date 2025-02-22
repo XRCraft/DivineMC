@@ -1,0 +1,16 @@
+--- a/net/minecraft/util/Mth.java
++++ b/net/minecraft/util/Mth.java
+@@ -46,11 +_,11 @@
+     private static final double[] COS_TAB = new double[257];
+ 
+     public static float sin(float value) {
+-        return SIN[(int)(value * 10430.378F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.sin(value); // DivineMC - lithium: CompactSineLUT
+     }
+ 
+     public static float cos(float value) {
+-        return SIN[(int)(value * 10430.378F + 16384.0F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.cos(value); // DivineMC - lithium: CompactSineLUT
+     }
+ 
+     public static float sqrt(float value) {
