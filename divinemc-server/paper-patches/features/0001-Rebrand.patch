@@ -134,6 +134,19 @@ index b36e30fd4057a938e4d90cb42a2dca661f16478e..4e29f5f55b9a894099bef6f7c7f11e2a
      }
  
      @Override
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index 2e1b7f613de8876095ef39bb0341a3f9520c8d5d..bab0d25e82f85c7b9524ae42e0bb41e6233d71cf 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -285,7 +285,7 @@ public class Main {
+                 System.setProperty("jdk.console", "java.base"); // Paper - revert default console provider back to java.base so we can have our own jline
+                 //System.out.println("Loading libraries, please wait...");
+                 //net.minecraft.server.Main.main(options);
+-                io.papermc.paper.PaperBootstrap.boot(options);
++                org.bxteam.divinemc.DivineBootstrap.boot(options); // DivineMC - Replace with DivineBootstrap
+             } catch (Throwable t) {
+                 t.printStackTrace();
+             }
 diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
 index 2e7c3d4befeb6256ce81ecaa9ed4e8fbcb21651e..a839dbbb72f48b8f8736d9f4693c528686570732 100644
 --- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
