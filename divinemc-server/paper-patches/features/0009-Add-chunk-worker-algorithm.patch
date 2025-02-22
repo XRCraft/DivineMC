@@ -5,7 +5,7 @@ Subject: [PATCH] Add chunk worker algorithm
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java b/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
-index 632920e04686d8a0fd0a60e87348be1fe7862a3c..38b8cdac418ab2308c0392be49289356cbe81fb7 100644
+index 632920e04686d8a0fd0a60e87348be1fe7862a3c..27447481c6e6b526cda032aff54a5c87256c217d 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
 @@ -3,6 +3,8 @@ package ca.spottedleaf.moonrise.common.util;
@@ -17,6 +17,15 @@ index 632920e04686d8a0fd0a60e87348be1fe7862a3c..38b8cdac418ab2308c0392be49289356
  import org.slf4j.Logger;
  import java.util.concurrent.TimeUnit;
  import java.util.concurrent.atomic.AtomicInteger;
+@@ -29,7 +31,7 @@ public final class MoonriseCommon {
+                 }
+             }
+     );
+-    public static final long WORKER_QUEUE_HOLD_TIME = (long)(20.0e6); // 20ms
++    public static final long WORKER_QUEUE_HOLD_TIME = (long)(2.0e6); // 2ms // DivineMC - Reduce from 20ms to 2ms
+     public static final int CLIENT_DIVISION = 0;
+     public static final PrioritisedThreadPool.ExecutorGroup RENDER_EXECUTOR_GROUP = MoonriseCommon.WORKER_POOL.createExecutorGroup(CLIENT_DIVISION, 0);
+     public static final int SERVER_DIVISION = 1;
 @@ -38,26 +40,16 @@ public final class MoonriseCommon {
      public static final PrioritisedThreadPool.ExecutorGroup LOAD_GROUP         = MoonriseCommon.WORKER_POOL.createExecutorGroup(SERVER_DIVISION, 0);
  

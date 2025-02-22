@@ -8,6 +8,8 @@ private-f net.minecraft.world.level.levelgen.RandomState router
 private-f net.minecraft.world.level.levelgen.RandomState sampler
 public net.minecraft.util.Mth SIN
 public net.minecraft.world.entity.ai.Brain sensors
+public net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities lineOfSightTest
+public net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities nearbyEntities
 public net.minecraft.world.entity.ai.sensing.Sensor scanRate
 public net.minecraft.world.entity.ai.sensing.Sensor timeToTick
 public net.minecraft.world.level.ServerExplosion damageSource

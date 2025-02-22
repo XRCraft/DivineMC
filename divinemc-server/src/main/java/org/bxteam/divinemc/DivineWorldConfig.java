@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.bxteam.divinemc.DivineConfig.log;
 
+@SuppressWarnings("unused")
 @NullMarked
 public final class DivineWorldConfig {
     private final YamlConfiguration config;
@@ -74,9 +75,18 @@ public final class DivineWorldConfig {
     }
 
     public boolean snowballCanKnockback = true;
+    public boolean disableSnowballSaving = false;
     public boolean eggCanKnockback = true;
-    private void setSnowballAndEggKnockback() {
+    public boolean disableFireworkSaving = false;
+    private void projectilesSettings() {
         snowballCanKnockback = getBoolean("gameplay-mechanics.projectiles.snowball.knockback", snowballCanKnockback);
+        disableSnowballSaving = getBoolean("gameplay-mechanics.projectiles.snowball.disable-saving", disableSnowballSaving);
         eggCanKnockback = getBoolean("gameplay-mechanics.projectiles.egg.knockback", eggCanKnockback);
+        disableFireworkSaving = getBoolean("gameplay-mechanics.projectiles.firework.disable-saving", disableFireworkSaving);
+    }
+
+    public boolean allowEntityPortalWithPassenger = true;
+    private void unsupportedFeatures() {
+        allowEntityPortalWithPassenger = getBoolean("unsupported-features.allow-entity-portal-with-passenger", allowEntityPortalWithPassenger);
     }
 }

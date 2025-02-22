@@ -374,6 +374,34 @@ index ec90ea4e66c6c38d7ad41805a16c63e006e44be4..0204fe68c97d152a7c3201620b6709a8
  
      private boolean isAcceptableLandingPosition(ServerLevel level, E entity, BlockPos pos) {
          BlockPos blockPos = entity.blockPosition();
+diff --git a/net/minecraft/world/entity/ai/sensing/VillagerBabiesSensor.java b/net/minecraft/world/entity/ai/sensing/VillagerBabiesSensor.java
+index 24d1928445b5571e040a2b12d5c82e77a880d9bd..dac0a23aebf2dea1972c07d5c82079da7c9837ac 100644
+--- a/net/minecraft/world/entity/ai/sensing/VillagerBabiesSensor.java
++++ b/net/minecraft/world/entity/ai/sensing/VillagerBabiesSensor.java
+@@ -21,9 +21,22 @@ public class VillagerBabiesSensor extends Sensor<LivingEntity> {
+         entity.getBrain().setMemory(MemoryModuleType.VISIBLE_VILLAGER_BABIES, this.getNearestVillagerBabies(entity));
+     }
+ 
++    // DivineMC start - Optimize baby villager sensor
+     private List<LivingEntity> getNearestVillagerBabies(LivingEntity livingEntity) {
+-        return ImmutableList.copyOf(this.getVisibleEntities(livingEntity).findAll(this::isVillagerBaby));
++        NearestVisibleLivingEntities visibleEntities = this.getVisibleEntities(livingEntity);
++        ImmutableList.Builder<LivingEntity> babies = ImmutableList.builder();
++
++        for (LivingEntity target : visibleEntities.nearbyEntities) {
++            if (target.getType() == EntityType.VILLAGER
++                && target.isBaby()
++                && visibleEntities.lineOfSightTest.test(target)) {
++                babies.add(target);
++            }
++        }
++
++        return babies.build();
+     }
++    // DivineMC end - Optimize baby villager sensor
+ 
+     private boolean isVillagerBaby(LivingEntity livingEntity) {
+         return livingEntity.getType() == EntityType.VILLAGER && livingEntity.isBaby();
 diff --git a/net/minecraft/world/entity/animal/goat/Goat.java b/net/minecraft/world/entity/animal/goat/Goat.java
 index 6f106f10466440f8e65e04511f67d48f082d703f..15728d4fbe7a12c7a3b94a9ef88e7141b1225fa3 100644
 --- a/net/minecraft/world/entity/animal/goat/Goat.java

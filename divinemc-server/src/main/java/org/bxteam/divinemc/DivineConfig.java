@@ -2,8 +2,6 @@ package org.bxteam.divinemc;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.configuration.ConfigurationSection;
@@ -23,7 +21,7 @@ import java.util.logging.Level;
 
 @SuppressWarnings("unused")
 @NullMarked
-public final class DivineConfig {
+public final class DivineConfig { // TODO: Remake config system
     private DivineConfig() {
         throw new IllegalStateException("Utility class");
     }
@@ -194,6 +192,7 @@ public final class DivineConfig {
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
     public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
+    public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableSecureSeed = false;
     public static boolean enableDensityFunctionCompiler = false;
     public static boolean enableStructureLayoutOptimizer = true;
@@ -203,9 +202,7 @@ public final class DivineConfig {
         nativeAccelerationEnabled = getBoolean(config, "settings.chunk-generation.native-acceleration-enabled", nativeAccelerationEnabled);
 
         allowAVX512 = getBoolean(config, "settings.chunk-generation.allow-avx512", allowAVX512,
-            "Enables AVX512 support for natives-math optimizations",
-            "",
-            "Read more about AVX512: https://en.wikipedia.org/wiki/AVX-512");
+            "Enables AVX512 support for natives-math optimizations");
         isaTargetLevelOverride = getInt(config, "settings.chunk-generation.isa-target-level-override", isaTargetLevelOverride,
             "Overrides the ISA target located by the native loader, which allows forcing AVX512 (must be a value between 6-9 for AVX512 support).",
             "Value must be between 1-9, and -1 to disable override");
@@ -222,6 +219,8 @@ public final class DivineConfig {
 
         chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString(config, "settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
             "Modifies what algorithm the chunk system will use to define thread counts. values: MOONRISE, C2ME, C2ME_AGGRESSIVE"));
+        threadPoolPriority = getInt(config, "settings.chunk-generation.thread-pool-priority", threadPoolPriority,
+            "Sets the priority of the thread pool used for chunk generation");
 
         enableSecureSeed = getBoolean(config, "settings.misc.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",
@@ -258,6 +257,7 @@ public final class DivineConfig {
     public static boolean clumpOrbs = true;
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
+    public static boolean updateSuppressionCrashFix = true;
 
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean(config, "settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
@@ -267,6 +267,7 @@ public final class DivineConfig {
             "Improves general gameplay experience of the player when the server is lagging, as they won't get lagged back (message 'moved too quickly')");
         alwaysAllowWeirdMovement = getBoolean(config, "settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
+        updateSuppressionCrashFix = getBoolean(config, "settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
     }
 
     public static boolean enableFasterTntOptimization = true;

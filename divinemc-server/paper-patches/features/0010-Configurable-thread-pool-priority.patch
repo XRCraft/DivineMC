@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sun, 23 Feb 2025 00:43:23 +0300
+Subject: [PATCH] Configurable thread pool priority
+
+
+diff --git a/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java b/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
+index 27447481c6e6b526cda032aff54a5c87256c217d..87d22532c680b7c6d3244a13e91fccbcc1a7e004 100644
+--- a/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
++++ b/src/main/java/ca/spottedleaf/moonrise/common/util/MoonriseCommon.java
+@@ -28,6 +28,7 @@ public final class MoonriseCommon {
+                             LOGGER.error("Uncaught exception in thread " + thread.getName(), throwable);
+                         }
+                     });
++                    thread.setPriority(DivineConfig.threadPoolPriority); // DivineMC - Configurable thread pool priority
+                 }
+             }
+     );
