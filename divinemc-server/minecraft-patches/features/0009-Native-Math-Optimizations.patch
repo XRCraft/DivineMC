@@ -1,11 +1,99 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
 Date: Fri, 31 Jan 2025 21:50:46 +0300
-Subject: [PATCH] C2ME: opts_native_math
+Subject: [PATCH] Native Math Optimizations
 
 
+diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
+index ae1ab070a93b46a0790eed3feda1d09f5fbe9b25..3befc00c10ce8f29d3ee1ea493c2b220df5eaaea 100644
+--- a/net/minecraft/util/Mth.java
++++ b/net/minecraft/util/Mth.java
+@@ -58,18 +58,15 @@ public class Mth {
+     }
+ 
+     public static int floor(float value) {
+-        int i = (int)value;
+-        return value < i ? i - 1 : i;
++        return (int) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int floor(double value) {
+-        int i = (int)value;
+-        return value < i ? i - 1 : i;
++        return (int) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static long lfloor(double value) {
+-        long l = (long)value;
+-        return value < l ? l - 1L : l;
++        return (long) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float abs(float value) {
+@@ -81,13 +78,11 @@ public class Mth {
+     }
+ 
+     public static int ceil(float value) {
+-        int i = (int)value;
+-        return value > i ? i + 1 : i;
++        return (int) Math.ceil(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int ceil(double value) {
+-        int i = (int)value;
+-        return value > i ? i + 1 : i;
++        return (int) Math.ceil(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int clamp(int value, int min, int max) {
+@@ -123,15 +118,7 @@ public class Mth {
+     }
+ 
+     public static double absMax(double x, double y) {
+-        if (x < 0.0) {
+-            x = -x;
+-        }
+-
+-        if (y < 0.0) {
+-            y = -y;
+-        }
+-
+-        return Math.max(x, y);
++        return Math.max(Math.abs(x), Math.abs(y)); // DivineMC - Math Optimizations
+     }
+ 
+     public static int floorDiv(int dividend, int divisor) {
+@@ -162,14 +149,26 @@ public class Mth {
+         return Math.floorMod(x, y);
+     }
+ 
+-    public static float positiveModulo(float numerator, float denominator) {
++    public static float positiveModuloForAnyDenominator(float numerator, float denominator) { // DivineMC - Math Optimizations
+         return (numerator % denominator + denominator) % denominator;
+     }
+ 
+-    public static double positiveModulo(double numerator, double denominator) {
++    public static double positiveModuloForAnyDenominator(double numerator, double denominator) { // DivineMC - Math Optimizations
+         return (numerator % denominator + denominator) % denominator;
+     }
+ 
++    // DivineMC start - Math Optimizations
++    public static float positiveModuloForPositiveIntegerDenominator(float numerator, float denominator) {
++        var modulo = numerator % denominator;
++        return modulo < 0 ? modulo + denominator : modulo;
++    }
++
++    public static double positiveModuloForPositiveIntegerDenominator(double numerator, double denominator) {
++        var modulo = numerator % denominator;
++        return modulo < 0 ? modulo + denominator : modulo;
++    }
++    // DivineMC end - Math Optimizations
++
+     public static boolean isMultipleOf(int number, int multiple) {
+         return number % multiple == 0;
+     }
 diff --git a/net/minecraft/world/level/biome/BiomeManager.java b/net/minecraft/world/level/biome/BiomeManager.java
-index 73962e79a0f3d892e3155443a1b84508b0f4042e..1d7c8c2196afb8515802734ad756abec1d5ceaf2 100644
+index 73962e79a0f3d892e3155443a1b84508b0f4042e..10b930f7e0314bf6658ea9ae79ae88b37aee3e05 100644
 --- a/net/minecraft/world/level/biome/BiomeManager.java
 +++ b/net/minecraft/world/level/biome/BiomeManager.java
 @@ -29,39 +29,64 @@ public class BiomeManager {
@@ -23,7 +111,7 @@ index 73962e79a0f3d892e3155443a1b84508b0f4042e..1d7c8c2196afb8515802734ad756abec
 -        double d2 = (i2 & 3) / 4.0;
 -        int i6 = 0;
 -        double d3 = Double.POSITIVE_INFINITY;
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        if (org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
 +            int mask = org.bxteam.divinemc.math.Bindings.c2me_natives_biome_access_sample(this.biomeZoomSeed, pos.getX(), pos.getY(), pos.getZ());
  
@@ -99,23 +187,23 @@ index 73962e79a0f3d892e3155443a1b84508b0f4042e..1d7c8c2196afb8515802734ad756abec
 +            int resZ = (var9 & 1) == 0 ? var5 : var5 + 1;
 +            return this.noiseBiomeSource.getNoiseBiome(resX, resY, resZ);
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      public Holder<Biome> getNoiseBiomeAtPosition(double x, double y, double z) {
 diff --git a/net/minecraft/world/level/levelgen/DensityFunctions.java b/net/minecraft/world/level/levelgen/DensityFunctions.java
-index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907ce40e8745 100644
+index fa08f06be03b2e6120ddc105563f68d551da741c..6ff9175641234b0fe55dc4613c6d7c56e00211fd 100644
 --- a/net/minecraft/world/level/levelgen/DensityFunctions.java
 +++ b/net/minecraft/world/level/levelgen/DensityFunctions.java
 @@ -501,6 +501,11 @@ public final class DensityFunctions {
      }
  
      protected static final class EndIslandDensityFunction implements DensityFunction.SimpleFunction {
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        private final java.lang.foreign.Arena c2me$arena = java.lang.foreign.Arena.ofAuto();
 +        private java.lang.foreign.MemorySegment c2me$samplerData = null;
 +        private long c2me$samplerDataPtr;
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
          public static final KeyDispatchDataCodec<DensityFunctions.EndIslandDensityFunction> CODEC = KeyDispatchDataCodec.of(
              MapCodec.unit(new DensityFunctions.EndIslandDensityFunction(0L))
          );
@@ -123,7 +211,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
              RandomSource randomSource = new LegacyRandomSource(seed);
              randomSource.consumeCount(17292);
              this.islandNoise = new SimplexNoise(randomSource);
-+            // DivineMC start - C2ME: opts_native_math
++            // DivineMC start - Native Math Optimizations
 +            if (org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
 +                int[] permutation = (this.islandNoise).p;
 +                java.lang.foreign.MemorySegment segment = this.c2me$arena.allocate(permutation.length * 4L, 64);
@@ -132,7 +220,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
 +                this.c2me$samplerData = segment;
 +                this.c2me$samplerDataPtr = segment.address();
 +            }
-+            // DivineMC end - C2ME: opts_native_math
++            // DivineMC end - Native Math Optimizations
          }
  
          private static float getHeightValue(SimplexNoise noise, int x, int z) {
@@ -141,13 +229,13 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
          @Override
          public double compute(DensityFunction.FunctionContext context) {
 -            return (getHeightValue(this.islandNoise, context.blockX() / 8, context.blockZ() / 8) - 8.0) / 128.0;
-+            // DivineMC start - C2ME: opts_native_math
++            // DivineMC start - Native Math Optimizations
 +            if (org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled && this.c2me$samplerDataPtr != 0L) {
 +                return ((double) org.bxteam.divinemc.math.Bindings.c2me_natives_end_islands_sample(this.c2me$samplerDataPtr, context.blockX() / 8, context.blockZ() / 8) - 8.0) / 128.0;
 +            } else {
 +                return (getHeightValue(this.islandNoise, context.blockX() / 8, context.blockZ() / 8) - 8.0) / 128.0;
 +            }
-+            // DivineMC end - C2ME: opts_native_math
++            // DivineMC end - Native Math Optimizations
          }
  
          @Override
@@ -155,7 +243,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
              return this.noise.getValue(context.blockX() * this.xzScale, context.blockY() * this.yScale, context.blockZ() * this.xzScale);
          }
  
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
          @Override
 -        public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
 -            contextProvider.fillAllDirectly(array, this);
@@ -192,7 +280,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
 +                densities.length
 +            );
          }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
  
          @Override
          public DensityFunction mapAll(DensityFunction.Visitor visitor) {
@@ -201,7 +289,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
              return CODEC;
          }
 +
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        @Override
 +        public void fillArray(final double[] densities, final ContextProvider applier) {
 +            if (!org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
@@ -239,7 +327,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
 +                densities[i] *= 4.0;
 +            }
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      public record ShiftA(@Override DensityFunction.NoiseHolder offsetNoise) implements DensityFunctions.ShiftNoise {
@@ -248,7 +336,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
              return CODEC;
          }
 +
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        @Override
 +        public void fillArray(final double[] densities, final ContextProvider applier) {
 +            if (!org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
@@ -286,7 +374,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
 +                densities[i] *= 4.0;
 +            }
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      public record ShiftB(@Override DensityFunction.NoiseHolder offsetNoise) implements DensityFunctions.ShiftNoise {
@@ -295,7 +383,7 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
              return CODEC;
          }
 +
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        @Override
 +        public void fillArray(final double[] densities, final ContextProvider applier) {
 +            if (!org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
@@ -333,23 +421,36 @@ index fa08f06be03b2e6120ddc105563f68d551da741c..7178013421233d7dab36eb07a768907c
 +                densities[i] *= 4.0;
 +            }
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      interface ShiftNoise extends DensityFunction {
+diff --git a/net/minecraft/world/level/levelgen/blending/Blender.java b/net/minecraft/world/level/levelgen/blending/Blender.java
+index 01e5b29d6e9a5c53c0e23b61ed0c1d7be1a0fe08..d80df05e40f3941ade5ed320e12f8dcf47e6b247 100644
+--- a/net/minecraft/world/level/levelgen/blending/Blender.java
++++ b/net/minecraft/world/level/levelgen/blending/Blender.java
+@@ -144,7 +144,7 @@ public class Blender {
+     private static double heightToOffset(double height) {
+         double d = 1.0;
+         double d1 = height + 0.5;
+-        double d2 = Mth.positiveModulo(d1, 8.0);
++        double d2 = Mth.positiveModuloForPositiveIntegerDenominator(d1, 8.0); // DivineMC - Math optimizations
+         return 1.0 * (32.0 * (d1 - 128.0) - 3.0 * (d1 - 120.0) * d2 + 3.0 * d2 * d2) / (128.0 * (32.0 - 3.0 * d2));
+     }
+ 
 diff --git a/net/minecraft/world/level/levelgen/synth/BlendedNoise.java b/net/minecraft/world/level/levelgen/synth/BlendedNoise.java
-index af5f714c285aad5ef844b17a266e06b5092d33aa..173c9f4024d085e0591f9eb5502a6f15168673e7 100644
+index af5f714c285aad5ef844b17a266e06b5092d33aa..6c022157a898e96daabc5c82c7f8b34bee64aca4 100644
 --- a/net/minecraft/world/level/levelgen/synth/BlendedNoise.java
 +++ b/net/minecraft/world/level/levelgen/synth/BlendedNoise.java
 @@ -36,6 +36,11 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
      private final double maxValue;
      public final double xzScale;
      public final double yScale;
-+    // DivineMC start - C2ME: opts_native_math
++    // DivineMC start - Native Math Optimizations
 +    private final java.lang.foreign.Arena c2me$arena = java.lang.foreign.Arena.ofAuto();
 +    private java.lang.foreign.MemorySegment c2me$samplerData = null;
 +    private long c2me$samplerDataPtr;
-+    // DivineMC end - C2ME: opts_native_math
++    // DivineMC end - Native Math Optimizations
  
      public static BlendedNoise createUnseeded(double xzScale, double yScale, double xzFactor, double yFactor, double smearScaleMultiplier) {
          return new BlendedNoise(new XoroshiroRandomSource(0L), xzScale, yScale, xzFactor, yFactor, smearScaleMultiplier);
@@ -357,24 +458,24 @@ index af5f714c285aad5ef844b17a266e06b5092d33aa..173c9f4024d085e0591f9eb5502a6f15
          this.xzMultiplier = 684.412 * this.xzScale;
          this.yMultiplier = 684.412 * this.yScale;
          this.maxValue = minLimitNoise.maxBrokenValue(this.yMultiplier);
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        if (org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
 +            this.c2me$samplerData = org.bxteam.divinemc.math.BindingsTemplate.interpolated_noise_sampler$create(this.c2me$arena, this);
 +            this.c2me$samplerDataPtr = this.c2me$samplerData.address();
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      @VisibleForTesting
 diff --git a/net/minecraft/world/level/levelgen/synth/NormalNoise.java b/net/minecraft/world/level/levelgen/synth/NormalNoise.java
-index 45060882654217eeb9a07357c5149b12fbff02c1..75e3641b40841622a7545bc371197ff1a28968d2 100644
+index 45060882654217eeb9a07357c5149b12fbff02c1..c17f43164009f47050a390eb50688460e1d4cf3b 100644
 --- a/net/minecraft/world/level/levelgen/synth/NormalNoise.java
 +++ b/net/minecraft/world/level/levelgen/synth/NormalNoise.java
 @@ -21,6 +21,15 @@ public class NormalNoise {
      private final PerlinNoise second;
      private final double maxValue;
      private final NormalNoise.NoiseParameters parameters;
-+    // DivineMC start - C2ME: opts_native_math
++    // DivineMC start - Native Math Optimizations
 +    private final java.lang.foreign.Arena c2me$arena = java.lang.foreign.Arena.ofAuto();
 +    private java.lang.foreign.MemorySegment c2me$samplerData = null;
 +    private long c2me$samplerDataPtr;
@@ -382,7 +483,7 @@ index 45060882654217eeb9a07357c5149b12fbff02c1..75e3641b40841622a7545bc371197ff1
 +    public long c2me$getPointer() {
 +        return this.c2me$samplerDataPtr;
 +    }
-+    // DivineMC end - C2ME: opts_native_math
++    // DivineMC end - Native Math Optimizations
  
      @Deprecated
      public static NormalNoise createLegacyNetherBiome(RandomSource random, NormalNoise.NoiseParameters parameters) {
@@ -390,12 +491,12 @@ index 45060882654217eeb9a07357c5149b12fbff02c1..75e3641b40841622a7545bc371197ff1
  
          this.valueFactor = 0.16666666666666666 / expectedDeviation(i2 - i1);
          this.maxValue = (this.first.maxValue() + this.second.maxValue()) * this.valueFactor;
-+        // DivineMC start - C2ME: opts_native_math
++        // DivineMC start - Native Math Optimizations
 +        if (org.bxteam.divinemc.DivineConfig.nativeAccelerationEnabled) {
 +            this.c2me$samplerData = org.bxteam.divinemc.math.BindingsTemplate.double_octave_sampler_data$create(this.c2me$arena, this.first, this.second, this.valueFactor);
 +            this.c2me$samplerDataPtr = this.c2me$samplerData.address();
 +        }
-+        // DivineMC end - C2ME: opts_native_math
++        // DivineMC end - Native Math Optimizations
      }
  
      public double maxValue() {
