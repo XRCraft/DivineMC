@@ -1,81 +1,83 @@
 package org.bxteam.divinemc;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bxteam.divinemc.server.chunk.ChunkSystemAlgorithms;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NullMarked;
+import org.simpleyaml.configuration.comments.CommentType;
+import org.simpleyaml.configuration.file.YamlFile;
+import org.simpleyaml.exceptions.InvalidConfigurationException;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 @SuppressWarnings("unused")
-@NullMarked
-public final class DivineConfig { // TODO: Remake config system
-    private DivineConfig() {
-        throw new IllegalStateException("Utility class");
-    }
+public class DivineConfig {
+    private static final String HEADER = """
+        This is the main configuration file for DivineMC.
+        If you need help with the configuration or have any questions related to DivineMC,
+        join us in our Discord server.
 
-    private static final String HEADER = "This is the main configuration file for DivineMC.\n"
-        + "If you need help with the configuration or have any questions related to DivineMC,\n"
-        + "join us in our Discord server.\n"
-        + "\n"
-        + "Discord: https://discord.gg/p7cxhw7E2M \n"
-        + "Docs: https://bxteam.org/docs/divinemc \n"
-        + "New builds: https://github.com/BX-Team/DivineMC/releases/latest";
+        Discord: https://discord.gg/p7cxhw7E2M
+        Docs: https://bxteam.org/docs/divinemc
+        New builds: https://github.com/BX-Team/DivineMC/releases/latest""";
+
+    public static final Logger LOGGER = LogManager.getLogger(DivineConfig.class.getSimpleName());
     private static File configFile;
-    public static YamlConfiguration config;
+    public static final YamlFile config = new YamlFile();
+    private static int updates = 0;
 
-    private static Map<String, Command> commands;
+	private static ConfigurationSection convertToBukkit(org.simpleyaml.configuration.ConfigurationSection section) {
+		ConfigurationSection newSection = new MemoryConfiguration();
+		for (String key : section.getKeys(false)) {
+			if (section.isConfigurationSection(key)) {
+				newSection.set(key, convertToBukkit(section.getConfigurationSection(key)));
+			} else {
+				newSection.set(key, section.get(key));
+			}
+		}
+		return newSection;
+	}
 
-    public static int version;
-    static boolean verbose;
+	public static ConfigurationSection getConfigCopy() {
+		return convertToBukkit(config);
+	}
 
-    public static void init(File configFile) {
+	public static int getUpdates() {
+		return updates;
+	}
+
+	public static void init(File configFile) throws IOException {
         DivineConfig.configFile = configFile;
-        config = new YamlConfiguration();
-        try {
-            config.load(configFile);
-        } catch (IOException ignored) {
-        } catch (InvalidConfigurationException ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Could not load divinemc.yml, please correct your syntax errors", ex);
-            throw Throwables.propagate(ex);
-        }
+		if (configFile.exists()) {
+			try {
+				config.load(configFile);
+			} catch (InvalidConfigurationException e) {
+				throw new IOException(e);
+			}
+		}
+
+		getString("config.version", "5");
+        getBoolean("config.verbose", false);
         config.options().header(HEADER);
         config.options().copyDefaults(true);
-        verbose = getBoolean(config, "verbose", false);
 
-        version = getInt(config, "config-version", 5);
-        set(config, "config-version", 5);
+        readConfig(configFile, config, DivineConfig.class, null);
+	}
 
-        readConfig(DivineConfig.class, null);
-    }
-
-    public static void log(String s) {
-        if (verbose) {
-            log(Level.INFO, s);
-        }
-    }
-
-    public static void log(Level level, String s) {
-        Bukkit.getLogger().log(level, s);
-    }
-
-    static void readConfig(Class<?> clazz, @Nullable Object instance) {
+    public static void readConfig(Class<?> clazz, @Nullable Object instance) {
         readConfig(configFile, config, clazz, instance);
     }
 
-    public static void readConfig(File configFile, YamlConfiguration config, Class<?> clazz, @Nullable Object instance) {
+    private static void readConfig(File configFile, YamlFile config, Class<?> clazz, @Nullable Object instance) {
         for (Method method : clazz.getDeclaredMethods()) {
             if (!Modifier.isPrivate(method.getModifiers())) continue;
             if (method.getParameterTypes().length != 0) continue;
@@ -85,7 +87,7 @@ public final class DivineConfig { // TODO: Remake config system
                 method.setAccessible(true);
                 method.invoke(instance);
             } catch (InvocationTargetException ex) {
-                throw Throwables.propagate(ex.getCause());
+                throw new RuntimeException(ex.getCause());
             } catch (Exception ex) {
                 Bukkit.getLogger().log(Level.SEVERE, "Error invoking " + method, ex);
             }
@@ -98,91 +100,78 @@ public final class DivineConfig { // TODO: Remake config system
         }
     }
 
-    private static void set(YamlConfiguration config, String path, Object val, String... comments) {
-        config.addDefault(path, val);
-        config.set(path, val);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
+	private static void setComment(String key, String... comment) {
+		if (config.contains(key)) {
+			config.setComment(key, String.join("\n", comment), CommentType.BLOCK);
+		}
+	}
+
+	private static void ensureDefault(String key, Object defaultValue, String... comment) {
+		if (!config.contains(key)) {
+			config.set(key, defaultValue);
+            if (comment.length > 0) config.setComment(key, String.join("\n", comment), CommentType.BLOCK);
+		}
+	}
+
+	private static boolean getBoolean(String key, boolean defaultValue, String... comment) {
+		return getBoolean(key, null, defaultValue, comment);
+	}
+
+	private static boolean getBoolean(String key, @Nullable String oldKey, boolean defaultValue, String... comment) {
+		ensureDefault(key, defaultValue, comment);
+		return config.getBoolean(key, defaultValue);
+	}
+
+	private static int getInt(String key, int defaultValue, String... comment) {
+		return getInt(key, null, defaultValue, comment);
+	}
+
+	private static int getInt(String key, @Nullable String oldKey, int defaultValue, String... comment) {
+		ensureDefault(key, defaultValue, comment);
+		return config.getInt(key, defaultValue);
+	}
+
+	private static double getDouble(String key, double defaultValue, String... comment) {
+		return getDouble(key, null, defaultValue, comment);
+	}
+
+	private static double getDouble(String key, @Nullable String oldKey, double defaultValue, String... comment) {
+		ensureDefault(key, defaultValue, comment);
+		return config.getDouble(key, defaultValue);
+	}
+
+    private static long getLong(String key, long defaultValue, String... comment) {
+        return getLong(key, null, defaultValue, comment);
     }
 
-    private static String getString(YamlConfiguration config, String path, String def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return config.getString(path, config.getString(path));
+    private static long getLong(String key, @Nullable String oldKey, long defaultValue, String... comment) {
+        ensureDefault(key, defaultValue, comment);
+        return config.getLong(key, defaultValue);
     }
 
-    private static boolean getBoolean(YamlConfiguration config, String path, boolean def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return config.getBoolean(path, config.getBoolean(path));
-    }
+	private static String getString(String key, String defaultValue, String... comment) {
+		return getOldString(key, null, defaultValue, comment);
+	}
 
-    private static double getDouble(YamlConfiguration config, String path, double def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return config.getDouble(path, config.getDouble(path));
-    }
+	private static String getOldString(String key, @Nullable String oldKey, String defaultValue, String... comment) {
+		ensureDefault(key, defaultValue, comment);
+		return config.getString(key, defaultValue);
+	}
 
-    private static int getInt(YamlConfiguration config, String path, int def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return config.getInt(path, config.getInt(path));
-    }
+	private static List<String> getStringList(String key, List<String> defaultValue, String... comment) {
+		return getStringList(key, null, defaultValue, comment);
+	}
 
-    private static long getLong(YamlConfiguration config, String path, long def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return config.getLong(path, config.getLong(path));
-    }
-
-    private static <T> List<T> getList(YamlConfiguration config, String path, List<T> def, String... comments) {
-        config.addDefault(path, def);
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return (List<T>) config.getList(path, def);
-    }
-
-    static Map<String, Object> getMap(YamlConfiguration config, String path, Map<String, Object> def, String... comments) {
-        if (def != null && config.getConfigurationSection(path) == null) {
-            config.addDefault(path, def);
-            return def;
-        }
-        if (comments.length > 0) {
-            config.setComments(path, List.of(comments));
-        }
-        return toMap(config.getConfigurationSection(path));
-    }
-
-    private static Map<String, Object> toMap(ConfigurationSection section) {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                Object obj = section.get(key);
-                if (obj != null) {
-                    builder.put(key, obj instanceof ConfigurationSection val ? toMap(val) : obj);
-                }
-            }
-        }
-        return builder.build();
-    }
+	private static List<String> getStringList(String key, @Nullable String oldKey, List<String> defaultValue, String... comment) {
+		ensureDefault(key, defaultValue, comment);
+		return config.getStringList(key);
+	}
 
     public static int parallelThreadCount = 4;
     public static boolean logContainerCreationStacktraces = false;
     private static void parallelWorldTicking() {
-        parallelThreadCount = getInt(config, "settings.parallel-world-ticking.thread-count", parallelThreadCount);
-        logContainerCreationStacktraces = getBoolean(config, "settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
+        parallelThreadCount = getInt("settings.parallel-world-ticking.thread-count", parallelThreadCount);
+        logContainerCreationStacktraces = getBoolean("settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
     }
 
     public static boolean nativeAccelerationEnabled = true;
@@ -197,38 +186,37 @@ public final class DivineConfig { // TODO: Remake config system
     public static boolean enableDensityFunctionCompiler = false;
     public static boolean enableStructureLayoutOptimizer = true;
     public static boolean deduplicateShuffledTemplatePoolElementList = false;
-
     private static void chunkGeneration() {
-        nativeAccelerationEnabled = getBoolean(config, "settings.chunk-generation.native-acceleration-enabled", nativeAccelerationEnabled);
+        nativeAccelerationEnabled = getBoolean("settings.chunk-generation.native-acceleration-enabled", nativeAccelerationEnabled);
 
-        allowAVX512 = getBoolean(config, "settings.chunk-generation.allow-avx512", allowAVX512,
+        allowAVX512 = getBoolean("settings.chunk-generation.allow-avx512", allowAVX512,
             "Enables AVX512 support for natives-math optimizations");
-        isaTargetLevelOverride = getInt(config, "settings.chunk-generation.isa-target-level-override", isaTargetLevelOverride,
+        isaTargetLevelOverride = getInt("settings.chunk-generation.isa-target-level-override", isaTargetLevelOverride,
             "Overrides the ISA target located by the native loader, which allows forcing AVX512 (must be a value between 6-9 for AVX512 support).",
             "Value must be between 1-9, and -1 to disable override");
 
         if (isaTargetLevelOverride < -1 || isaTargetLevelOverride > 9) {
-            log(Level.WARNING, "Invalid ISA target level override: " + isaTargetLevelOverride + ", resetting to -1");
+            LOGGER.warn("Invalid ISA target level override: " + isaTargetLevelOverride + ", resetting to -1");
             isaTargetLevelOverride = -1;
         }
 
-        chunkDataCacheSoftLimit = getLong(config, "settings.chunk-generation.chunk-data-cache-soft-limit", chunkDataCacheSoftLimit);
-        chunkDataCacheLimit = getLong(config, "settings.chunk-generation.chunk-data-cache-limit", chunkDataCacheLimit);
-        maxViewDistance = getInt(config, "settings.chunk-generation.max-view-distance", maxViewDistance,
+        chunkDataCacheSoftLimit = getLong("settings.chunk-generation.chunk-data-cache-soft-limit", chunkDataCacheSoftLimit);
+        chunkDataCacheLimit = getLong("settings.chunk-generation.chunk-data-cache-limit", chunkDataCacheLimit);
+        maxViewDistance = getInt("settings.chunk-generation.max-view-distance", maxViewDistance,
             "Changes the maximum view distance for the server, allowing clients to have render distances higher than 32");
 
-        chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString(config, "settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
+        chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString("settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
             "Modifies what algorithm the chunk system will use to define thread counts. values: MOONRISE, C2ME, C2ME_AGGRESSIVE"));
-        threadPoolPriority = getInt(config, "settings.chunk-generation.thread-pool-priority", threadPoolPriority,
+        threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
 
-        enableSecureSeed = getBoolean(config, "settings.misc.enable-secure-seed", enableSecureSeed,
+        enableSecureSeed = getBoolean("settings.misc.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",
             "",
             "Terrain and biome generation remains the same, but all the ores and structures are generated with 1024-bit seed, instead of the usual 64-bit seed.",
             "This seed is almost impossible to crack, and there are no weird links between structures.");
 
-        enableDensityFunctionCompiler = getBoolean(config, "settings.chunk-generation.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
+        enableDensityFunctionCompiler = getBoolean("settings.chunk-generation.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
             "Whether to use density function compiler to accelerate world generation",
             "",
             "Density function: https://minecraft.wiki/w/Density_function",
@@ -241,9 +229,9 @@ public final class DivineConfig { // TODO: Remake config system
             "Please test if this optimization actually benefits your server, as",
             "it can sometimes slow down chunk performance than speed it up.");
 
-        enableStructureLayoutOptimizer = getBoolean(config, "settings.chunk-generation.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
+        enableStructureLayoutOptimizer = getBoolean("settings.chunk-generation.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
             "Enables a port of the mod StructureLayoutOptimizer, which optimizes general Jigsaw structure generation");
-        deduplicateShuffledTemplatePoolElementList = getBoolean(config, "settings.chunk-generation.experimental.deduplicate-shuffled-template-pool-element-list", deduplicateShuffledTemplatePoolElementList,
+        deduplicateShuffledTemplatePoolElementList = getBoolean("settings.chunk-generation.experimental.deduplicate-shuffled-template-pool-element-list", deduplicateShuffledTemplatePoolElementList,
             "Whether to use an alternative strategy to make structure layouts generate slightly even faster than",
             "the default optimization this mod has for template pool weights. This alternative strategy works by",
             "changing the list of pieces that structures collect from the template pool to not have duplicate entries.",
@@ -258,26 +246,24 @@ public final class DivineConfig { // TODO: Remake config system
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
-
     private static void miscSettings() {
-        skipUselessSecondaryPoiSensor = getBoolean(config, "settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
-        clumpOrbs = getBoolean(config, "settings.misc.clump-orbs", clumpOrbs,
+        skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
+        clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
             "Clumps experience orbs together to reduce entity count");
-        ignoreMovedTooQuicklyWhenLagging = getBoolean(config, "settings.misc.ignore-moved-too-quickly-when-lagging", ignoreMovedTooQuicklyWhenLagging,
+        ignoreMovedTooQuicklyWhenLagging = getBoolean("settings.misc.ignore-moved-too-quickly-when-lagging", ignoreMovedTooQuicklyWhenLagging,
             "Improves general gameplay experience of the player when the server is lagging, as they won't get lagged back (message 'moved too quickly')");
-        alwaysAllowWeirdMovement = getBoolean(config, "settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
+        alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
-        updateSuppressionCrashFix = getBoolean(config, "settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
+        updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
     }
 
     public static boolean enableFasterTntOptimization = true;
     public static boolean explosionNoBlockDamage = false;
     public static double tntRandomRange = -1;
-
     private static void tntOptimization() {
-        enableFasterTntOptimization = getBoolean(config, "settings.tnt-optimization.enable-faster-tnt-optimization", enableFasterTntOptimization);
-        explosionNoBlockDamage = getBoolean(config, "settings.tnt-optimization.explosion-no-block-damage", explosionNoBlockDamage);
-        tntRandomRange = getDouble(config, "settings.tnt-optimization.tnt-random-range", tntRandomRange);
+        enableFasterTntOptimization = getBoolean("settings.tnt-optimization.enable-faster-tnt-optimization", enableFasterTntOptimization);
+        explosionNoBlockDamage = getBoolean("settings.tnt-optimization.explosion-no-block-damage", explosionNoBlockDamage);
+        tntRandomRange = getDouble("settings.tnt-optimization.tnt-random-range", tntRandomRange);
     }
 
     public static boolean lagCompensationEnabled = true;
@@ -290,18 +276,17 @@ public final class DivineConfig { // TODO: Remake config system
     public static boolean portalAcceleration = true;
     public static boolean timeAcceleration = true;
     public static boolean randomTickSpeedAcceleration = true;
-
     private static void lagCompensation() {
-        lagCompensationEnabled = getBoolean(config, "settings.lag-compensation.enabled", lagCompensationEnabled, "Improves the player experience when TPS is low");
-        blockEntityAcceleration = getBoolean(config, "settings.lag-compensation.block-entity-acceleration", blockEntityAcceleration);
-        blockBreakingAcceleration = getBoolean(config, "settings.lag-compensation.block-breaking-acceleration", blockBreakingAcceleration);
-        eatingAcceleration = getBoolean(config, "settings.lag-compensation.eating-acceleration", eatingAcceleration);
-        potionEffectAcceleration = getBoolean(config, "settings.lag-compensation.potion-effect-acceleration", potionEffectAcceleration);
-        fluidAcceleration = getBoolean(config, "settings.lag-compensation.fluid-acceleration", fluidAcceleration);
-        pickupAcceleration = getBoolean(config, "settings.lag-compensation.pickup-acceleration", pickupAcceleration);
-        portalAcceleration = getBoolean(config, "settings.lag-compensation.portal-acceleration", portalAcceleration);
-        timeAcceleration = getBoolean(config, "settings.lag-compensation.time-acceleration", timeAcceleration);
-        randomTickSpeedAcceleration = getBoolean(config, "settings.lag-compensation.random-tick-speed-acceleration", randomTickSpeedAcceleration);
+        lagCompensationEnabled = getBoolean("settings.lag-compensation.enabled", lagCompensationEnabled, "Improves the player experience when TPS is low");
+        blockEntityAcceleration = getBoolean("settings.lag-compensation.block-entity-acceleration", blockEntityAcceleration);
+        blockBreakingAcceleration = getBoolean("settings.lag-compensation.block-breaking-acceleration", blockBreakingAcceleration);
+        eatingAcceleration = getBoolean("settings.lag-compensation.eating-acceleration", eatingAcceleration);
+        potionEffectAcceleration = getBoolean("settings.lag-compensation.potion-effect-acceleration", potionEffectAcceleration);
+        fluidAcceleration = getBoolean("settings.lag-compensation.fluid-acceleration", fluidAcceleration);
+        pickupAcceleration = getBoolean("settings.lag-compensation.pickup-acceleration", pickupAcceleration);
+        portalAcceleration = getBoolean("settings.lag-compensation.portal-acceleration", portalAcceleration);
+        timeAcceleration = getBoolean("settings.lag-compensation.time-acceleration", timeAcceleration);
+        randomTickSpeedAcceleration = getBoolean("settings.lag-compensation.random-tick-speed-acceleration", randomTickSpeedAcceleration);
     }
 
     public static boolean noChatReportsEnabled = false;
@@ -310,29 +295,27 @@ public final class DivineConfig { // TODO: Remake config system
     public static boolean noChatReportsDebugLog = false;
     public static boolean noChatReportsDemandOnClient = false;
     public static String noChatReportsDisconnectDemandOnClientMessage = "You do not have No Chat Reports, and this server is configured to require it on client!";
-
     private static void noChatReports() {
-        noChatReportsEnabled = getBoolean(config, "settings.no-chat-reports.enabled", noChatReportsEnabled,
+        noChatReportsEnabled = getBoolean("settings.no-chat-reports.enabled", noChatReportsEnabled,
             "Enables or disables the No Chat Reports feature");
-        noChatReportsAddQueryData = getBoolean(config, "settings.no-chat-reports.add-query-data", noChatReportsAddQueryData,
+        noChatReportsAddQueryData = getBoolean("settings.no-chat-reports.add-query-data", noChatReportsAddQueryData,
             "Should server include extra query data to help clients know that your server is secure");
-        noChatReportsConvertToGameMessage = getBoolean(config, "settings.no-chat-reports.convert-to-game-message", noChatReportsConvertToGameMessage,
+        noChatReportsConvertToGameMessage = getBoolean("settings.no-chat-reports.convert-to-game-message", noChatReportsConvertToGameMessage,
             "Should the server convert all player messages to system messages");
-        noChatReportsDebugLog = getBoolean(config, "settings.no-chat-reports.debug-log", noChatReportsDebugLog);
-        noChatReportsDemandOnClient = getBoolean(config, "settings.no-chat-reports.demand-on-client", noChatReportsDemandOnClient,
+        noChatReportsDebugLog = getBoolean("settings.no-chat-reports.debug-log", noChatReportsDebugLog);
+        noChatReportsDemandOnClient = getBoolean("settings.no-chat-reports.demand-on-client", noChatReportsDemandOnClient,
             "Should the server require No Chat Reports on the client side");
-        noChatReportsDisconnectDemandOnClientMessage = getString(config, "settings.no-chat-reports.disconnect-demand-on-client-message", noChatReportsDisconnectDemandOnClientMessage,
+        noChatReportsDisconnectDemandOnClientMessage = getString("settings.no-chat-reports.disconnect-demand-on-client-message", noChatReportsDisconnectDemandOnClientMessage,
             "Message to send to the client when they are disconnected for not having No Chat Reports");
     }
 
     public static boolean asyncPathfinding = true;
     public static int asyncPathfindingMaxThreads = 2;
     public static int asyncPathfindingKeepalive = 60;
-
     private static void asyncPathfinding() {
-        asyncPathfinding = getBoolean(config, "settings.async-pathfinding.enable", asyncPathfinding);
-        asyncPathfindingMaxThreads = getInt(config, "settings.async-pathfinding.max-threads", asyncPathfindingMaxThreads);
-        asyncPathfindingKeepalive = getInt(config, "settings.async-pathfinding.keepalive", asyncPathfindingKeepalive);
+        asyncPathfinding = getBoolean("settings.async-pathfinding.enable", asyncPathfinding);
+        asyncPathfindingMaxThreads = getInt("settings.async-pathfinding.max-threads", asyncPathfindingMaxThreads);
+        asyncPathfindingKeepalive = getInt("settings.async-pathfinding.keepalive", asyncPathfindingKeepalive);
 
         if (asyncPathfindingMaxThreads < 0) {
             asyncPathfindingMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() + asyncPathfindingMaxThreads, 1);
@@ -351,12 +334,11 @@ public final class DivineConfig { // TODO: Remake config system
     public static boolean multithreadedCompatModeEnabled = false;
     public static int asyncEntityTrackerMaxThreads = 1;
     public static int asyncEntityTrackerKeepalive = 60;
-
     private static void multithreadedTracker() {
-        multithreadedEnabled = getBoolean(config, "settings.multithreaded-tracker.enable", multithreadedEnabled);
-        multithreadedCompatModeEnabled = getBoolean(config, "settings.multithreaded-tracker.compat-mode", multithreadedCompatModeEnabled);
-        asyncEntityTrackerMaxThreads = getInt(config, "settings.multithreaded-tracker.max-threads", asyncEntityTrackerMaxThreads);
-        asyncEntityTrackerKeepalive = getInt(config, "settings.multithreaded-tracker.keepalive", asyncEntityTrackerKeepalive);
+        multithreadedEnabled = getBoolean("settings.multithreaded-tracker.enable", multithreadedEnabled);
+        multithreadedCompatModeEnabled = getBoolean("settings.multithreaded-tracker.compat-mode", multithreadedCompatModeEnabled);
+        asyncEntityTrackerMaxThreads = getInt("settings.multithreaded-tracker.max-threads", asyncEntityTrackerMaxThreads);
+        asyncEntityTrackerKeepalive = getInt("settings.multithreaded-tracker.keepalive", asyncEntityTrackerKeepalive);
 
         if (asyncEntityTrackerMaxThreads < 0) {
             asyncEntityTrackerMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() + asyncEntityTrackerMaxThreads, 1);

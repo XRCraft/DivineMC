@@ -11,6 +11,7 @@ import org.bxteam.divinemc.command.DivineSubCommandPermission;
 import org.bxteam.divinemc.DivineConfig;
 
 import java.io.File;
+import java.io.IOException;
 
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
@@ -35,12 +36,18 @@ public final class ReloadCommand extends DivineSubCommandPermission {
         Command.broadcastCommandMessage(sender, text("If you encounter any issues please use the /stop command to restart your server.", RED));
 
         MinecraftServer server = ((CraftServer) sender.getServer()).getServer();
-        DivineConfig.init((File) server.options.valueOf("divinemc-settings"));
-            for (ServerLevel level : server.getAllLevels()) {
-                level.divineConfig.init();
-                level.resetBreedingCooldowns();
-            }
-            server.server.reloadCount++;
+
+        try {
+            DivineConfig.init((File) server.options.valueOf("divinemc-settings"));
+        } catch (IOException e) {
+            MinecraftServer.LOGGER.error("Failed to reload DivineMC config", e);
+        }
+
+        for (ServerLevel level : server.getAllLevels()) {
+            level.divineConfig.init();
+            level.resetBreedingCooldowns();
+        }
+        server.server.reloadCount++;
 
         Command.broadcastCommandMessage(sender, text("DivineMC config reload complete.", GREEN));
     }
