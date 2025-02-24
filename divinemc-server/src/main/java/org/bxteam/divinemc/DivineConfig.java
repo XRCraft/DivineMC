@@ -314,6 +314,31 @@ public class DivineConfig {
             "Message to send to the client when they are disconnected for not having No Chat Reports");
     }
 
+    public static boolean virtualThreadsEnabled = false;
+    public static boolean virtualBukkitScheduler = false;
+    public static boolean virtualChatScheduler = false;
+    public static boolean virtualAuthenticatorScheduler = false;
+    public static boolean virtualTabCompleteScheduler = false;
+    public static boolean virtualAsyncExecutor = false;
+    public static boolean virtualCommandBuilderScheduler = false;
+    private static void virtualThreads() {
+        virtualThreadsEnabled = getBoolean("settings.virtual-threads.enabled", virtualThreadsEnabled,
+            "Enables use of virtual threads that was added in Java 21");
+
+        virtualBukkitScheduler = getBoolean("settings.virtual-threads.bukkit-scheduler", virtualBukkitScheduler,
+            "Uses virtual threads for the Bukkit scheduler.");
+        virtualChatScheduler = getBoolean("settings.virtual-threads.chat-scheduler", virtualChatScheduler,
+            "Uses virtual threads for the Chat scheduler.");
+        virtualAuthenticatorScheduler = getBoolean("settings.virtual-threads.authenticator-scheduler", virtualAuthenticatorScheduler,
+            "Uses virtual threads for the Authenticator scheduler.");
+        virtualTabCompleteScheduler = getBoolean("settings.virtual-threads.tab-complete-scheduler", virtualTabCompleteScheduler,
+            "Uses virtual threads for the Tab Complete scheduler.");
+        virtualAsyncExecutor = getBoolean("settings.virtual-threads.async-executor", virtualAsyncExecutor,
+            "Uses virtual threads for the MCUtil async executor.");
+        virtualCommandBuilderScheduler = getBoolean("settings.virtual-threads.command-builder-scheduler", virtualCommandBuilderScheduler,
+            "Uses virtual threads for the Async Command Builder Thread Pool.");
+    }
+
     public static boolean asyncPathfinding = true;
     public static int asyncPathfindingMaxThreads = 2;
     public static int asyncPathfindingKeepalive = 60;
