@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
+import org.bxteam.divinemc.entity.pathfinding.PathfindTaskRejectPolicy;
 import org.bxteam.divinemc.server.chunk.ChunkSystemAlgorithms;
 import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.comments.CommentType;
@@ -316,33 +317,52 @@ public class DivineConfig {
     public static boolean asyncPathfinding = true;
     public static int asyncPathfindingMaxThreads = 2;
     public static int asyncPathfindingKeepalive = 60;
+    public static int asyncPathfindingQueueSize = 0;
+    public static PathfindTaskRejectPolicy asyncPathfindingRejectPolicy = PathfindTaskRejectPolicy.FLUSH_ALL;
     private static void asyncPathfinding() {
         asyncPathfinding = getBoolean("settings.async-pathfinding.enable", asyncPathfinding);
         asyncPathfindingMaxThreads = getInt("settings.async-pathfinding.max-threads", asyncPathfindingMaxThreads);
         asyncPathfindingKeepalive = getInt("settings.async-pathfinding.keepalive", asyncPathfindingKeepalive);
+        asyncPathfindingQueueSize = getInt("settings.async-pathfinding.queue-size", asyncPathfindingQueueSize);
 
+        final int maxThreads = Runtime.getRuntime().availableProcessors();
         if (asyncPathfindingMaxThreads < 0) {
-            asyncPathfindingMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() + asyncPathfindingMaxThreads, 1);
+            asyncPathfindingMaxThreads = Math.max(maxThreads + asyncPathfindingMaxThreads, 1);
         } else if (asyncPathfindingMaxThreads == 0) {
-            asyncPathfindingMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() / 4, 1);
+            asyncPathfindingMaxThreads = Math.max(maxThreads / 4, 1);
         }
 
         if (!asyncPathfinding) {
             asyncPathfindingMaxThreads = 0;
         } else {
-            Bukkit.getLogger().log(Level.INFO, "Using " + asyncPathfindingMaxThreads + " threads for Async Pathfinding");
+            LOGGER.info("Using " + asyncPathfindingMaxThreads + " threads for Async Pathfinding");
         }
+
+        if (asyncPathfindingQueueSize <= 0) asyncPathfindingQueueSize = asyncPathfindingMaxThreads * 256;
+
+        asyncPathfindingRejectPolicy = PathfindTaskRejectPolicy.fromString(getString("settings.async-pathfinding.reject-policy", maxThreads >= 12 && asyncPathfindingQueueSize < 512 ? PathfindTaskRejectPolicy.FLUSH_ALL.toString() : PathfindTaskRejectPolicy.CALLER_RUNS.toString(),
+            "The policy to use when the queue is full and a new task is submitted.",
+            "FLUSH_ALL: All pending tasks will be run on server thread.",
+            "CALLER_RUNS: Newly submitted task will be run on server thread."));
     }
 
     public static boolean multithreadedEnabled = true;
     public static boolean multithreadedCompatModeEnabled = false;
     public static int asyncEntityTrackerMaxThreads = 1;
     public static int asyncEntityTrackerKeepalive = 60;
+    public static int asyncEntityTrackerQueueSize = 0;
     private static void multithreadedTracker() {
-        multithreadedEnabled = getBoolean("settings.multithreaded-tracker.enable", multithreadedEnabled);
-        multithreadedCompatModeEnabled = getBoolean("settings.multithreaded-tracker.compat-mode", multithreadedCompatModeEnabled);
+        multithreadedEnabled = getBoolean("settings.multithreaded-tracker.enable", multithreadedEnabled,
+            "Make entity tracking saving asynchronously, can improve performance significantly,",
+            "especially in some massive entities in small area situations.");
+        multithreadedCompatModeEnabled = getBoolean("settings.multithreaded-tracker.compat-mode", multithreadedCompatModeEnabled,
+            "Enable compat mode ONLY if Citizens or NPC plugins using real entity has installed.",
+            "Compat mode fixes visible issues with player type NPCs of Citizens.",
+            "But we recommend to use packet based / virtual entity NPC plugin, e.g. ZNPC Plus, Adyeshach, Fancy NPC and etc.");
+
         asyncEntityTrackerMaxThreads = getInt("settings.multithreaded-tracker.max-threads", asyncEntityTrackerMaxThreads);
         asyncEntityTrackerKeepalive = getInt("settings.multithreaded-tracker.keepalive", asyncEntityTrackerKeepalive);
+        asyncEntityTrackerQueueSize = getInt("settings.multithreaded-tracker.queue-size", asyncEntityTrackerQueueSize);
 
         if (asyncEntityTrackerMaxThreads < 0) {
             asyncEntityTrackerMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() + asyncEntityTrackerMaxThreads, 1);
@@ -353,7 +373,9 @@ public class DivineConfig {
         if (!multithreadedEnabled) {
             asyncEntityTrackerMaxThreads = 0;
         } else {
-            Bukkit.getLogger().log(Level.INFO, "Using " + asyncEntityTrackerMaxThreads + " threads for Async Entity Tracker");
+            LOGGER.info("Using " + asyncEntityTrackerMaxThreads + " threads for Async Entity Tracker");
         }
+
+        if (asyncEntityTrackerQueueSize <= 0) asyncEntityTrackerQueueSize = asyncEntityTrackerMaxThreads * 384;
     }
 }

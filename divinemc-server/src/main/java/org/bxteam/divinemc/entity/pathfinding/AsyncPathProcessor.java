@@ -3,29 +3,76 @@ package org.bxteam.divinemc.entity.pathfinding;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.pathfinder.Path;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bxteam.divinemc.DivineConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
- * used to handle the scheduling of async path processing
+ * Used to handle the scheduling of async path processing
  */
+@SuppressWarnings("DuplicatedCode")
 public class AsyncPathProcessor {
-    private static final Executor pathProcessingExecutor = new ThreadPoolExecutor(
+    private static final String THREAD_PREFIX = "DivineMC Async Pathfinding";
+    private static final Logger LOGGER = LogManager.getLogger(THREAD_PREFIX);
+
+    private static long lastWarnMillis = System.currentTimeMillis();
+    private static final ThreadPoolExecutor pathProcessingExecutor = new ThreadPoolExecutor(
         1,
-        org.bxteam.divinemc.DivineConfig.asyncPathfindingMaxThreads,
-        org.bxteam.divinemc.DivineConfig.asyncPathfindingKeepalive, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(),
+        DivineConfig.asyncPathfindingMaxThreads,
+        DivineConfig.asyncPathfindingKeepalive, TimeUnit.SECONDS,
+        getQueueImpl(),
         new ThreadFactoryBuilder()
-            .setNameFormat("DivineMC Async Pathfinding Thread - %d")
+            .setNameFormat(THREAD_PREFIX + " Thread - %d")
             .setPriority(Thread.NORM_PRIORITY - 2)
-            .build()
+            .build(),
+        new RejectedTaskHandler()
     );
 
+    private static class RejectedTaskHandler implements RejectedExecutionHandler {
+        @Override
+        public void rejectedExecution(Runnable rejectedTask, ThreadPoolExecutor executor) {
+            BlockingQueue<Runnable> workQueue = executor.getQueue();
+            if (!executor.isShutdown()) {
+                switch (DivineConfig.asyncPathfindingRejectPolicy) {
+                    case FLUSH_ALL -> {
+                        if (!workQueue.isEmpty()) {
+                            List<Runnable> pendingTasks = new ArrayList<>(workQueue.size());
+
+                            workQueue.drainTo(pendingTasks);
+
+                            for (Runnable pendingTask : pendingTasks) {
+                                pendingTask.run();
+                            }
+                        }
+                        rejectedTask.run();
+                    }
+                    case CALLER_RUNS -> rejectedTask.run();
+                }
+            }
+
+            if (System.currentTimeMillis() - lastWarnMillis > 30000L) {
+                LOGGER.warn("Async pathfinding processor is busy! Pathfinding tasks will be treated as policy defined in config. Increasing max-threads in DivineMC config may help.");
+                lastWarnMillis = System.currentTimeMillis();
+            }
+        }
+    }
+
     protected static CompletableFuture<Void> queue(@NotNull AsyncPath path) {
-        return CompletableFuture.runAsync(path::process, pathProcessingExecutor);
+        return CompletableFuture.runAsync(path::process, pathProcessingExecutor)
+            .orTimeout(60L, TimeUnit.SECONDS)
+            .exceptionally(throwable -> {
+                if (throwable instanceof TimeoutException e) {
+                    LOGGER.warn("Async Pathfinding process timed out", e);
+                } else LOGGER.warn("Error occurred while processing async path", throwable);
+                return null;
+            });
     }
 
     /**
@@ -44,5 +91,11 @@ public class AsyncPathProcessor {
         } else {
             afterProcessing.accept(path);
         }
+    }
+
+    private static BlockingQueue<Runnable> getQueueImpl() {
+        final int queueCapacity = DivineConfig.asyncPathfindingQueueSize;
+
+        return new LinkedBlockingQueue<>(queueCapacity);
     }
 }

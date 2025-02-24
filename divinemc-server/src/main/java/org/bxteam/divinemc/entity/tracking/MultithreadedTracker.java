@@ -5,7 +5,6 @@ import ca.spottedleaf.moonrise.common.misc.NearbyPlayers;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.server.ServerEntityLookup;
 import ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity;
-import ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerTrackedEntity;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.FullChunkStatus;
@@ -13,41 +12,32 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bxteam.divinemc.DivineConfig;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MultithreadedTracker {
-    private static final Logger LOGGER = LogManager.getLogger("MultithreadedTracker");
+    private static final String THREAD_PREFIX = "DivineMC Async Tracker";
+    private static final Logger LOGGER = LogManager.getLogger(THREAD_PREFIX);
 
-    public static class MultithreadedTrackerThread extends Thread {
-        @Override
-        public void run() {
-            super.run();
-        }
-    }
-
-    private static final Executor trackerExecutor = new ThreadPoolExecutor(
-        1,
-        org.bxteam.divinemc.DivineConfig.asyncEntityTrackerMaxThreads,
-        org.bxteam.divinemc.DivineConfig.asyncEntityTrackerKeepalive, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder()
-            .setThreadFactory(
-                r -> new MultithreadedTrackerThread() {
-                    @Override
-                    public void run() {
-                        r.run();
-                    }
-                }
-            )
-            .setNameFormat("DivineMC Async Tracker Thread - %d")
-            .setPriority(Thread.NORM_PRIORITY - 2)
-            .build());
-
-    private MultithreadedTracker() { }
+    private static long lastWarnMillis = System.currentTimeMillis();
+    private static final ThreadPoolExecutor trackerExecutor = new ThreadPoolExecutor(
+        getCorePoolSize(),
+        getMaxPoolSize(),
+        getKeepAliveTime(), TimeUnit.SECONDS,
+        getQueueImpl(),
+        getThreadFactory(),
+        getRejectedPolicy()
+    );
 
     public static Executor getTrackerExecutor() {
         return trackerExecutor;
@@ -55,7 +45,7 @@ public class MultithreadedTracker {
 
     public static void tick(ChunkSystemServerLevel level) {
         try {
-            if (!org.bxteam.divinemc.DivineConfig.multithreadedCompatModeEnabled) {
+            if (!DivineConfig.multithreadedCompatModeEnabled) {
                 tickAsync(level);
             } else {
                 tickAsyncWithCompatMode(level);
@@ -81,7 +71,7 @@ public class MultithreadedTracker {
 
                 if (tracker == null) continue;
 
-                ((EntityTrackerTrackedEntity) tracker).moonrise$tick(nearbyPlayers.getChunk(entity.chunkPosition()));
+                tracker.moonrise$tick(nearbyPlayers.getChunk(entity.chunkPosition()));
                 tracker.serverEntity.sendChanges();
             }
         });
@@ -103,7 +93,7 @@ public class MultithreadedTracker {
 
             if (tracker == null) continue;
 
-            ((EntityTrackerTrackedEntity) tracker).moonrise$tick(nearbyPlayers.getChunk(entity.chunkPosition()));
+            tracker.moonrise$tick(nearbyPlayers.getChunk(entity.chunkPosition()));
             sendChangesTasks[index++] = () -> tracker.serverEntity.sendChanges(); // Collect send changes to task array
         }
 
@@ -136,6 +126,63 @@ public class MultithreadedTracker {
                 || ((ca.spottedleaf.moonrise.patches.chunk_system.entity.ChunkSystemEntity) entity).moonrise$getChunkStatus().isOrAfter(FullChunkStatus.ENTITY_TICKING)) {
                 tracker.serverEntity.sendChanges();
             }
+        }
+    }
+
+    private static int getCorePoolSize() {
+        return 1;
+    }
+
+    private static int getMaxPoolSize() {
+        return DivineConfig.asyncEntityTrackerMaxThreads;
+    }
+
+    private static long getKeepAliveTime() {
+        return DivineConfig.asyncEntityTrackerKeepalive;
+    }
+
+    private static BlockingQueue<Runnable> getQueueImpl() {
+        final int queueCapacity = DivineConfig.asyncEntityTrackerQueueSize;
+
+        return new LinkedBlockingQueue<>(queueCapacity);
+    }
+
+    private static @NotNull ThreadFactory getThreadFactory() {
+        return new ThreadFactoryBuilder()
+            .setThreadFactory(MultithreadedTrackerThread::new)
+            .setNameFormat(THREAD_PREFIX + " Thread - %d")
+            .setPriority(Thread.NORM_PRIORITY - 2)
+            .build();
+    }
+
+    private static @NotNull RejectedExecutionHandler getRejectedPolicy() {
+        return (rejectedTask, executor) -> {
+            BlockingQueue<Runnable> workQueue = executor.getQueue();
+
+            if (!executor.isShutdown()) {
+                if (!workQueue.isEmpty()) {
+                    List<Runnable> pendingTasks = new ArrayList<>(workQueue.size());
+
+                    workQueue.drainTo(pendingTasks);
+
+                    for (Runnable pendingTask : pendingTasks) {
+                        pendingTask.run();
+                    }
+                }
+
+                rejectedTask.run();
+            }
+
+            if (System.currentTimeMillis() - lastWarnMillis > 30000L) {
+                LOGGER.warn("Async entity tracker is busy! Tracking tasks will be done in the server thread. Increasing max-threads in DivineMC config may help.");
+                lastWarnMillis = System.currentTimeMillis();
+            }
+        };
+    }
+
+    public static class MultithreadedTrackerThread extends Thread {
+        public MultithreadedTrackerThread(Runnable runnable) {
+            super(runnable);
         }
     }
 }
