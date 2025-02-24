@@ -1,0 +1,10 @@
+--- a/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
++++ b/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
+@@ -82,6 +_,7 @@
+     }
+ 
+     public void applyBedrockMask(ProtoChunk chunk) {
++        if (org.bxteam.divinemc.DivineConfig.smoothBedrockLayer) return; // DivineMC - Smooth bedrock layer
+         LevelHeightAccessor heightAccessorForGeneration = chunk.getHeightAccessorForGeneration();
+         int minY = heightAccessorForGeneration.getMinY();
+         int maxY = heightAccessorForGeneration.getMaxY();
