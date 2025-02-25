@@ -2,7 +2,6 @@ package org.bxteam.divinemc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bxteam.divinemc.entity.pathfinding.PathfindTaskRejectPolicy;
@@ -14,11 +13,9 @@ import org.simpleyaml.exceptions.InvalidConfigurationException;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.logging.Level;
 
 @SuppressWarnings("unused")
 public class DivineConfig {
@@ -32,6 +29,8 @@ public class DivineConfig {
         New builds: https://github.com/BX-Team/DivineMC/releases/latest""";
 
     public static final Logger LOGGER = LogManager.getLogger(DivineConfig.class.getSimpleName());
+    public static final int CONFIG_VERSION = 5;
+
     private static File configFile;
     public static final YamlFile config = new YamlFile();
     private static int updates = 0;
@@ -66,40 +65,24 @@ public class DivineConfig {
 			}
 		}
 
-		getString("config.version", "5");
-        getBoolean("config.verbose", false);
+		getInt("config.version", CONFIG_VERSION);
         config.options().header(HEADER);
-        config.options().copyDefaults(true);
 
-        readConfig(configFile, config, DivineConfig.class, null);
+		for (Method method : DivineConfig.class.getDeclaredMethods()) {
+			if (Modifier.isStatic(method.getModifiers()) && Modifier.isPrivate(method.getModifiers()) && method.getParameterCount() == 0 && method.getReturnType() == Void.TYPE && !method.getName().startsWith("lambda")) {
+				method.setAccessible(true);
+				try {
+					method.invoke(null);
+				} catch (Throwable t) {
+					LOGGER.warn("Failed to load configuration option from " + method.getName(), t);
+				}
+			}
+		}
+
+		updates++;
+
+		config.save(configFile);
 	}
-
-    public static void readConfig(Class<?> clazz, @Nullable Object instance) {
-        readConfig(configFile, config, clazz, instance);
-    }
-
-    private static void readConfig(File configFile, YamlFile config, Class<?> clazz, @Nullable Object instance) {
-        for (Method method : clazz.getDeclaredMethods()) {
-            if (!Modifier.isPrivate(method.getModifiers())) continue;
-            if (method.getParameterTypes().length != 0) continue;
-            if (method.getReturnType() != Void.TYPE) continue;
-
-            try {
-                method.setAccessible(true);
-                method.invoke(instance);
-            } catch (InvocationTargetException ex) {
-                throw new RuntimeException(ex.getCause());
-            } catch (Exception ex) {
-                Bukkit.getLogger().log(Level.SEVERE, "Error invoking " + method, ex);
-            }
-        }
-
-        try {
-            config.save(configFile);
-        } catch (IOException ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Could not save " + configFile, ex);
-        }
-    }
 
 	private static void setComment(String key, String... comment) {
 		if (config.contains(key)) {
@@ -107,12 +90,10 @@ public class DivineConfig {
 		}
 	}
 
-	private static void ensureDefault(String key, Object defaultValue, String... comment) {
-		if (!config.contains(key)) {
-			config.set(key, defaultValue);
-            if (comment.length > 0) config.setComment(key, String.join("\n", comment), CommentType.BLOCK);
-		}
-	}
+    private static void ensureDefault(String key, Object defaultValue, String... comment) {
+        if (!config.contains(key)) config.set(key, defaultValue);
+        if (comment.length > 0) config.setComment(key, String.join("\n", comment), CommentType.BLOCK);
+    }
 
 	private static boolean getBoolean(String key, boolean defaultValue, String... comment) {
 		return getBoolean(key, null, defaultValue, comment);

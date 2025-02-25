@@ -370,7 +370,7 @@ index 959d87f4cd1efe8cf591e98c7d32728067f7117c..697f690305db56ae5a05483aae37994d
          try {
              org.purpurmc.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 5d2483b2d59ae246b822d73b9996c2aa86623ab1..92f3e5d929997a974c367ec3ce02cda4acdb5183 100644
+index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618eac689f2ff 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -184,7 +184,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -599,7 +599,7 @@ index 264b713e8b7c3d5f7d8e1facc90a60349f2cf414..f461b060e03edf4102290a424ab008b8
                  serverLevel.capturedBlockStates.clear();
                  org.bukkit.event.world.StructureGrowEvent structureEvent = null;
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a76c83e98 100644
+index b4c2602ecf6b943ab022866231f74b850269af8f..ad80b2fe21a09f070bc5e299e18533c2ec811ca3 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -172,6 +172,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
@@ -610,7 +610,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
      public static BlockPos lastPhysicsProblem; // Spigot
      private org.spigotmc.TickLimiter entityLimiter;
      private org.spigotmc.TickLimiter tileLimiter;
-@@ -1146,6 +1147,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1153,6 +1154,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
  
      @Override
      public boolean setBlock(BlockPos pos, BlockState state, int flags, int recursionLeft) {
@@ -618,7 +618,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
          // CraftBukkit start - tree generation
          if (this.captureTreeGeneration) {
              // Paper start - Protect Bedrock and End Portal/Frames from being destroyed
-@@ -1530,7 +1532,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1537,7 +1539,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
                  tickingBlockEntity.tick();
                  // Paper start - rewrite chunk system
                  if ((++tickedEntities & 7) == 0) {
@@ -627,7 +627,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
                  }
                  // Paper end - rewrite chunk system
              }
-@@ -1553,7 +1555,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1560,7 +1562,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
              entity.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DISCARD);
              // Paper end - Prevent block entity and entity crashes
          }
@@ -636,7 +636,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
      }
  
      // Paper start - Option to prevent armor stands from doing entity lookups
-@@ -1696,6 +1698,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1703,6 +1705,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
  
      @Nullable
      public BlockEntity getBlockEntity(BlockPos pos, boolean validate) {
@@ -644,7 +644,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
          // Paper start - Perf: Optimize capturedTileEntities lookup
          net.minecraft.world.level.block.entity.BlockEntity blockEntity;
          if (!this.capturedTileEntities.isEmpty() && (blockEntity = this.capturedTileEntities.get(pos)) != null) {
-@@ -1713,6 +1716,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1720,6 +1723,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
      }
  
      public void setBlockEntity(BlockEntity blockEntity) {
@@ -652,7 +652,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
          BlockPos blockPos = blockEntity.getBlockPos();
          if (!this.isOutsideBuildHeight(blockPos)) {
              // CraftBukkit start
-@@ -1797,6 +1801,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1804,6 +1808,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
  
      @Override
      public List<Entity> getEntities(@Nullable Entity entity, AABB boundingBox, Predicate<? super Entity> predicate) {
@@ -660,7 +660,7 @@ index 3856bbe579ef6df2f220c46bc69461cab026a131..8f37c27bba829733fb8db5f35470092a
          Profiler.get().incrementCounter("getEntities");
          List<Entity> list = Lists.newArrayList();
  
-@@ -2109,8 +2114,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -2116,8 +2121,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
      public abstract RecipeAccess recipeAccess();
  
      public BlockPos getBlockRandomPos(int x, int y, int z, int yMask) {

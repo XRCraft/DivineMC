@@ -5,7 +5,7 @@ Subject: [PATCH] Configuration
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 6a08a42acdb2ee24b5e403b15fb825f3cb49c968..f4f2473aa844bb245156e391df9f1997bf2013f5 100644
+index 6a08a42acdb2ee24b5e403b15fb825f3cb49c968..e51fd95bad5038ec7c1b85babf29799d443f9b8b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -1103,6 +1103,13 @@ public final class CraftServer implements Server {
@@ -22,16 +22,22 @@ index 6a08a42acdb2ee24b5e403b15fb825f3cb49c968..f4f2473aa844bb245156e391df9f1997
          for (ServerLevel world : this.console.getAllLevels()) {
              // world.serverLevelData.setDifficulty(config.difficulty); // Paper - per level difficulty
              world.setSpawnSettings(world.serverLevelData.getDifficulty() != Difficulty.PEACEFUL && config.spawnMonsters); // Paper - per level difficulty (from MinecraftServer#setDifficulty(ServerLevel, Difficulty, boolean))
-@@ -1119,6 +1126,7 @@ public final class CraftServer implements Server {
+@@ -1119,6 +1126,13 @@ public final class CraftServer implements Server {
              }
              world.spigotConfig.init(); // Spigot
              world.purpurConfig.init(); // Purpur - Purpur config files
-+            world.divineConfig.init(); // DivineMC - Configuration
++            // DivineMC start - Configuration
++            try {
++                world.divineConfig.init();
++            } catch (IOException e) {
++                this.logger.log(Level.WARNING, "Failed to reload DivineMC configuration for world " + world.dimension().location(), e);
++            }
++            // DivineMC end - Configuration
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index bab0d25e82f85c7b9524ae42e0bb41e6233d71cf..f367efa0afae9792f87a842dfe7ba098a3ce7f2d 100644
+index bab0d25e82f85c7b9524ae42e0bb41e6233d71cf..f263987076d352dbf6e4bb5c57a35a4593088bae 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -183,6 +183,15 @@ public class Main {
@@ -43,7 +49,7 @@ index bab0d25e82f85c7b9524ae42e0bb41e6233d71cf..f367efa0afae9792f87a842dfe7ba098
 +                acceptsAll(asList("divinemc", "divinemc-settings"), "File for DivineMC settings")
 +                        .withRequiredArg()
 +                        .ofType(File.class)
-+                        .defaultsTo(new File("divinemc.yml"))
++                        .defaultsTo(new File("config", "divinemc-global.yml"))
 +                        .describedAs("Yml file");
 +                // DivineMC end - Configuration
 +

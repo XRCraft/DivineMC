@@ -27,7 +27,7 @@ index 4f90ebcd86fba38dec313143e36614e992c7dbc7..959d87f4cd1efe8cf591e98c7d327280
  
          this.setPvpAllowed(properties.pvp);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 0fe8f4601eedfa68c38ebadc7847ba7a07ff6fb6..3856bbe579ef6df2f220c46bc69461cab026a131 100644
+index 0fe8f4601eedfa68c38ebadc7847ba7a07ff6fb6..b4c2602ecf6b943ab022866231f74b850269af8f 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -171,6 +171,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
@@ -38,11 +38,18 @@ index 0fe8f4601eedfa68c38ebadc7847ba7a07ff6fb6..3856bbe579ef6df2f220c46bc69461ca
      public static BlockPos lastPhysicsProblem; // Spigot
      private org.spigotmc.TickLimiter entityLimiter;
      private org.spigotmc.TickLimiter tileLimiter;
-@@ -898,6 +899,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -898,6 +899,14 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName()); // Spigot
          this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
          this.purpurConfig = new org.purpurmc.purpur.PurpurWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), env); // Purpur - Purpur config files
-+        this.divineConfig = new org.bxteam.divinemc.DivineWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), env); // DivineMC - Configuration
++        // DivineMC start - Configuration
++        try {
++            this.divineConfig = new org.bxteam.divinemc.DivineWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), env);
++        } catch (java.io.IOException e) {
++            net.minecraft.server.MinecraftServer.LOGGER.error("Failed to load DivineMC configuration for world '{}'", ((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), e);
++            throw new RuntimeException(e);
++        }
++        // DivineMC end - Configuration
          this.playerBreedingCooldowns = this.getNewBreedingCooldownCache(); // Purpur - Add adjustable breeding cooldown to config
          this.generator = gen;
          this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);

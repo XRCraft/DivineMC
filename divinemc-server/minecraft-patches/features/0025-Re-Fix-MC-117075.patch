@@ -5,7 +5,7 @@ Subject: [PATCH] Re-Fix MC-117075
 
 
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 8f37c27bba829733fb8db5f35470092a76c83e98..595ebb40f47dd55127c630813813d21d8a1274cd 100644
+index ad80b2fe21a09f070bc5e299e18533c2ec811ca3..7c80f90ccab0f90a4c76c2d195f4aaa0b12deb9a 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -115,7 +115,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
@@ -17,7 +17,7 @@ index 8f37c27bba829733fb8db5f35470092a76c83e98..595ebb40f47dd55127c630813813d21d
      protected final NeighborUpdater neighborUpdater;
      private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
      private boolean tickingBlockEntities;
-@@ -1527,7 +1527,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1534,7 +1534,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
              TickingBlockEntity tickingBlockEntity = this.blockEntityTickers.get(this.tileTickPosition);
              // Spigot end
              if (tickingBlockEntity.isRemoved()) {
@@ -26,7 +26,7 @@ index 8f37c27bba829733fb8db5f35470092a76c83e98..595ebb40f47dd55127c630813813d21d
              } else if (runsNormally && this.shouldTickBlocksAt(tickingBlockEntity.getPos())) {
                  tickingBlockEntity.tick();
                  // Paper start - rewrite chunk system
-@@ -1539,6 +1539,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1546,6 +1546,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          }
          this.blockEntityTickers.removeAll(toRemove); // Paper - Fix MC-117075
  
