@@ -1,6 +1,6 @@
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -2346,6 +_,13 @@
+@@ -2374,6 +_,13 @@
          }
          // Purpur end
  
