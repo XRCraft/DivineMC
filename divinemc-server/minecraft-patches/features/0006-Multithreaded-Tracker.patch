@@ -230,10 +230,10 @@ index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9
  
              attributesToSync.clear();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index dd113d67356177a8d98ea10a8b6d4a4d5159674c..5d2483b2d59ae246b822d73b9996c2aa86623ab1 100644
+index 34b9e0704776c98b00f0fc3683f51c18f30a6bbe..fdfb92daeb5dd60360a80baf5c1778d641cfd9be 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -2514,7 +2514,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2513,7 +2513,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public LevelEntityGetter<Entity> getEntities() {
@@ -243,7 +243,7 @@ index dd113d67356177a8d98ea10a8b6d4a4d5159674c..5d2483b2d59ae246b822d73b9996c2aa
      }
  
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index b45b37fcdfe0d3877b368444f8f6a376d6373f59..cfd3698dc575669456136da9cbbb100fd557e5ac 100644
+index aa982f27e80f6023cadb2d2e5d0f84e472ee863c..f9987beae080f37456bbd195a0b0cd3be40e622a 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -1813,7 +1813,7 @@ public class ServerGamePacketListenerImpl

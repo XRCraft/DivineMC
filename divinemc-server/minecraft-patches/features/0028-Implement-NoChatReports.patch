@@ -5,10 +5,10 @@ Subject: [PATCH] Implement NoChatReports
 
 
 diff --git a/net/minecraft/network/FriendlyByteBuf.java b/net/minecraft/network/FriendlyByteBuf.java
-index e5e5d9bc095ccd9fbf1c8aaa09e5c4ebb1d1c920..af94dd26b553b5e64f305135328aa30b6fae6b0b 100644
+index d1daa3443446f47e2215f0c7c5823da58e053bab..61b1440ee7909946cd2d7a4d8622f79c6f6ac76b 100644
 --- a/net/minecraft/network/FriendlyByteBuf.java
 +++ b/net/minecraft/network/FriendlyByteBuf.java
-@@ -101,7 +101,28 @@ public class FriendlyByteBuf extends ByteBuf {
+@@ -105,7 +105,28 @@ public class FriendlyByteBuf extends ByteBuf {
          return this;
      }
  
@@ -37,7 +37,7 @@ index e5e5d9bc095ccd9fbf1c8aaa09e5c4ebb1d1c920..af94dd26b553b5e64f305135328aa30b
          JsonElement jsonElement = GsonHelper.fromJson(GSON, this.readUtf(), JsonElement.class);
          DataResult<T> dataResult = codec.parse(JsonOps.INSTANCE, jsonElement);
          return dataResult.getOrThrow(exception -> new DecoderException("Failed to decode json: " + exception));
-@@ -113,6 +134,19 @@ public class FriendlyByteBuf extends ByteBuf {
+@@ -117,6 +138,19 @@ public class FriendlyByteBuf extends ByteBuf {
      }
      public <T> void writeJsonWithCodec(Codec<T> codec, T value, int maxLength) {
          // Paper end - Adventure; add max length parameter
@@ -206,7 +206,7 @@ index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c7409161
          private static final String PREFIX = "data:image/png;base64,";
          public static final Codec<ServerStatus.Favicon> CODEC = Codec.STRING.comapFlatMap(string -> {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 697f690305db56ae5a05483aae37994d4e8f9f83..dc6417943ec339326684323c3ec3d132d55be354 100644
+index 217c857b8baf3f2aa7f75c7b0b33bba9dba35489..573cbcccc7caf75002ba8b73460170bbdf72efa2 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -668,6 +668,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface

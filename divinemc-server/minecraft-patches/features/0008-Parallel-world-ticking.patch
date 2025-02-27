@@ -355,7 +355,7 @@ index 781030cb2e0316151c20351f04347c8db63f43e1..527547b98b70429830a3cf82fddba202
      }
      // CraftBukkit end
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 959d87f4cd1efe8cf591e98c7d32728067f7117c..697f690305db56ae5a05483aae37994d4e8f9f83 100644
+index b3a2acd884a4bb2e84e6992c11dd16e513912616..217c857b8baf3f2aa7f75c7b0b33bba9dba35489 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -234,6 +234,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
@@ -370,7 +370,7 @@ index 959d87f4cd1efe8cf591e98c7d32728067f7117c..697f690305db56ae5a05483aae37994d
          try {
              org.purpurmc.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618eac689f2ff 100644
+index fdfb92daeb5dd60360a80baf5c1778d641cfd9be..eeb9ae85b4863a2054cc08837b66a6e47f1e0315 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -184,7 +184,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -398,7 +398,7 @@ index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618ea
          this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
      }
  
-@@ -1292,7 +1294,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1291,7 +1293,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          }
          // Paper start - rewrite chunk system
          if ((++this.tickedBlocksOrFluids & 7L) != 0L) {
@@ -407,7 +407,7 @@ index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618ea
          }
          // Paper end - rewrite chunk system
  
-@@ -1305,7 +1307,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1304,7 +1306,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          }
          // Paper start - rewrite chunk system
          if ((++this.tickedBlocksOrFluids & 7L) != 0L) {
@@ -416,7 +416,7 @@ index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618ea
          }
          // Paper end - rewrite chunk system
  
-@@ -1565,6 +1567,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1564,6 +1566,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      }
  
      private void addPlayer(ServerPlayer player) {
@@ -424,7 +424,7 @@ index fad9cf255cbb222f0bf80f5e8126fed3cf033b1f..59c24ebf12fa8a370750c265be7618ea
          Entity entity = this.getEntities().get(player.getUUID());
          if (entity != null) {
              LOGGER.warn("Force-added player with duplicate UUID {}", player.getUUID());
-@@ -1577,7 +1580,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1576,7 +1579,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      // CraftBukkit start
      private boolean addEntity(Entity entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
@@ -488,7 +488,7 @@ index 515b2178e71a3723eace26c89032e45678145224..a33071d4b9b5ab75bcef93411e67d4f7
          // Paper end - Inventory close reason
          this.connection.send(new ClientboundContainerClosePacket(this.containerMenu.containerId));
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index cfd3698dc575669456136da9cbbb100fd557e5ac..aabce23007006fe2dca1e4ac7c0657d2a1cae30e 100644
+index f9987beae080f37456bbd195a0b0cd3be40e622a..8c7c18be474fb54e860ef554bbe820a33f5c83f0 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -572,7 +572,7 @@ public class ServerGamePacketListenerImpl
