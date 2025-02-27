@@ -1,5 +1,6 @@
 package org.bxteam.divinemc;
 
+import com.google.common.base.Throwables;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,6 +14,7 @@ import org.simpleyaml.exceptions.InvalidConfigurationException;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -33,7 +35,6 @@ public class DivineConfig {
 
     private static File configFile;
     public static final YamlFile config = new YamlFile();
-    private static int updates = 0;
 
 	private static ConfigurationSection convertToBukkit(org.simpleyaml.configuration.ConfigurationSection section) {
 		ConfigurationSection newSection = new MemoryConfiguration();
@@ -51,10 +52,6 @@ public class DivineConfig {
 		return convertToBukkit(config);
 	}
 
-	public static int getUpdates() {
-		return updates;
-	}
-
 	public static void init(File configFile) throws IOException {
         DivineConfig.configFile = configFile;
 		if (configFile.exists()) {
@@ -65,24 +62,30 @@ public class DivineConfig {
 			}
 		}
 
-		getInt("config.version", CONFIG_VERSION);
+		getInt("version", CONFIG_VERSION);
         config.options().header(HEADER);
 
-		for (Method method : DivineConfig.class.getDeclaredMethods()) {
-			if (Modifier.isStatic(method.getModifiers()) && Modifier.isPrivate(method.getModifiers()) && method.getParameterCount() == 0 && method.getReturnType() == Void.TYPE && !method.getName().startsWith("lambda")) {
-				method.setAccessible(true);
-				try {
-					method.invoke(null);
-				} catch (Throwable t) {
-					LOGGER.warn("Failed to load configuration option from " + method.getName(), t);
-				}
-			}
-		}
-
-		updates++;
-
-		config.save(configFile);
+        readConfig(DivineConfig.class, null);
 	}
+
+    static void readConfig(Class<?> clazz, Object instance) throws IOException {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (Modifier.isPrivate(method.getModifiers())) {
+                if (method.getParameterTypes().length == 0 && method.getReturnType() == Void.TYPE) {
+                    try {
+                        method.setAccessible(true);
+                        method.invoke(instance);
+                    } catch (InvocationTargetException ex) {
+                        throw Throwables.propagate(ex.getCause());
+                    } catch (Exception ex) {
+                        LOGGER.error("Error invoking {}", method, ex);
+                    }
+                }
+            }
+        }
+
+        config.save(configFile);
+    }
 
 	private static void setComment(String key, String... comment) {
 		if (config.contains(key)) {
