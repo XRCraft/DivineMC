@@ -1,6 +1,6 @@
 --- a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
 +++ b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
-@@ -36,14 +_,21 @@
+@@ -36,14 +_,15 @@
  
      // SimplePluginManager
      public void callEvent(@NotNull Event event) {
@@ -11,12 +11,6 @@
          if (event.isAsynchronous() && this.server.isPrimaryThread()) {
              throw new IllegalStateException(event.getEventName() + " may only be triggered asynchronously.");
          } else if (!event.isAsynchronous() && !this.server.isPrimaryThread() && !this.server.isStopping()) {
-+            // DivineMC start - Multithreaded tracker
-+            if (org.bxteam.divinemc.DivineConfig.multithreadedEnabled) {
-+                net.minecraft.server.MinecraftServer.getServer().scheduleOnMain(event::callEvent);
-+                return;
-+            }
-+            // DivineMC end - Multithreaded tracker
              throw new IllegalStateException(event.getEventName() + " may only be triggered synchronously.");
          }
 -
