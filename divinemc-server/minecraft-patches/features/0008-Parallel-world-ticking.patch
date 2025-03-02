@@ -510,7 +510,7 @@ index f9987beae080f37456bbd195a0b0cd3be40e622a..8c7c18be474fb54e860ef554bbe820a3
                      LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", rootVehicle.getName().getString(), this.player.getName().getString(), Math.sqrt(d7));
                  }
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..6b23cf5122fe65b2ad253ed8536658441297e953 100644
+index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..c269b951fd65459609ef6e66d4e039adcbd035b4 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -150,6 +150,7 @@ public abstract class PlayerList {
@@ -521,12 +521,11 @@ index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..6b23cf5122fe65b2ad253ed853665844
          player.isRealPlayer = true; // Paper
          player.loginTime = System.currentTimeMillis(); // Paper - Replace OfflinePlayer#getLastPlayed
          GameProfile gameProfile = player.getGameProfile();
-@@ -716,6 +717,13 @@ public abstract class PlayerList {
+@@ -716,6 +717,12 @@ public abstract class PlayerList {
          return this.respawn(player, keepInventory, reason, eventReason, null);
      }
      public ServerPlayer respawn(ServerPlayer player, boolean keepInventory, Entity.RemovalReason reason, org.bukkit.event.player.PlayerRespawnEvent.RespawnReason eventReason, org.bukkit.Location location) {
 +        // DivineMC start - parallel world ticking (additional concurrency issues logs)
-+        System.out.println("respawning player - current player container is " + player.containerMenu + " but their inventory is " + player.inventoryMenu);
 +        if (location != null) // TODO: Is this really never null, or is IntelliJ IDEA tripping? Because I'm pretty sure that this can be null and there isn't any @NotNull annotations
 +            ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot respawn player off-main, from world " + player.serverLevel().getWorld().getName() + " to world " + location.getWorld().getName());
 +        else
@@ -535,7 +534,7 @@ index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..6b23cf5122fe65b2ad253ed853665844
          player.stopRiding(); // CraftBukkit
          this.players.remove(player);
          this.playersByName.remove(player.getScoreboardName().toLowerCase(java.util.Locale.ROOT)); // Spigot
-@@ -726,6 +734,7 @@ public abstract class PlayerList {
+@@ -726,6 +733,7 @@ public abstract class PlayerList {
          ServerPlayer serverPlayer = player;
          Level fromWorld = player.level();
          player.wonGame = false;
