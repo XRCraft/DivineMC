@@ -27,7 +27,6 @@ jobs:
       - name: Configure Git and Gradle
         run: |
           git config --global user.email "no-reply@github.com" && git config --global user.name "Github Actions"
-          echo "BUILD_NUMBER=$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
           chmod +x gradlew
 
       - name: Patch
