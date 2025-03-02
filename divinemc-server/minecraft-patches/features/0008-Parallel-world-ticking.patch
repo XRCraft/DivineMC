@@ -510,7 +510,7 @@ index f9987beae080f37456bbd195a0b0cd3be40e622a..8c7c18be474fb54e860ef554bbe820a3
                      LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", rootVehicle.getName().getString(), this.player.getName().getString(), Math.sqrt(d7));
                  }
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..c269b951fd65459609ef6e66d4e039adcbd035b4 100644
+index 04fdd32394e473995648842027b88bf7ed0136ba..9f73125b4604aa5db4eeaa924a9d24976ec1c3a1 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -150,6 +150,7 @@ public abstract class PlayerList {
@@ -531,10 +531,10 @@ index e8ff6e79ce7ba0ec8b2a90bcb81283f52106c535..c269b951fd65459609ef6e66d4e039ad
 +        else
 +            ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot respawn player off-main, respawning in world " + player.serverLevel().getWorld().getName());
 +        // DivineMC end - parallel world ticking (additional concurrency issues logs)
-         player.stopRiding(); // CraftBukkit
          this.players.remove(player);
          this.playersByName.remove(player.getScoreboardName().toLowerCase(java.util.Locale.ROOT)); // Spigot
-@@ -726,6 +733,7 @@ public abstract class PlayerList {
+         player.serverLevel().removePlayerImmediately(player, reason);
+@@ -725,6 +732,7 @@ public abstract class PlayerList {
          ServerPlayer serverPlayer = player;
          Level fromWorld = player.level();
          player.wonGame = false;

@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Mon, 3 Mar 2025 01:28:34 +0300
+Subject: [PATCH] Add EntityStartUsingItemEvent
+
+
+diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
+index 03e8147e8315da36914cbbe477a556b72c97fd26..7d6be5ad0c1209429860f2c1edf996d120ed6536 100644
+--- a/net/minecraft/world/entity/LivingEntity.java
++++ b/net/minecraft/world/entity/LivingEntity.java
+@@ -4049,8 +4049,16 @@ public abstract class LivingEntity extends Entity implements Attackable {
+         ItemStack itemInHand = this.getItemInHand(hand);
+         if (!itemInHand.isEmpty() && !this.isUsingItem() || forceUpdate) { // Paper - Prevent consuming the wrong itemstack
+             this.useItem = itemInHand;
++            // DivineMC start - Add EntityStartUsingItemEvent
++            var event = new org.bxteam.divinemc.event.entity.EntityStartUsingItemEvent(getBukkitLivingEntity(), itemInHand.asBukkitMirror(), itemInHand.getUseDuration(this));
++            if (!event.callEvent()) {
++                stopUsingItem();
++                return;
++            }
++            int useDuration = event.getUseDuration();
++            // DivineMC end - Add EntityStartUsingItemEvent
+             // Paper start - lag compensate eating
+-            this.useItemRemaining = this.totalEatTimeTicks = itemInHand.getUseDuration(this);
++            this.useItemRemaining = this.totalEatTimeTicks = useDuration; // DivineMC - Add EntityStartUsingItemEvent
+             this.eatStartTime = System.nanoTime();
+             // Paper end - lag compensate eating
+             if (!this.level().isClientSide) {
