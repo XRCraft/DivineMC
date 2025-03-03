@@ -170,7 +170,7 @@ public class DivineConfig {
     public static long chunkDataCacheSoftLimit = 8192L;
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
-    public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
+    public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.MOONRISE;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
@@ -197,7 +197,11 @@ public class DivineConfig {
             "Changes the maximum view distance for the server, allowing clients to have render distances higher than 32");
 
         chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString("settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
-            "Modifies what algorithm the chunk system will use to define thread counts. values: MOONRISE, C2ME, C2ME_AGGRESSIVE"));
+            "Modifies what algorithm the chunk system will use to define thread counts.",
+            "Valid values:",
+            " - MOONRISE: Default algorithm, used by default in Paper",
+            " - C2ME: Algorithm used by C2ME (old)",
+            " - C2ME_NEW: Modern algorithm used by C2ME"));
         threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
 

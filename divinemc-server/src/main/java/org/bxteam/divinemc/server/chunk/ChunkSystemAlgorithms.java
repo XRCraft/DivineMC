@@ -26,7 +26,7 @@ public enum ChunkSystemAlgorithms {
         final int ioThreads = Math.max(1, configIoThreads);
         return new Pair<>(workerThreads, ioThreads);
     }),
-    C2ME_AGGRESSIVE((configWorkerThreads, configIoThreads) -> {
+    C2ME_NEW((configWorkerThreads, configIoThreads) -> {
         String expression = """
             
                 max(
