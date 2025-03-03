@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "SameParameterValue"})
 public class DivineConfig {
     private static final String HEADER = """
         This is the main configuration file for DivineMC.
@@ -28,7 +28,7 @@ public class DivineConfig {
 
         Discord: https://discord.gg/p7cxhw7E2M
         Docs: https://bxteam.org/docs/divinemc
-        New builds: https://github.com/BX-Team/DivineMC/releases/latest""";
+        Downloads: https://github.com/BX-Team/DivineMC/releases""";
 
     public static final Logger LOGGER = LogManager.getLogger(DivineConfig.class.getSimpleName());
     public static final int CONFIG_VERSION = 5;
@@ -157,6 +157,11 @@ public class DivineConfig {
     private static void parallelWorldTicking() {
         parallelThreadCount = getInt("settings.parallel-world-ticking.thread-count", parallelThreadCount);
         logContainerCreationStacktraces = getBoolean("settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
+
+        setComment("settings.parallel-world-ticking",
+            "Parallel World Ticking executes each world’s tick in a separate thread while ensuring that all worlds complete their tick before the next cycle begins.",
+            "",
+            "Read more info about this feature at https://bxteam.org/docs/divinemc/features/parallel-world-ticking");
     }
 
     public static boolean nativeAccelerationEnabled = true;
@@ -182,7 +187,7 @@ public class DivineConfig {
             "Value must be between 1-9, and -1 to disable override");
 
         if (isaTargetLevelOverride < -1 || isaTargetLevelOverride > 9) {
-            LOGGER.warn("Invalid ISA target level override: " + isaTargetLevelOverride + ", resetting to -1");
+            LOGGER.warn("Invalid ISA target level override: {}, resetting to -1", isaTargetLevelOverride);
             isaTargetLevelOverride = -1;
         }
 
@@ -196,7 +201,7 @@ public class DivineConfig {
         threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
 
-        enableSecureSeed = getBoolean("settings.misc.enable-secure-seed", enableSecureSeed,
+        enableSecureSeed = getBoolean("settings.chunk-generation.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",
             "",
             "Terrain and biome generation remains the same, but all the ores and structures are generated with 1024-bit seed, instead of the usual 64-bit seed.",
@@ -235,7 +240,9 @@ public class DivineConfig {
     public static int regionizedChunkTickingExecutorThreadPriority = Thread.NORM_PRIORITY;
     private static void regionizedChunkTicking() {
         enableRegionizedChunkTicking = getBoolean("settings.regionized-chunk-ticking.enable", enableRegionizedChunkTicking,
-            "Enables regionized chunk ticking. This feature is similar to Folia");
+            "Enables regionized chunk ticking, similar to like Folia works.",
+            "",
+            "Read more info about this feature at https://bxteam.org/docs/divinemc/features/regionized-chunk-ticking");
 
         regionizedChunkTickingExecutorThreadCount = getInt("settings.regionized-chunk-ticking.executor-thread-count", regionizedChunkTickingExecutorThreadCount,
             "The amount of threads to allocate to regionized chunk ticking.");
@@ -243,7 +250,7 @@ public class DivineConfig {
             "Configures the thread priority of the executor");
 
         if (regionizedChunkTickingExecutorThreadCount < 1 || regionizedChunkTickingExecutorThreadCount > 10) {
-            LOGGER.warn("Invalid regionized chunk ticking thread count: " + regionizedChunkTickingExecutorThreadCount + ", resetting to default (5)");
+            LOGGER.warn("Invalid regionized chunk ticking thread count: {}, resetting to default (5)", regionizedChunkTickingExecutorThreadCount);
             regionizedChunkTickingExecutorThreadCount = 5;
         }
     }
@@ -362,7 +369,7 @@ public class DivineConfig {
         if (!asyncPathfinding) {
             asyncPathfindingMaxThreads = 0;
         } else {
-            LOGGER.info("Using " + asyncPathfindingMaxThreads + " threads for Async Pathfinding");
+            LOGGER.info("Using {} threads for Async Pathfinding", asyncPathfindingMaxThreads);
         }
 
         if (asyncPathfindingQueueSize <= 0) asyncPathfindingQueueSize = asyncPathfindingMaxThreads * 256;
@@ -400,7 +407,7 @@ public class DivineConfig {
         if (!multithreadedEnabled) {
             asyncEntityTrackerMaxThreads = 0;
         } else {
-            LOGGER.info("Using " + asyncEntityTrackerMaxThreads + " threads for Async Entity Tracker");
+            LOGGER.info("Using {} threads for Async Entity Tracker", asyncEntityTrackerMaxThreads);
         }
 
         if (asyncEntityTrackerQueueSize <= 0) asyncEntityTrackerQueueSize = asyncEntityTrackerMaxThreads * 384;
