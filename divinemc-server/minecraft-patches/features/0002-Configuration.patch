@@ -5,14 +5,13 @@ Subject: [PATCH] Configuration
 
 
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 4f90ebcd86fba38dec313143e36614e992c7dbc7..959d87f4cd1efe8cf591e98c7d32728067f7117c 100644
+index 1d9bf122c4c32c486a33d846c95afcab12560fd7..61eeec6a0d789e5e44abdeb5826d7ee2307301ba 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -243,6 +243,17 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -218,6 +218,15 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
          }
          org.purpurmc.purpur.PurpurConfig.registerCommands();
-         */// Purpur end - Purpur config files // Purpur - Configurable void damage height and damage
-+
+         // Purpur end - Configurable void damage height and damage
 +        // DivineMC start - Configuration
 +        try {
 +            org.bxteam.divinemc.DivineConfig.init((java.io.File) options.valueOf("divinemc-settings"));
@@ -22,10 +21,9 @@ index 4f90ebcd86fba38dec313143e36614e992c7dbc7..959d87f4cd1efe8cf591e98c7d327280
 +        }
 +        org.bxteam.divinemc.command.DivineCommands.registerCommands(this);
 +        // DivineMC end - Configuration
-+
-         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // Paper - load version history now
- 
-         this.setPvpAllowed(properties.pvp);
+         // Paper start - initialize global and world-defaults configuration
+         this.paperConfigurations.initializeGlobalConfiguration(this.registryAccess());
+         this.paperConfigurations.initializeWorldDefaultsConfiguration(this.registryAccess());
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
 index 0fe8f4601eedfa68c38ebadc7847ba7a07ff6fb6..b4c2602ecf6b943ab022866231f74b850269af8f 100644
 --- a/net/minecraft/world/level/Level.java

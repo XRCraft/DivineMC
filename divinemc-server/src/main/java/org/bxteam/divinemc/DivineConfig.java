@@ -243,7 +243,7 @@ public class DivineConfig {
     public static int asyncChunkSendingThreadCount = 1;
     public static boolean asyncChunkSendingUseVirtualThreads = false;
     public static int asyncChunkSendingRateLimitChunkSends = 50;
-    private void asyncChunkSending() {
+    private static void asyncChunkSending() {
         asyncChunkSendingEnabled = getBoolean("settings.async-chunk-sending.enable", asyncChunkSendingEnabled,
             "Enables chunk sending runs off-main thread.");
 
@@ -286,6 +286,7 @@ public class DivineConfig {
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
+    public static boolean disableDisconnectSpam = false;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -295,6 +296,8 @@ public class DivineConfig {
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
         updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
+        disableDisconnectSpam = getBoolean("settings.misc.disable-disconnect-spam", disableDisconnectSpam,
+            "Prevents players being disconnected by 'disconnect.spam' when sending too many chat packets");
     }
 
     public static boolean enableFasterTntOptimization = true;

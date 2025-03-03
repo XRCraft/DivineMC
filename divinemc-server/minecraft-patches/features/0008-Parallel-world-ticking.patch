@@ -355,10 +355,10 @@ index 781030cb2e0316151c20351f04347c8db63f43e1..527547b98b70429830a3cf82fddba202
      }
      // CraftBukkit end
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index b3a2acd884a4bb2e84e6992c11dd16e513912616..217c857b8baf3f2aa7f75c7b0b33bba9dba35489 100644
+index 61eeec6a0d789e5e44abdeb5826d7ee2307301ba..440824d74912f9cabe950b9b27386fbf715f7884 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -234,6 +234,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -243,6 +243,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
          io.papermc.paper.command.PaperCommands.registerCommands(this); // Paper - setup /paper command
          this.server.spark.registerCommandBeforePlugins(this.server); // Paper - spark
          com.destroystokyo.paper.Metrics.PaperMetrics.startMetrics(); // Paper - start metrics

@@ -4,6 +4,105 @@ Date: Sat, 1 Feb 2025 00:33:03 +0300
 Subject: [PATCH] Chunk System optimization
 
 
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..8fa7b73b02434487fef495b92a33d24dcfa24c0b 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+@@ -301,7 +301,7 @@ public final class RegionizedPlayerChunkLoader {
+         return false;
+     }
+ 
+-    public void tick() {
++    public synchronized void tick() { // DivineMC - Chunk System optimization - synchronized
+         TickThread.ensureTickThread("Cannot tick player chunk loader async");
+         long currTime = System.nanoTime();
+         for (final ServerPlayer player : new java.util.ArrayList<>(this.world.players())) {
+@@ -362,7 +362,7 @@ public final class RegionizedPlayerChunkLoader {
+             GENERATED_TICKET_LEVEL,
+             TICK_TICKET_LEVEL
+         };
+-        private final Long2ByteOpenHashMap chunkTicketStage = new Long2ByteOpenHashMap();
++        private final it.unimi.dsi.fastutil.longs.Long2ByteMap chunkTicketStage = it.unimi.dsi.fastutil.longs.Long2ByteMaps.synchronize(new Long2ByteOpenHashMap()); // DivineMC - Chunk System optimization
+         {
+             this.chunkTicketStage.defaultReturnValue(CHUNK_TICKET_STAGE_NONE);
+         }
+@@ -492,7 +492,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             @Override
+-            protected void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) {
++            protected synchronized void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) { // DivineMC - Chunk System optimization - synchronized
+                 final long chunk = CoordinateUtils.getChunkKey(chunkX, chunkZ);
+                 // note: by the time this is called, the tick cleanup should have ran - so, if the chunk is at
+                 // the tick stage it was deemed in range for loading. Thus, we need to move it to generated
+@@ -626,7 +626,7 @@ public final class RegionizedPlayerChunkLoader {
+             return Math.max(Math.abs(dx), Math.abs(dz)) <= this.lastTickDistance;
+         }
+ 
+-        private boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) {
++        private synchronized boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) { // DivineMC - Chunk System optimization - synchronized
+             for (int dz = -radius; dz <= radius; ++dz) {
+                 for (int dx = -radius; dx <= radius; ++dx) {
+                     if ((dx | dz) == 0) {
+@@ -645,19 +645,11 @@ public final class RegionizedPlayerChunkLoader {
+             return true;
+         }
+ 
+-        void updateQueues(final long time) {
++        synchronized void updateQueues(final long time) { // DivineMC - Chunk System optimization - synchronized
+             TickThread.ensureTickThread(this.player, "Cannot tick player chunk loader async");
+             if (this.removed) {
+                 throw new IllegalStateException("Ticking removed player chunk loader");
+             }
+-            // update rate limits
+-            final double loadRate = this.getMaxChunkLoadRate();
+-            final double genRate = this.getMaxChunkGenRate();
+-            final double sendRate = this.getMaxChunkSendRate();
+-
+-            this.chunkLoadTicketLimiter.tickAllocation(time, loadRate, loadRate);
+-            this.chunkGenerateTicketLimiter.tickAllocation(time, genRate, genRate);
+-            this.chunkSendLimiter.tickAllocation(time, sendRate, sendRate);
+ 
+             // try to progress chunk loads
+             while (!this.loadingQueue.isEmpty()) {
+@@ -684,8 +676,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to push more chunk loads
+-            final long maxLoads = Math.max(0L, Math.min(MAX_RATE, Math.min(this.loadQueue.size(), this.getMaxChunkLoads())));
+-            final int maxLoadsThisTick = (int)this.chunkLoadTicketLimiter.takeAllocation(time, loadRate, maxLoads);
++            final int maxLoadsThisTick = this.loadQueue.size(); // DivineMC - Chunk System optimization
+             if (maxLoadsThisTick > 0) {
+                 final LongArrayList chunks = new LongArrayList(maxLoadsThisTick);
+                 for (int i = 0; i < maxLoadsThisTick; ++i) {
+@@ -760,9 +751,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to push more chunk generations
+-            final long maxGens = Math.max(0L, Math.min(MAX_RATE, Math.min(this.genQueue.size(), this.getMaxChunkGenerates())));
+-            // preview the allocations, as we may not actually utilise all of them
+-            final long maxGensThisTick = this.chunkGenerateTicketLimiter.previewAllocation(time, genRate, maxGens);
++            final long maxGensThisTick = this.genQueue.size(); // DivineMC - Chunk System optimization
+             long ratedGensThisTick = 0L;
+             while (!this.genQueue.isEmpty()) {
+                 final long chunkKey = this.genQueue.firstLong();
+@@ -792,8 +781,6 @@ public final class RegionizedPlayerChunkLoader {
+                 );
+                 this.generatingQueue.enqueue(chunkKey);
+             }
+-            // take the allocations we actually used
+-            this.chunkGenerateTicketLimiter.takeAllocation(time, genRate, ratedGensThisTick);
+ 
+             // try to pull ticking chunks
+             while (!this.tickingQueue.isEmpty()) {
+@@ -827,6 +814,7 @@ public final class RegionizedPlayerChunkLoader {
+             final int maxSendsThisTick = Math.min((int)this.chunkSendLimiter.takeAllocation(time, sendRate, maxSends), this.sendQueue.size());
+             // we do not return sends that we took from the allocation back because we want to limit the max send rate, not target it
+             for (int i = 0; i < maxSendsThisTick; ++i) {
++                if (this.sendQueue.isEmpty()) break; // DivineMC - Chunk System optimization
+                 final long pendingSend = this.sendQueue.firstLong();
+                 final int pendingSendX = CoordinateUtils.getChunkX(pendingSend);
+                 final int pendingSendZ = CoordinateUtils.getChunkZ(pendingSend);
 diff --git a/net/minecraft/world/level/LevelReader.java b/net/minecraft/world/level/LevelReader.java
 index 26c8c1e5598daf3550aef05b12218c47bda6618b..94c824ab1457939c425e1f99929d3222ee2c18a0 100644
 --- a/net/minecraft/world/level/LevelReader.java

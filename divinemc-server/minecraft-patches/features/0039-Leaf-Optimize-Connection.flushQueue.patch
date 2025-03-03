@@ -1,6 +1,16 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Mon, 3 Mar 2025 19:57:47 +0300
+Subject: [PATCH] Leaf: Optimize Connection.flushQueue
+
+Original author - Taiyou06
+Original patch - https://github.com/Winds-Studio/Leaf/pull/235
+
+diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
+index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..515e90aca8ab1c3a9dce67784a360630ae7dd247 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
-@@ -85,7 +_,7 @@
+@@ -85,7 +85,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
      private static final ProtocolInfo<ServerHandshakePacketListener> INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND;
      private final PacketFlow receiving;
      private volatile boolean sendLoginDisconnect = true;
@@ -9,7 +19,7 @@
      public Channel channel;
      public SocketAddress address;
      // Spigot start
-@@ -541,10 +_,10 @@
+@@ -541,10 +541,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
          if (io.papermc.paper.util.MCUtil.isMainThread()) {
              return this.processQueue();
          } else if (this.isPending) {
@@ -24,7 +34,7 @@
          }
          return false;
      }
-@@ -554,29 +_,16 @@
+@@ -554,29 +554,18 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
              return true;
          }
  
@@ -49,10 +59,11 @@
              if (queued instanceof PacketSendAction packetSendAction) {
                  final Packet<?> packet = packetSendAction.packet;
                  if (!packet.isReady()) {
++                    this.pendingActions.add(queued);
                      return false;
                  }
              }
--
+ 
 -            iterator.remove();
 +        // DivineMC end - Optimize Connection.flushQueue
              if (queued.tryMarkConsumed()) {

@@ -5,10 +5,10 @@ Subject: [PATCH] Async Chunk Sending
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..287bc85b80059fe5711cec25220d2d7bab472a16 100644
+index 8fa7b73b02434487fef495b92a33d24dcfa24c0b..d11cd068a87eb263af9a5def8ea322374cc234dc 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-@@ -823,8 +823,11 @@ public final class RegionizedPlayerChunkLoader {
+@@ -810,8 +810,11 @@ public final class RegionizedPlayerChunkLoader {
              }
  
              // try to pull sending chunks
@@ -21,7 +21,7 @@ index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..287bc85b80059fe5711cec25220d2d7b
 +            // DivineMC end - Async Chunk Sending
              // we do not return sends that we took from the allocation back because we want to limit the max send rate, not target it
              for (int i = 0; i < maxSendsThisTick; ++i) {
-                 final long pendingSend = this.sendQueue.firstLong();
+                 if (this.sendQueue.isEmpty()) break; // DivineMC - Chunk System optimization
 diff --git a/net/minecraft/server/network/PlayerChunkSender.java b/net/minecraft/server/network/PlayerChunkSender.java
 index 14878690a88fd4de3e2c127086607e6c819c636c..4723ce85ebcd3740245607348a525f292ac1e2f3 100644
 --- a/net/minecraft/server/network/PlayerChunkSender.java
