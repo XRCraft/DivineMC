@@ -7,34 +7,43 @@ Original author - Taiyou06
 Original patch - https://github.com/Winds-Studio/Leaf/pull/235
 
 diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
-index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..515e90aca8ab1c3a9dce67784a360630ae7dd247 100644
+index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0ba40c3b7 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
-@@ -85,7 +85,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -85,7 +85,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
      private static final ProtocolInfo<ServerHandshakePacketListener> INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND;
      private final PacketFlow receiving;
      private volatile boolean sendLoginDisconnect = true;
 -    private final Queue<WrappedConsumer> pendingActions = Queues.newConcurrentLinkedQueue(); // Paper - Optimize network
-+    private final Queue<WrappedConsumer> pendingActions = new java.util.ArrayDeque<>(); // Paper - Optimize network // DivineMC - Optimize Connection.flushQueue
++    // DivineMC start - Optimize Connection.flushQueue
++    private final Queue<WrappedConsumer> pendingActions = org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite
++        ? new java.util.ArrayDeque<>()
++        : Queues.newConcurrentLinkedQueue(); // Paper - Optimize network
++    // DivineMC end - Optimize Connection.flushQueue
      public Channel channel;
      public SocketAddress address;
      // Spigot start
-@@ -541,10 +541,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -541,10 +545,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
          if (io.papermc.paper.util.MCUtil.isMainThread()) {
              return this.processQueue();
          } else if (this.isPending) {
 -            // Should only happen during login/status stages
 -            synchronized (this.pendingActions) {
 -                return this.processQueue();
--            }
 +            // DivineMC start - Optimize Connection.flushQueue
-+            this.channel.eventLoop().execute(this::processQueue);
-+            return false;
++            if (org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite) {
++                this.channel.eventLoop().execute(this::processQueue);
++                return false;
++            } else {
++                synchronized (this.pendingActions) {
++                    return this.processQueue();
++                }
+             }
 +            // DivineMC end - Optimize Connection.flushQueue
          }
          return false;
      }
-@@ -554,29 +554,18 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -554,33 +564,53 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
              return true;
          }
  
@@ -43,29 +52,67 @@ index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..515e90aca8ab1c3a9dce67784a360630
 -        final java.util.Iterator<WrappedConsumer> iterator = this.pendingActions.iterator();
 -        while (iterator.hasNext()) {
 -            final WrappedConsumer queued = iterator.next(); // poll -> peek
--
++        // DivineMC start - Optimize Connection.flushQueue
++        if (org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite) {
++            WrappedConsumer queued;
++            while ((queued = this.pendingActions.poll()) != null) {
++                if (queued instanceof PacketSendAction packetSendAction) {
++                    final Packet<?> packet = packetSendAction.packet;
++                    if (!packet.isReady()) {
++                        // Re-add to the front and exit
++                        this.pendingActions.add(queued);
++                        return false;
++                    }
++                }
+ 
 -            // Fix NPE (Spigot bug caused by handleDisconnection())
 -            if (queued == null) {
 -                return true;
--            }
--
++                if (queued.tryMarkConsumed()) {
++                    queued.accept(this);
++                }
+             }
++        } else {
++            // If we are on main, we are safe here in that nothing else should be processing queue off main anymore
++            // But if we are not on main due to login/status, the parent is synchronized on packetQueue
++            final java.util.Iterator<WrappedConsumer> iterator = this.pendingActions.iterator();
++            while (iterator.hasNext()) {
++                final WrappedConsumer queued = iterator.next(); // poll -> peek
++
++                // Fix NPE (Spigot bug caused by handleDisconnection())
++                if (queued == null) {
++                    return true;
++                }
+ 
 -            if (queued.isConsumed()) {
 -                continue;
 -            }
--
-+        // DivineMC start - Optimize Connection.flushQueue
-+        WrappedConsumer queued;
-+        while ((queued = this.pendingActions.poll()) != null) {
-             if (queued instanceof PacketSendAction packetSendAction) {
-                 final Packet<?> packet = packetSendAction.packet;
-                 if (!packet.isReady()) {
-+                    this.pendingActions.add(queued);
-                     return false;
++                if (queued.isConsumed()) {
++                    continue;
++                }
+ 
+-            if (queued instanceof PacketSendAction packetSendAction) {
+-                final Packet<?> packet = packetSendAction.packet;
+-                if (!packet.isReady()) {
+-                    return false;
++                if (queued instanceof PacketSendAction packetSendAction) {
++                    final Packet<?> packet = packetSendAction.packet;
++                    if (!packet.isReady()) {
++                        return false;
++                    }
                  }
-             }
+-            }
  
 -            iterator.remove();
-+        // DivineMC end - Optimize Connection.flushQueue
-             if (queued.tryMarkConsumed()) {
-                 queued.accept(this);
+-            if (queued.tryMarkConsumed()) {
+-                queued.accept(this);
++                iterator.remove();
++                if (queued.tryMarkConsumed()) {
++                    queued.accept(this);
++                }
              }
+         }
++        // DivineMC end - Optimize Connection.flushQueue
+         return true;
+     }
+     // Paper end - Optimize network

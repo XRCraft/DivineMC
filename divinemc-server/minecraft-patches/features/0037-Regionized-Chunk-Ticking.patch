@@ -5,18 +5,21 @@ Subject: [PATCH] Regionized Chunk Ticking
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 2678bf59d557f085c7265e2f3eb038647723d35e..ee4e5462c784ea8588c12eb2b248c708c4d84bee 100644
+index 2678bf59d557f085c7265e2f3eb038647723d35e..f13ddc9a11ad0bc6396e31d7629f8ab9425cd4d7 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -56,6 +56,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -56,6 +56,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      private static final Logger LOGGER = LogUtils.getLogger();
      private final DistanceManager distanceManager;
      private final ServerLevel level;
-+    public static final Executor REGION_EXECUTOR = java.util.concurrent.Executors.newFixedThreadPool(org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadCount, new org.bxteam.divinemc.util.NamedAgnosticThreadFactory<>("region_ticking", ca.spottedleaf.moonrise.common.util.TickThread::new, org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadPriority)); // DivineMC - Regionized Chunk Ticking
++    // DivineMC - Regionized Chunk Ticking
++    public static final Executor REGION_EXECUTOR = java.util.concurrent.Executors.newFixedThreadPool(org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadCount, new org.bxteam.divinemc.util.NamedAgnosticThreadFactory<>("region_ticking", ca.spottedleaf.moonrise.common.util.TickThread::new, org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadPriority));
++    public volatile int tickingRegionsCount = 0;
++    // DivineMC end - Regionized Chunk Ticking
      public final Thread mainThread;
      final ThreadedLevelLightEngine lightEngine;
      public final ServerChunkCache.MainThreadExecutor mainThreadProcessor;
-@@ -479,6 +480,41 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -479,6 +483,46 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      }
      // CraftBukkit end
  
@@ -24,62 +27,84 @@ index 2678bf59d557f085c7265e2f3eb038647723d35e..ee4e5462c784ea8588c12eb2b248c708
 +    private static final int[] DX = {1, -1, 0, 0, 1, -1, -1, 1};
 +    private static final int[] DZ = {0, 0, 1, -1, 1, 1, -1, -1};
 +
-+    private List<List<LevelChunk>> splitChunksIntoRegions(List<LevelChunk> chunks) {
-+        Set<LevelChunk> chunkSet = new java.util.HashSet<>(chunks);
-+        Set<LevelChunk> visited = new java.util.HashSet<>(chunks.size());
-+        List<List<LevelChunk>> groups = new ArrayList<>();
++    private List<LevelChunk>[] splitChunksIntoRegions(List<LevelChunk> chunks) {
++        int size = chunks.size();
++        java.util.IdentityHashMap<LevelChunk, Boolean> chunkSet = new java.util.IdentityHashMap<>(size);
 +
 +        for (LevelChunk chunk : chunks) {
-+            if (visited.contains(chunk)) continue;
++            chunkSet.put(chunk, Boolean.TRUE);
++        }
 +
-+            List<LevelChunk> group = new ArrayList<>(64);
-+            java.util.ArrayDeque<net.minecraft.world.level.chunk.LevelChunk> stack = new java.util.ArrayDeque<>();
-+            stack.push(chunk);
-+            visited.add(chunk);
++        List<List<LevelChunk>> groups = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(size >> 3);
++        LevelChunk[] stack = new LevelChunk[size];
++        int stackPointer = 0;
 +
-+            while (!stack.isEmpty()) {
-+                LevelChunk current = stack.pop();
++        for (LevelChunk chunk : chunks) {
++            if (chunkSet.remove(chunk) == null) continue;
++
++            List<LevelChunk> group = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(64);
++            stack[stackPointer++] = chunk;
++
++            while (stackPointer > 0) {
++                LevelChunk current = stack[--stackPointer];
 +                group.add(current);
 +
 +                for (int i = 0; i < 8; i++) {
 +                    LevelChunk neighbor = getChunk(current.locX + DX[i], current.locZ + DZ[i], false);
-+                    if (neighbor == null || !chunkSet.contains(neighbor) || !visited.add(neighbor)) continue;
-+                    stack.push(neighbor);
++                    if (neighbor == null || chunkSet.remove(neighbor) == null) continue;
++                    stack[stackPointer++] = neighbor;
 +                }
 +            }
 +
 +            groups.add(group);
 +        }
 +
-+        return groups;
++        return groups.toArray(new List[0]);
 +    }
 +    // DivineMC end - Regionized Chunk Ticking
 +
      @Override
      public void tick(BooleanSupplier hasTimeLeft, boolean tickChunks) {
          ProfilerFiller profilerFiller = Profiler.get();
-@@ -519,7 +555,27 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -519,7 +563,44 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
                      this.shuffleRandom.setSeed(this.level.random.nextLong());
                      if (!this.level.paperConfig().entities.spawning.perPlayerMobSpawns) Util.shuffle(list, this.shuffleRandom); // Paper - Optional per player mob spawns; do not need this when per-player is enabled
                      // Paper end - chunk tick iteration optimisation
 -                    this.tickChunks(profilerFiller, l, list);
 +                    // DivineMC start - Regionized Chunk Ticking
 +                    if (org.bxteam.divinemc.DivineConfig.enableRegionizedChunkTicking) {
-+                        List<List<LevelChunk>> regions = splitChunksIntoRegions(list);
-+                        List<CompletableFuture<Void>> futures = new ArrayList<>();
-+                        for (List<LevelChunk> region : regions) {
-+                            CompletableFuture<Void> future = new CompletableFuture<>();
-+                            futures.add(future);
-+                            REGION_EXECUTOR.execute(() -> {
-+                                try {
-+                                    tickChunks(profilerFiller, l, region);
-+                                } finally {
-+                                    future.complete(null);
++                        List<LevelChunk>[] regions = splitChunksIntoRegions(list);
++                        int regionCount = regions.length;
++                        this.tickingRegionsCount = regionCount;
++                        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(regionCount);
++
++                        try {
++                            java.util.concurrent.ForkJoinPool.managedBlock(new java.util.concurrent.ForkJoinPool.ManagedBlocker() {
++                                @Override
++                                public boolean block() throws InterruptedException {
++                                    for (List<LevelChunk> region : regions) {
++                                        if (region == null) continue;
++                                        REGION_EXECUTOR.execute(() -> {
++                                            try {
++                                                tickChunks(profilerFiller, l, region);
++                                            } finally {
++                                                latch.countDown();
++                                            }
++                                        });
++                                    }
++
++                                    latch.await();
++                                    return true;
++                                }
++
++                                @Override
++                                public boolean isReleasable() {
++                                    return latch.getCount() == 0;
 +                                }
 +                            });
++                        } catch (InterruptedException ex) {
++                            throw new RuntimeException("Interrupted managed block during region ticking", ex);
 +                        }
-+                        CompletableFuture<Void> finalFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-+                        finalFuture.join();
 +                    } else {
 +                        this.tickChunks(profilerFiller, l, list);
 +                    }

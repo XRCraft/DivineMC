@@ -59,7 +59,11 @@ public class DivineWorldConfig {
     }
 
     public boolean allowEntityPortalWithPassenger = true;
+    public boolean allowTripwireDupe = false;
     private void unsupportedFeatures() {
-        allowEntityPortalWithPassenger = getBoolean("unsupported-features.allow-entity-portal-with-passenger", allowEntityPortalWithPassenger);
+        allowEntityPortalWithPassenger = getBoolean("unsupported-features.allow-entity-portal-with-passenger", allowEntityPortalWithPassenger,
+            "Enables or disables the fix of MC-67 bug: https://bugs-legacy.mojang.com/browse/MC-67");
+        allowTripwireDupe = getBoolean("unsupported-features.allow-tripwire-dupe", allowTripwireDupe,
+            "Bring back MC-59471, MC-129055 on 1.21.2+, which fixed in 1.21.2 snapshots 24w33a and 24w36a");
     }
 }

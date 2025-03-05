@@ -170,7 +170,7 @@ public class DivineConfig {
     public static long chunkDataCacheSoftLimit = 8192L;
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
-    public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.MOONRISE;
+    public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
@@ -286,7 +286,6 @@ public class DivineConfig {
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
-    public static boolean disableDisconnectSpam = false;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -296,8 +295,18 @@ public class DivineConfig {
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
         updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
-        disableDisconnectSpam = getBoolean("settings.misc.disable-disconnect-spam", disableDisconnectSpam,
+    }
+
+    public static boolean disableDisconnectSpam = false;
+    public static boolean connectionFlushQueueRewrite = true;
+    private static void networkSettings() {
+        disableDisconnectSpam = getBoolean("settings.network.disable-disconnect-spam", disableDisconnectSpam,
             "Prevents players being disconnected by 'disconnect.spam' when sending too many chat packets");
+        connectionFlushQueueRewrite = getBoolean("settings.network.connection-flush-queue-rewrite", connectionFlushQueueRewrite,
+            "Replaces ConcurrentLinkedQueue with ArrayDeque in Connection for better performance",
+            "and also uses the Netty event loop to ensure thread safety.",
+            "",
+            "Note: May increase the Netty thread usage");
     }
 
     public static boolean enableFasterTntOptimization = true;
@@ -359,6 +368,8 @@ public class DivineConfig {
     public static boolean virtualTabCompleteScheduler = false;
     public static boolean virtualAsyncExecutor = false;
     public static boolean virtualCommandBuilderScheduler = false;
+    public static boolean virtualProfileLookupPool = false;
+    public static boolean virtualServerTextFilterPool = false;
     private static void virtualThreads() {
         virtualThreadsEnabled = getBoolean("settings.virtual-threads.enabled", virtualThreadsEnabled,
             "Enables use of virtual threads that was added in Java 21");
@@ -375,6 +386,10 @@ public class DivineConfig {
             "Uses virtual threads for the MCUtil async executor.");
         virtualCommandBuilderScheduler = getBoolean("settings.virtual-threads.command-builder-scheduler", virtualCommandBuilderScheduler,
             "Uses virtual threads for the Async Command Builder Thread Pool.");
+        virtualProfileLookupPool = getBoolean("settings.virtual-threads.profile-lookup-pool", virtualProfileLookupPool,
+            "Uses virtual threads for the Profile Lookup Pool, that is used for fetching player profiles.");
+        virtualServerTextFilterPool = getBoolean("settings.virtual-threads.server-text-filter-pool", virtualServerTextFilterPool,
+            "Uses virtual threads for the server text filter pool.");
     }
 
     public static boolean asyncPathfinding = true;
