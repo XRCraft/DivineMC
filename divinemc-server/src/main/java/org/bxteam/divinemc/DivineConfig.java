@@ -174,6 +174,7 @@ public class DivineConfig {
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
+    public static boolean slopesVisualFix = false;
     public static boolean enableDensityFunctionCompiler = false;
     public static boolean enableStructureLayoutOptimizer = true;
     public static boolean deduplicateShuffledTemplatePoolElementList = false;
@@ -213,6 +214,8 @@ public class DivineConfig {
 
         smoothBedrockLayer = getBoolean("settings.chunk-generation.smooth-bedrock-layer", smoothBedrockLayer,
             "Smoothens the bedrock layer at the bottom of overworld, and on the top of nether during the world generation.");
+        slopesVisualFix = getBoolean("settings.chunk-generation.slopes-visual-fix", slopesVisualFix,
+            "Fixes MC-258859, fixing slopes visual bug in biomes like Snowy Slopes, Frozen Peaks, Jagged Peaks, and including Terralith.");
 
         enableDensityFunctionCompiler = getBoolean("settings.chunk-generation.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
             "Whether to use density function compiler to accelerate world generation",
