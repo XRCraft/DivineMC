@@ -17,6 +17,21 @@
          int currentSwingDuration = this.getCurrentSwingDuration();
          if (this.swinging) {
              this.swingTime++;
+@@ -3157,7 +_,13 @@
+     }
+ 
+     protected float getFlyingSpeed() {
+-        return this.getControllingPassenger() instanceof net.minecraft.world.entity.player.Player ? this.getSpeed() * 0.1F : 0.02F;
++        // DivineMC start - Fix MC-172801
++        float flyingSpeed = 0.02F;
++        if (this.getAttributes().hasAttribute(Attributes.FLYING_SPEED)) {
++            flyingSpeed = (float) (this.getAttribute(Attributes.FLYING_SPEED).getValue() * 0.049999999254942D);
++        }
++        return this.getControllingPassenger() instanceof net.minecraft.world.entity.player.Player ? this.getSpeed() * 0.1F : flyingSpeed;
++        // DivineMC end - Fix MC-172801
+     }
+ 
+     public float getSpeed() {
 @@ -3642,6 +_,7 @@
      protected void updateFallFlying() {
          this.checkSlowFallDistance();
