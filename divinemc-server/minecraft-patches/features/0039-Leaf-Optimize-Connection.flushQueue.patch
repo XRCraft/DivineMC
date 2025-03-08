@@ -7,7 +7,7 @@ Original author - Taiyou06
 Original patch - https://github.com/Winds-Studio/Leaf/pull/235
 
 diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
-index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0ba40c3b7 100644
+index 5b46036868b6c9d082e35591e58735e16adaae62..a7f5c08726cce94c6a6c2a69028ad016a1bef30a 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
 @@ -85,7 +85,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
@@ -23,14 +23,14 @@ index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0
      public Channel channel;
      public SocketAddress address;
      // Spigot start
-@@ -541,10 +545,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -542,10 +546,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
          if (io.papermc.paper.util.MCUtil.isMainThread()) {
              return this.processQueue();
          } else if (this.isPending) {
 -            // Should only happen during login/status stages
 -            synchronized (this.pendingActions) {
 -                return this.processQueue();
-+            // DivineMC start - Optimize Connection.flushQueue
++            // DivineMC start - Leaf: Optimize Connection.flushQueue
 +            if (org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite) {
 +                this.channel.eventLoop().execute(this::processQueue);
 +                return false;
@@ -39,11 +39,11 @@ index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0
 +                    return this.processQueue();
 +                }
              }
-+            // DivineMC end - Optimize Connection.flushQueue
++            // DivineMC end - Leaf: Optimize Connection.flushQueue
          }
          return false;
      }
-@@ -554,33 +564,53 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -555,33 +565,52 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
              return true;
          }
  
@@ -52,14 +52,13 @@ index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0
 -        final java.util.Iterator<WrappedConsumer> iterator = this.pendingActions.iterator();
 -        while (iterator.hasNext()) {
 -            final WrappedConsumer queued = iterator.next(); // poll -> peek
-+        // DivineMC start - Optimize Connection.flushQueue
++        // DivineMC start - Leaf: Optimize Connection.flushQueue
 +        if (org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite) {
 +            WrappedConsumer queued;
 +            while ((queued = this.pendingActions.poll()) != null) {
 +                if (queued instanceof PacketSendAction packetSendAction) {
 +                    final Packet<?> packet = packetSendAction.packet;
 +                    if (!packet.isReady()) {
-+                        // Re-add to the front and exit
 +                        this.pendingActions.add(queued);
 +                        return false;
 +                    }
@@ -112,7 +111,54 @@ index 7b78c0af4a83bd39a5bc2d6554cc677bd4c0c822..f3a2cc99799b41d663940847f7099df0
 +                }
              }
          }
-+        // DivineMC end - Optimize Connection.flushQueue
++        // DivineMC end - Leaf: Optimize Connection.flushQueue
          return true;
      }
      // Paper end - Optimize network
+@@ -914,15 +943,40 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+     // Paper start - Optimize network
+     public void clearPacketQueue() {
+         final net.minecraft.server.level.ServerPlayer player = getPlayer();
+-        for (final Consumer<Connection> queuedAction : this.pendingActions) {
+-            if (queuedAction instanceof PacketSendAction packetSendAction) {
+-                final Packet<?> packet = packetSendAction.packet;
+-                if (packet.hasFinishListener()) {
+-                    packet.onPacketDispatchFinish(player, null);
++
++        // DivineMC start - Leaf: Optimize Connection.flushQueue
++        if (org.bxteam.divinemc.DivineConfig.connectionFlushQueueRewrite) {
++            if (this.channel != null && !this.channel.eventLoop().inEventLoop()) {
++                this.channel.eventLoop().execute(this::clearPacketQueue);
++                return;
++            }
++
++            java.util.List<Consumer<Connection>> queueSnapshot = new java.util.ArrayList<>(this.pendingActions);
++
++            for (Consumer<Connection> queuedAction : queueSnapshot) {
++                if (queuedAction instanceof PacketSendAction packetSendAction) {
++                    final Packet<?> packet = packetSendAction.packet;
++                    if (packet.hasFinishListener()) {
++                        packet.onPacketDispatchFinish(player, null);
++                    }
++                }
++            }
++
++            this.pendingActions.clear();
++        } else {
++            synchronized (this.pendingActions) {
++                for (final Consumer<Connection> queuedAction : this.pendingActions) {
++                    if (queuedAction instanceof PacketSendAction packetSendAction) {
++                        final Packet<?> packet = packetSendAction.packet;
++                        if (packet.hasFinishListener()) {
++                            packet.onPacketDispatchFinish(player, null);
++                        }
++                    }
+                 }
++                this.pendingActions.clear();
+             }
+         }
+-        this.pendingActions.clear();
++        // DivineMC end - Leaf: Optimize Connection.flushQueue
+     }
+ 
+     private static class InnerUtil { // Attempt to hide these methods from ProtocolLib, so it doesn't accidently pick them up.
