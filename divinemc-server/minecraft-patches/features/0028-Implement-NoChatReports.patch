@@ -206,10 +206,10 @@ index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c7409161
          private static final String PREFIX = "data:image/png;base64,";
          public static final Codec<ServerStatus.Favicon> CODEC = Codec.STRING.comapFlatMap(string -> {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 440824d74912f9cabe950b9b27386fbf715f7884..374d74d459fb5548a47c0cb3adcf432ee83003d1 100644
+index d6b8486d8ec534b8fcfa50899cae4281acf9e7cb..f56bfa062d47c2c333e774ec618710d6dd49e833 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -666,6 +666,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -668,6 +668,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
  
      @Override
      public boolean enforceSecureProfile() {
@@ -287,7 +287,7 @@ index 398c1733824b689520170de0be94006731afa5cd..072e9b8810a6ccc292f1eb5ffe02355a
          if (packet == null || this.processedDisconnect) { // Spigot
              return;
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index 9f73125b4604aa5db4eeaa924a9d24976ec1c3a1..5d312dd133c89b51bdb6f7c519e16b718c1dfb79 100644
+index 676b56c2898d714423dcc87170f325963749cec7..13f9f9ad57c8f2575dfe5822122abccf29c367a9 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -274,7 +274,7 @@ public abstract class PlayerList {
@@ -299,7 +299,7 @@ index 9f73125b4604aa5db4eeaa924a9d24976ec1c3a1..5d312dd133c89b51bdb6f7c519e16b71
              )
          );
          player.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
-@@ -1326,6 +1326,7 @@ public abstract class PlayerList {
+@@ -1328,6 +1328,7 @@ public abstract class PlayerList {
      }
  
      public boolean verifyChatTrusted(PlayerChatMessage message) { // Paper - private -> public

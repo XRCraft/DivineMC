@@ -5,7 +5,7 @@ Subject: [PATCH] lithium: block_entity_ticking.sleeping
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c3163e9f79fcf62e7d7a75d8f27695e232dc7e8c..12bb73f65872d68e5ec4f37ecd8e0122c1fd721f 100644
+index 7aef92967cb8a662e644225a4122a544f3cff937..87837ab5ac16786db0b0ddd420b9f7cb797e5bbb 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -2439,7 +2439,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -35,7 +35,7 @@ index c3163e9f79fcf62e7d7a75d8f27695e232dc7e8c..12bb73f65872d68e5ec4f37ecd8e0122
      public String getWatchdogStats() {
          return String.format(
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 7c80f90ccab0f90a4c76c2d195f4aaa0b12deb9a..9f5a219e2fae7bb08ab921d13d9ae9e782d2afdb 100644
+index 533b6d4c5238607818002f0b43ff71226c645886..9cde0f691e51072d02faf9df184030bf9675cb1a 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -1535,7 +1535,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
@@ -45,9 +45,9 @@ index 7c80f90ccab0f90a4c76c2d195f4aaa0b12deb9a..9f5a219e2fae7bb08ab921d13d9ae9e7
 -            } else if (runsNormally && this.shouldTickBlocksAt(tickingBlockEntity.getPos())) {
 +            } else if (runsNormally && this.shouldTickBlockPosFilterNull(this, tickingBlockEntity.getPos())) { // DivineMC - lithium: block_entity_ticking.sleeping
                  tickingBlockEntity.tick();
-                 // Paper start - rewrite chunk system
-                 if ((++tickedEntities & 7) == 0) {
-@@ -1552,6 +1552,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+                 // DivineMC start - Parallel world ticking
+                 ++tickedEntities;
+@@ -1553,6 +1553,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          this.spigotConfig.currentPrimedTnt = 0; // Spigot
      }
  

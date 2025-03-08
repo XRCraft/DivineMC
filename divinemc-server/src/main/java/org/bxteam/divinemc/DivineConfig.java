@@ -152,16 +152,19 @@ public class DivineConfig {
 		return config.getStringList(key);
 	}
 
+    public static boolean enableParallelWorldTicking = true;
     public static int parallelThreadCount = 4;
     public static boolean logContainerCreationStacktraces = false;
+    public static boolean disableHardThrow = false;
     private static void parallelWorldTicking() {
-        parallelThreadCount = getInt("settings.parallel-world-ticking.thread-count", parallelThreadCount);
-        logContainerCreationStacktraces = getBoolean("settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
-
-        setComment("settings.parallel-world-ticking",
-            "Parallel World Ticking executes each world’s tick in a separate thread while ensuring that all worlds complete their tick before the next cycle begins.",
+        enableParallelWorldTicking = getBoolean("settings.parallel-world-ticking.enable", enableParallelWorldTicking,
+            "Enables Parallel World Ticking, which executes each world’s tick in a separate thread while ensuring that all worlds complete their tick before the next cycle begins.",
             "",
             "Read more info about this feature at https://bxteam.org/docs/divinemc/features/parallel-world-ticking");
+        parallelThreadCount = getInt("settings.parallel-world-ticking.thread-count", parallelThreadCount);
+        logContainerCreationStacktraces = getBoolean("settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
+        disableHardThrow = getBoolean("settings.parallel-world-ticking.disable-hard-throw", disableHardThrow,
+            "Disables annoying 'not on main thread' throws. But, THIS IS NOT RECOMMENDED because you SHOULD FIX THE ISSUES THEMSELVES instead of RISKING DATA CORRUPTION! If you lose something, take the blame on yourself.");
     }
 
     public static boolean nativeAccelerationEnabled = true;

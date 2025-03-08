@@ -20,20 +20,20 @@ index 4535858701b2bb232b9d2feb2af6551526232ddc..aa4dd7517e8be167aef1eaf7aa907e3c
                          if (var4 instanceof ReportedException reportedException && reportedException.getCause() instanceof OutOfMemoryError) {
                              throw makeReportedException(var4, packet, processor);
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index b7815831ff1a2fa9aa52e96f1a50a5aa6823ff8a..85f81c83aff81133289a03f12a059729b7d2e00e 100644
+index 7c0081b01140800977ad2dc053d4c4619f263fc2..8c6c7f2296e4dca882c9f349772aec02e9d92ee1 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1789,6 +1789,10 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
-                             serverLevel.tickTimes10s.add(this.tickCount, j);
-                             serverLevel.tickTimes60s.add(this.tickCount, j);
-                             // DivineMC end - MSPT Tracking for each world
-+                        // DivineMC start - Catch update suppressors
-+                        } catch (org.bxteam.divinemc.util.exception.UpdateSuppressorException e) {
-+                            LOGGER.info(e.getMessage());
-+                        // DivineMC end - Catch update suppressors
-                         } catch (Throwable throwable) {
-                             CrashReport crashreport = CrashReport.forThrowable(throwable, "Exception ticking world");
- 
+@@ -1734,6 +1734,10 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             serverLevel.tickTimes10s.add(this.tickCount, j);
+             serverLevel.tickTimes60s.add(this.tickCount, j);
+             // DivineMC end - MSPT Tracking for each world
++        // DivineMC start - Catch update suppressors
++        } catch (org.bxteam.divinemc.util.exception.UpdateSuppressorException e) {
++            LOGGER.info(e.getMessage());
++        // DivineMC end - Catch update suppressors
+         } catch (Throwable levelTickingException) {
+             CrashReport crashReport = CrashReport.forThrowable(levelTickingException, "Exception ticking world");
+             serverLevel.fillReportDetails(crashReport);
 diff --git a/net/minecraft/world/level/block/ShulkerBoxBlock.java b/net/minecraft/world/level/block/ShulkerBoxBlock.java
 index cdf835ff107bc1eadde706d69384e687626fce70..c04c66668395fa9167e027131daf75c0e9ee6eff 100644
 --- a/net/minecraft/world/level/block/ShulkerBoxBlock.java

@@ -5,19 +5,19 @@ Subject: [PATCH] Optimize hoppers
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 527547b98b70429830a3cf82fddba202e0ba8131..ee45df82c3328d5cf91cb3e56786aec2d5263641 100644
+index 3002ed51a579e81c3266da79a5dd38bac0b4a39c..9fdd4bbbe0e4c75880e9f24741fea7c60c57d09a 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1765,7 +1765,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1789,7 +1789,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
                  serverLevel.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
                  serverLevel.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
                  serverLevel.updateLagCompensationTick(); // Paper - lag compensation
 -                net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = serverLevel.paperConfig().hopper.disableMoveEvent || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper - Perf: Optimize Hoppers
                  serverLevel.hasRidableMoveEvent = org.purpurmc.purpur.event.entity.RidableMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Purpur - Ridables
                  profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().location());
-                 profilerFiller.push("tick");
+ 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index eeb9ae85b4863a2054cc08837b66a6e47f1e0315..8ad95bf8bde55e13f08bcdda332d5079e8bd6296 100644
+index 04d36514e55e31d867dca6cd46fdef4fa601c97d..6fc3db6fa365da0512ff3c845586a9d54e8b23b2 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -195,7 +195,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe

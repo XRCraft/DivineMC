@@ -5,7 +5,7 @@ Subject: [PATCH] Lag compensation
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index ee45df82c3328d5cf91cb3e56786aec2d5263641..138de3fed3cc7a4dd0633dfdaf9c883f5f6fbd54 100644
+index 9fdd4bbbe0e4c75880e9f24741fea7c60c57d09a..ad308e75a58e7db5247489b5d4447b1271ee0102 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -307,6 +307,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -16,7 +16,7 @@ index ee45df82c3328d5cf91cb3e56786aec2d5263641..138de3fed3cc7a4dd0633dfdaf9c883f
  
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
          ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.init(); // Paper - rewrite data converter system
-@@ -1577,6 +1578,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1589,6 +1590,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          }
  
          this.server.spark.tickStart(); // Paper - spark
@@ -25,7 +25,7 @@ index ee45df82c3328d5cf91cb3e56786aec2d5263641..138de3fed3cc7a4dd0633dfdaf9c883f
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 5dfab22692947e0e372044c6dca181f6847fc58a..dc91371fcaffc8477b1732b79174e7fb2bf7c6b3 100644
+index 6fc3db6fa365da0512ff3c845586a9d54e8b23b2..e684eaed9740c3236a8f2bd7cce0d86661632a87 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -219,6 +219,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -66,7 +66,7 @@ index 5dfab22692947e0e372044c6dca181f6847fc58a..dc91371fcaffc8477b1732b79174e7fb
          this.serverLevelData.setDayTime(time);
          // Purpur start - Configurable daylight cycle
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index 30d02d18c3bfc891eb543428143149ed2044fc0f..ef4d526a343aaede08fa4dee48b146f7597a0b75 100644
+index e7f1be39ecc532e83d9099e81a2dfd8ed5f0df7d..34a1a6e92a3fcb1e0f1e8e7ccf6cbce7eda8e10e 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
 @@ -559,6 +559,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
@@ -244,7 +244,7 @@ index b631e35e965b1914cdeeddab8bd6bdbfd2465079..bb7dab597850fba8f0dff4461fc518e0
      }
  
 diff --git a/net/minecraft/world/level/chunk/LevelChunk.java b/net/minecraft/world/level/chunk/LevelChunk.java
-index 6167f72d1e374a7093f9880ab50e27eda603a680..88dc5f6e6668d802dc1a21bd894f8ddb1e568033 100644
+index 66c7f0d2adc8c00b53125b8cdc5da8c4319eedb5..1cdff5ee25e6ef66e6aae221e61eee7829b213ed 100644
 --- a/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -913,6 +913,19 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p

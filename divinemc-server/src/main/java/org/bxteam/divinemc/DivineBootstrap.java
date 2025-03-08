@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 
 public class DivineBootstrap {
     private static final Logger LOGGER = LoggerFactory.getLogger("bootstrap");
-    public static final boolean disableTickThreadHardThrow = Boolean.parseBoolean(System.getProperty("DivineMC.disableTickThreadHardThrow", "false"));
 
     public static void boot(final OptionSet options) {
         runPreBootTasks();

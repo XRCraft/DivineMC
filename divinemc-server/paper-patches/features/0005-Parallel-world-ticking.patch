@@ -5,14 +5,14 @@ Subject: [PATCH] Parallel world ticking
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
-index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b92a8a80c5 100644
+index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..c153e79ebe1f2338f0d0ca6b45b392794ecd2fd7 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
 @@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  public class TickThread extends Thread {
  
      private static final Logger LOGGER = LoggerFactory.getLogger(TickThread.class);
-+    public static final boolean HARD_THROW = !org.bxteam.divinemc.DivineBootstrap.disableTickThreadHardThrow; // DivineMC - parallel world ticking - THIS SHOULD NOT BE DISABLED SINCE IT CAN CAUSE DATA CORRUPTION!
++    public static final boolean HARD_THROW = !org.bxteam.divinemc.DivineConfig.disableHardThrow; // DivineMC - Parallel world ticking
  
      private static String getThreadContext() {
          return "thread=" + Thread.currentThread().getName();
@@ -21,7 +21,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThread()) {
              LOGGER.error("Thread failed main thread check: " + reason + ", context=" + getThreadContext(), new Throwable());
 -            throw new IllegalStateException(reason);
-+            if (HARD_THROW) throw new IllegalStateException(reason); // DivineMC - parallel world ticking - THIS SHOULD NOT BE DISABLED SINCE IT CAN CAUSE DATA CORRUPTION!
++            if (HARD_THROW) throw new IllegalStateException(reason); // DivineMC - Parallel world ticking
          }
      }
  
@@ -29,7 +29,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThreadFor(world, pos)) {
              final String ex = "Thread failed main thread check: " +
 -                               reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos;
-+                               reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos + " - " + getTickThreadInformation(world.getServer()); // DivineMC - parallel world ticking
++                               reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos + " - " + getTickThreadInformation(world.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
@@ -38,7 +38,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThreadFor(world, pos, blockRadius)) {
              final String ex = "Thread failed main thread check: " +
 -                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos + ", block_radius=" + blockRadius;
-+                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos + ", block_radius=" + blockRadius + " - " + getTickThreadInformation(world.getServer()); // DivineMC - parallel world ticking
++                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + pos + ", block_radius=" + blockRadius + " - " + getTickThreadInformation(world.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
@@ -47,7 +47,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThreadFor(world, chunkX, chunkZ)) {
              final String ex = "Thread failed main thread check: " +
 -                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", chunk_pos=" + new ChunkPos(chunkX, chunkZ);
-+                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", chunk_pos=" + new ChunkPos(chunkX, chunkZ) + " - " + getTickThreadInformation(world.getServer()); // DivineMC - parallel world ticking
++                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", chunk_pos=" + new ChunkPos(chunkX, chunkZ) + " - " + getTickThreadInformation(world.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
@@ -56,7 +56,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThreadFor(entity)) {
              final String ex = "Thread failed main thread check: " +
 -                reason + ", context=" + getThreadContext() + ", entity=" + EntityUtil.dumpEntity(entity);
-+                reason + ", context=" + getThreadContext() + ", entity=" + EntityUtil.dumpEntity(entity) + " - " + getTickThreadInformation(entity.getServer()); // DivineMC - parallel world ticking
++                reason + ", context=" + getThreadContext() + ", entity=" + EntityUtil.dumpEntity(entity) + " - " + getTickThreadInformation(entity.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
@@ -65,27 +65,26 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
          if (!isTickThreadFor(world, aabb)) {
              final String ex = "Thread failed main thread check: " +
 -                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", aabb=" + aabb;
-+                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", aabb=" + aabb + " - " + getTickThreadInformation(world.getServer()); // DivineMC - parallel world ticking
++                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", aabb=" + aabb + " - " + getTickThreadInformation(world.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
-@@ -87,12 +88,69 @@ public class TickThread extends Thread {
+@@ -87,12 +88,67 @@ public class TickThread extends Thread {
      public static void ensureTickThread(final Level world, final double blockX, final double blockZ, final String reason) {
          if (!isTickThreadFor(world, blockX, blockZ)) {
              final String ex = "Thread failed main thread check: " +
 -                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + new Vec3(blockX, 0.0, blockZ);
-+                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + new Vec3(blockX, 0.0, blockZ) + " - " + getTickThreadInformation(world.getServer()); // DivineMC - parallel world ticking
++                reason + ", context=" + getThreadContext() + ", world=" + WorldUtil.getWorldName(world) + ", block_pos=" + new Vec3(blockX, 0.0, blockZ) + " - " + getTickThreadInformation(world.getServer()); // DivineMC - Parallel world ticking
              LOGGER.error(ex, new Throwable());
              throw new IllegalStateException(ex);
          }
      }
  
-+    // DivineMC start - parallel world ticking
++    // DivineMC start - Parallel world ticking
 +    public static void ensureTickThread(final net.minecraft.server.level.ServerLevel world, final String reason) {
 +        if (!isTickThreadFor(world)) {
 +            LOGGER.error("Thread " + Thread.currentThread().getName() + " failed main thread check: " + reason + " @ world " + world.getWorld().getName() + " - " + getTickThreadInformation(world.getServer()), new Throwable());
-+            if (HARD_THROW)
-+                throw new IllegalStateException(reason);
++            if (HARD_THROW) throw new IllegalStateException(reason);
 +        }
 +    }
 +
@@ -94,8 +93,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
 +        boolean isServerLevelTickThread = isServerLevelTickThread();
 +        if (!isTickThread || isServerLevelTickThread) {
 +            LOGGER.error("Thread " + Thread.currentThread().getName() + " failed main thread ONLY tick thread check: " + reason, new Throwable());
-+            if (HARD_THROW)
-+                throw new IllegalStateException(reason);
++            if (HARD_THROW) throw new IllegalStateException(reason);
 +        }
 +    }
 +
@@ -135,107 +133,70 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
 +    public static boolean isServerLevelTickThread() {
 +        return Thread.currentThread() instanceof ServerLevelTickThread;
 +    }
-+    // DivineMC end - parallel world ticking
++    // DivineMC end - Parallel world ticking
 +
      public final int id; /* We don't override getId as the spec requires that it be unique (with respect to all other threads) */
  
      private static final AtomicInteger ID_GENERATOR = new AtomicInteger();
-@@ -126,8 +184,13 @@ public class TickThread extends Thread {
+@@ -126,47 +182,71 @@ public class TickThread extends Thread {
          return false;
      }
  
-+    // DivineMC start - parallel world ticking
++    // DivineMC start - Parallel world ticking
      public static boolean isTickThreadFor(final Level world, final BlockPos pos) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final BlockPos pos, final int blockRadius) {
-@@ -135,38 +198,99 @@ public class TickThread extends Thread {
+-        return isTickThread();
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final ChunkPos pos) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final Vec3 pos) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final int chunkX, final int chunkZ) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final AABB aabb) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final double blockX, final double blockZ) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final Vec3 position, final Vec3 deltaMovement, final int buffer) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final int fromChunkX, final int fromChunkZ, final int toChunkX, final int toChunkZ) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
      }
  
      public static boolean isTickThreadFor(final Level world, final int chunkX, final int chunkZ, final int radius) {
 -        return isTickThread();
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(world);
 +    }
 +
 +    public static boolean isTickThreadFor(final Level world) {
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
++        if (Thread.currentThread() instanceof ServerLevelTickThread serverLevelTickThread) {
 +            return serverLevelTickThread.currentlyTickingServerLevel == world;
-+        } else return currentThread instanceof TickThread;
++        } else return isTickThread();
      }
  
      public static boolean isTickThreadFor(final Entity entity) {
@@ -244,11 +205,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
 +            return true;
 +        }
 +
-+        Thread currentThread = Thread.currentThread();
-+
-+        if (currentThread instanceof ServerLevelTickThread serverLevelTickThread) {
-+            return serverLevelTickThread.currentlyTickingServerLevel == entity.level();
-+        } else return currentThread instanceof TickThread;
++        return isTickThreadFor(entity.level());
 +    }
 +
 +    public static class ServerLevelTickThread extends TickThread {
@@ -262,7 +219,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..e40e1a21c720ddecf84abf5f399b48b9
 +
 +        public net.minecraft.server.level.ServerLevel currentlyTickingServerLevel;
      }
-+    // DivineMC end - parallel world ticking
++    // DivineMC end - Parallel world ticking
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 index ca60f91ef012c94174a0803eb77699ba9ecff5e1..35afd7268a6f8c5c9d0da751459867c1d8e404bf 100644
@@ -557,21 +514,23 @@ index fa63a6cfcfcc4eee4503a82d85333c139c8c8b2b..951e47811e861dffd59cc39e2dcd6fd6
          net.minecraft.world.item.ItemStack nms = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(item);
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockStates.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockStates.java
-index 56453454cbd4b9e9270fc833f8ab38d5fa7a3763..cfc4237211b994a222983a2d1f879cb0f515b581 100644
+index 56453454cbd4b9e9270fc833f8ab38d5fa7a3763..a8e740b255336c2d611e44129418b5fb29792592 100644
 --- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockStates.java
 +++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockStates.java
-@@ -249,8 +249,8 @@ public final class CraftBlockStates {
+@@ -249,8 +249,10 @@ public final class CraftBlockStates {
          net.minecraft.world.level.block.state.BlockState blockData = craftBlock.getNMS();
          BlockEntity tileEntity = craftBlock.getHandle().getBlockEntity(blockPosition);
          // Paper start - block state snapshots
 -        boolean prev = CraftBlockEntityState.DISABLE_SNAPSHOT;
 -        CraftBlockEntityState.DISABLE_SNAPSHOT = !useSnapshot;
-+        boolean prev = CraftBlockEntityState.DISABLE_SNAPSHOT.get(); // DivineMC - parallel world ticking
-+        CraftBlockEntityState.DISABLE_SNAPSHOT.set(!useSnapshot); // DivineMC - parallel world ticking
++        // DivineMC start - Parallel world ticking
++        boolean prev = CraftBlockEntityState.DISABLE_SNAPSHOT.get();
++        CraftBlockEntityState.DISABLE_SNAPSHOT.set(!useSnapshot);
++        // DivineMC end - Parallel world ticking
          try {
          // Paper end
          CraftBlockState blockState = CraftBlockStates.getBlockState(world, blockPosition, blockData, tileEntity);
-@@ -258,7 +258,7 @@ public final class CraftBlockStates {
+@@ -258,7 +260,7 @@ public final class CraftBlockStates {
          return blockState;
          // Paper start
          } finally {

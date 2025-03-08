@@ -5,27 +5,27 @@ Subject: [PATCH] MSPT Tracking for each world
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 138de3fed3cc7a4dd0633dfdaf9c883f5f6fbd54..506f0469d1a9ee58de0e7a34a61a8092e451dcfd 100644
+index ad308e75a58e7db5247489b5d4447b1271ee0102..8feec3f633f2fa12591fb84c90e0b28b7fde7697 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1778,7 +1778,15 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
-                             ca.spottedleaf.moonrise.common.util.TickThread.ServerLevelTickThread currentThread = (ca.spottedleaf.moonrise.common.util.TickThread.ServerLevelTickThread) Thread.currentThread();
-                             currentThread.currentlyTickingServerLevel = serverLevel;
- 
-+                            // DivineMC start - MSPT Tracking for each world
-+                            long i = Util.getNanos();
-                             serverLevel.tick(hasTimeLeft);
-+                            long j = Util.getNanos() - i;
+@@ -1724,7 +1724,15 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     // DivineMC start - Parallel world ticking
+     private void tickLevel(ServerLevel serverLevel, BooleanSupplier hasTimeLeft) {
+         try {
++            // DivineMC start - MSPT Tracking for each world
++            long i = Util.getNanos();
+             serverLevel.tick(hasTimeLeft);
++            long j = Util.getNanos() - i;
 +
-+                            serverLevel.tickTimes5s.add(this.tickCount, j);
-+                            serverLevel.tickTimes10s.add(this.tickCount, j);
-+                            serverLevel.tickTimes60s.add(this.tickCount, j);
-+                            // DivineMC end - MSPT Tracking for each world
-                         } catch (Throwable throwable) {
-                             CrashReport crashreport = CrashReport.forThrowable(throwable, "Exception ticking world");
- 
++            serverLevel.tickTimes5s.add(this.tickCount, j);
++            serverLevel.tickTimes10s.add(this.tickCount, j);
++            serverLevel.tickTimes60s.add(this.tickCount, j);
++            // DivineMC end - MSPT Tracking for each world
+         } catch (Throwable levelTickingException) {
+             CrashReport crashReport = CrashReport.forThrowable(levelTickingException, "Exception ticking world");
+             serverLevel.fillReportDetails(crashReport);
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index dc91371fcaffc8477b1732b79174e7fb2bf7c6b3..ba5a803b3ecd2b76c2d3ffd2dc9ea1e95914dd03 100644
+index e684eaed9740c3236a8f2bd7cce0d86661632a87..7aef92967cb8a662e644225a4122a544f3cff937 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -575,6 +575,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
