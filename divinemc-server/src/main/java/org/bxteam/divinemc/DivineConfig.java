@@ -289,6 +289,7 @@ public class DivineConfig {
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
+    public static boolean useCompactBitStorage = false;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -298,6 +299,8 @@ public class DivineConfig {
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
         updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
+        useCompactBitStorage = getBoolean("settings.misc.use-compact-bit-storage", useCompactBitStorage,
+            "Fixes memory waste caused by sending empty chunks as if they contain blocks. Can significantly reduce memory usage.");
     }
 
     public static boolean disableDisconnectSpam = false;
