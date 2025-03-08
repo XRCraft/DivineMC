@@ -39,24 +39,21 @@ mv divinemc-server/build/libs/divinemc-paperclip-"$version"-mojmap.jar "$jarName
 } >> "$GITHUB_ENV"
 
 {
-  echo "$divinemcid [![download](https://img.shields.io/github/downloads/BX-Team/DivineMC/$tagid/total?color=0)](https://github.com/BX-Team/DivineMC/releases/download/$tagid/$jarName)"
-  echo "====="
-  echo ""
+  echo "### 📜 Commits:"
   if [ "$experimental" = "true" ]; then
     echo "> [!WARNING]"
-    echo "> This is an early, experimental build. It is only recommended for usage on test servers and should be used with caution."
+    echo "> This is an experimental build, it may contain bugs and issues. Use at your own risk."
     echo "> **Backups are mandatory!**"
     echo ""
   fi
-  echo "### Commits"
 } >> $changelog
 
 number=$(git log --oneline master ^"$(git describe --tags --abbrev=0)" | wc -l)
-git log --pretty='> [%h] %s' "-$number" >> $changelog
+git log --pretty='- [%h](https://github.com/BX-Team/DivineMC/commit/%H) %s' "-$number" >> $changelog
 
 {
   echo ""
-  echo "### Checksum"
+  echo "### 🔒 Checksums:"
   echo "| File | $jarName |"
   echo "| ---- | ---- |"
   echo "| MD5 | $(md5 "$jarName") |"
