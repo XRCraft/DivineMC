@@ -290,6 +290,7 @@ public class DivineConfig {
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
     public static boolean useCompactBitStorage = false;
+    public static boolean fixIncorrectBounceLogic = false;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -301,6 +302,8 @@ public class DivineConfig {
         updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
         useCompactBitStorage = getBoolean("settings.misc.use-compact-bit-storage", useCompactBitStorage,
             "Fixes memory waste caused by sending empty chunks as if they contain blocks. Can significantly reduce memory usage.");
+        fixIncorrectBounceLogic = getBoolean("settings.misc.fix-incorrect-bounce-logic", fixIncorrectBounceLogic,
+            "Fixes incorrect bounce logic in SlimeBlock.");
     }
 
     public static boolean disableDisconnectSpam = false;
