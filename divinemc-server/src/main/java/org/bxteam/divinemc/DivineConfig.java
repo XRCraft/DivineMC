@@ -286,6 +286,7 @@ public class DivineConfig {
     public static boolean updateSuppressionCrashFix = true;
     public static boolean useCompactBitStorage = false;
     public static boolean fixIncorrectBounceLogic = false;
+    public static boolean forceMinecraftCommand = false;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -299,6 +300,8 @@ public class DivineConfig {
             "Fixes memory waste caused by sending empty chunks as if they contain blocks. Can significantly reduce memory usage.");
         fixIncorrectBounceLogic = getBoolean("settings.misc.fix-incorrect-bounce-logic", fixIncorrectBounceLogic,
             "Fixes incorrect bounce logic in SlimeBlock.");
+        forceMinecraftCommand = getBoolean("settings.misc.force-minecraft-command", forceMinecraftCommand,
+            "Whether to force the use of vanilla commands over plugin commands.");
     }
 
     public static boolean disableDisconnectSpam = false;
