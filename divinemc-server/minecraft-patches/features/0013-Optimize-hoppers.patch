@@ -17,7 +17,7 @@ index 3002ed51a579e81c3266da79a5dd38bac0b4a39c..9fdd4bbbe0e4c75880e9f24741fea7c6
                  profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().location());
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 04d36514e55e31d867dca6cd46fdef4fa601c97d..6fc3db6fa365da0512ff3c845586a9d54e8b23b2 100644
+index a3f363d0c86142e03edc7fc6e2ff6ed81de8ed65..0de0570397a6c6de43b1143b0d722af7a6093c8e 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -195,7 +195,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -54,7 +54,7 @@ index 04d36514e55e31d867dca6cd46fdef4fa601c97d..6fc3db6fa365da0512ff3c845586a9d5
              }
          }
          } // Paper - option to disable pathfinding updates
-@@ -2698,7 +2698,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2699,7 +2699,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {
@@ -63,7 +63,7 @@ index 04d36514e55e31d867dca6cd46fdef4fa601c97d..6fc3db6fa365da0512ff3c845586a9d5
                      String string = "onTrackingStart called during navigation iteration";
                      Util.logAndPauseIfInIde(
                          "onTrackingStart called during navigation iteration", new IllegalStateException("onTrackingStart called during navigation iteration")
-@@ -2768,7 +2768,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2769,7 +2769,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {
