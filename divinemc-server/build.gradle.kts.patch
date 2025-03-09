@@ -57,17 +57,18 @@
      implementation("ca.spottedleaf:concurrentutil:0.0.3")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
-@@ -177,6 +_,14 @@
+@@ -177,6 +_,15 @@
      implementation("org.mozilla:rhino-engine:1.7.14") // Purpur
      implementation("dev.omega24:upnp4j:1.0") // Purpur
  
-+    // DivineMC start - Add DivineMC required dependencies
-+    implementation("org.yaml:snakeyaml:1.33")
++    // DivineMC start
++    implementation("org.yaml:snakeyaml:2.4")
 +    implementation ("me.carleslc.Simple-YAML:Simple-Yaml:1.8.4") {
 +        exclude(group="org.yaml", module="snakeyaml")
 +    }
 +    implementation("net.objecthunter:exp4j:0.4.8")
-+    // DivineMC end - Add DivineMC required dependencies
++    implementation("org.agrona:agrona:2.0.1")
++    // DivineMC end
 +
      runtimeOnly("org.apache.maven:maven-resolver-provider:3.9.6")
      runtimeOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
