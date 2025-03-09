@@ -248,7 +248,6 @@ public class DivineConfig {
     public static boolean asyncChunkSendingEnabled = true;
     public static int asyncChunkSendingThreadCount = 1;
     public static boolean asyncChunkSendingUseVirtualThreads = false;
-    public static int asyncChunkSendingRateLimitChunkSends = 50;
     private static void asyncChunkSending() {
         asyncChunkSendingEnabled = getBoolean("settings.async-chunk-sending.enable", asyncChunkSendingEnabled,
             "Enables chunk sending runs off-main thread.");
@@ -258,13 +257,6 @@ public class DivineConfig {
 
         asyncChunkSendingUseVirtualThreads = getBoolean("settings.async-chunk-sending.use-virtual-threads", asyncChunkSendingUseVirtualThreads,
             "Similar to the 'virtual-thread' options. This will use the virtual thread executor for chunk sending.");
-
-        asyncChunkSendingRateLimitChunkSends = getInt("settings.async-chunk-sending.rate-limit-chunk-sends", asyncChunkSendingRateLimitChunkSends,
-            "DivineMC have optimization patches that speed ups world generation,",
-            "so chunk loading/generating may be faster and with this, server can spam a ton of chunk packets to the client on server join.",
-            "This setting will limit the amount of chunk packets sent to the client per tick, allowing a smoother ping when sending chunks on join",
-            "",
-            "Set to -1 to disable rate limiting (not recommended)");
     }
 
     public static boolean enableRegionizedChunkTicking = false;

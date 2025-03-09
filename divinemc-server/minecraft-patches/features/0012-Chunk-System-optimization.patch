@@ -5,7 +5,7 @@ Subject: [PATCH] Chunk System optimization
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..8fa7b73b02434487fef495b92a33d24dcfa24c0b 100644
+index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..a2062d976ca45b1360476051f23ff126ff812d4e 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 @@ -301,7 +301,7 @@ public final class RegionizedPlayerChunkLoader {
@@ -95,8 +95,13 @@ index f81cc357618c70f2fcf0bc24b0b25be566ffffcc..8fa7b73b02434487fef495b92a33d24d
  
              // try to pull ticking chunks
              while (!this.tickingQueue.isEmpty()) {
-@@ -827,6 +814,7 @@ public final class RegionizedPlayerChunkLoader {
-             final int maxSendsThisTick = Math.min((int)this.chunkSendLimiter.takeAllocation(time, sendRate, maxSends), this.sendQueue.size());
+@@ -823,10 +810,10 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to pull sending chunks
+-            final long maxSends = Math.max(0L, Math.min(MAX_RATE, Integer.MAX_VALUE)); // note: no logic to track concurrent sends
+-            final int maxSendsThisTick = Math.min((int)this.chunkSendLimiter.takeAllocation(time, sendRate, maxSends), this.sendQueue.size());
++            final int maxSendsThisTick = this.sendQueue.size(); // DivineMC - Chunk System optimization
              // we do not return sends that we took from the allocation back because we want to limit the max send rate, not target it
              for (int i = 0; i < maxSendsThisTick; ++i) {
 +                if (this.sendQueue.isEmpty()) break; // DivineMC - Chunk System optimization
