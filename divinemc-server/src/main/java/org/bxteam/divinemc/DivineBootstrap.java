@@ -34,6 +34,22 @@ public class DivineBootstrap {
     }
 
     private static void runPreBootTasks() {
-        // not required rn
+        if (getJavaVersion() > 21) {
+            System.setProperty("jdk.console", "java.base");
+        }
+    }
+
+    private static int getJavaVersion() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2, 3);
+        } else {
+            int dot = version.indexOf(".");
+            if (dot != -1) {
+                version = version.substring(0, dot);
+            }
+        }
+        version = version.split("-")[0];
+        return Integer.parseInt(version);
     }
 }
