@@ -7,6 +7,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bxteam.divinemc.entity.pathfinding.PathfindTaskRejectPolicy;
 import org.bxteam.divinemc.server.chunk.ChunkSystemAlgorithms;
+import org.bxteam.divinemc.server.chunk.ChunkTaskPriority;
 import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.comments.CommentType;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -174,6 +175,7 @@ public class DivineConfig {
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
     public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
+    public static ChunkTaskPriority chunkTaskPriority = ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableAsyncNoiseFill = false;
     public static boolean enableSecureSeed = false;
@@ -207,6 +209,11 @@ public class DivineConfig {
             " - MOONRISE: Default algorithm, used by default in Paper",
             " - C2ME: Algorithm used by C2ME (old)",
             " - C2ME_NEW: Modern algorithm used by C2ME"));
+        chunkTaskPriority = ChunkTaskPriority.valueOf(getString("settings.chunk-generation.chunk-task-priority", chunkTaskPriority.name(),
+            "Sets the algorithm for determining chunk task priorities (generation, loading and etc.).",
+            "Valid values:",
+            " - EUCLIDEAN_CIRCLE_PATTERN: Euclidean distance squared algorithm, chunk priorities will be ordered in a circle pattern",
+            " - DEFAULT_DIAMOND_PATTERN: Default one, chunk priorities will be ordered in a diamond pattern"));
         threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
         enableAsyncNoiseFill = getBoolean("settings.chunk-generation.enable-async-noise-fill", enableAsyncNoiseFill,
