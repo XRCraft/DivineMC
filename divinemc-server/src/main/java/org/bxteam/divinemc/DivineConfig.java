@@ -305,7 +305,7 @@ public class DivineConfig {
     }
 
     public static boolean disableDisconnectSpam = false;
-    public static boolean connectionFlushQueueRewrite = true;
+    public static boolean connectionFlushQueueRewrite = false;
     private static void networkSettings() {
         disableDisconnectSpam = getBoolean("settings.network.disable-disconnect-spam", disableDisconnectSpam,
             "Prevents players being disconnected by 'disconnect.spam' when sending too many chat packets");
