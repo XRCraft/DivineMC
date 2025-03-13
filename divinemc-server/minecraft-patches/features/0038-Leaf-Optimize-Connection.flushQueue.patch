@@ -7,7 +7,7 @@ Original author - Taiyou06
 Original patch - https://github.com/Winds-Studio/Leaf/pull/235
 
 diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
-index 5b46036868b6c9d082e35591e58735e16adaae62..a7f5c08726cce94c6a6c2a69028ad016a1bef30a 100644
+index 5b46036868b6c9d082e35591e58735e16adaae62..0cd7cfb4ef5303f8f756640ed0f7e49b51bf9627 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
 @@ -85,7 +85,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {

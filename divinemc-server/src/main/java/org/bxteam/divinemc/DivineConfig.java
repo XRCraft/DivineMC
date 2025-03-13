@@ -181,7 +181,6 @@ public class DivineConfig {
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
     public static boolean slopesVisualFix = false;
-    public static boolean enableDensityFunctionCompiler = false;
     public static boolean enableStructureLayoutOptimizer = true;
     public static boolean deduplicateShuffledTemplatePoolElementList = false;
     private static void chunkGeneration() {
@@ -229,19 +228,6 @@ public class DivineConfig {
             "Smoothens the bedrock layer at the bottom of overworld, and on the top of nether during the world generation.");
         slopesVisualFix = getBoolean("settings.chunk-generation.slopes-visual-fix", slopesVisualFix,
             "Fixes MC-258859, fixing slopes visual bug in biomes like Snowy Slopes, Frozen Peaks, Jagged Peaks, and including Terralith.");
-
-        enableDensityFunctionCompiler = getBoolean("settings.chunk-generation.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
-            "Whether to use density function compiler to accelerate world generation",
-            "",
-            "Density function: https://minecraft.wiki/w/Density_function",
-            "",
-            "This functionality compiles density functions from world generation",
-            "datapacks (including vanilla generation) to JVM bytecode to increase",
-            "performance by allowing JVM JIT to better optimize the code.",
-            "All functions provided by vanilla are implemented.",
-            "",
-            "Please test if this optimization actually benefits your server, as",
-            "it can sometimes slow down chunk performance than speed it up.");
 
         enableStructureLayoutOptimizer = getBoolean("settings.chunk-generation.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
             "Enables a port of the mod StructureLayoutOptimizer, which optimizes general Jigsaw structure generation");

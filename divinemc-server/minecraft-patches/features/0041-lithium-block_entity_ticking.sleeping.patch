@@ -5,7 +5,7 @@ Subject: [PATCH] lithium: block_entity_ticking.sleeping
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 7aef92967cb8a662e644225a4122a544f3cff937..87837ab5ac16786db0b0ddd420b9f7cb797e5bbb 100644
+index 9ccc6dd7d0e64a9cd54ab6f7bc276d380ea26717..c1a2d6716021909b511b1cb62f79aa68663faf41 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -2439,7 +2439,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe

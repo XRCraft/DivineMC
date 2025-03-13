@@ -5,7 +5,7 @@ Subject: [PATCH] Regionized Chunk Ticking
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 2678bf59d557f085c7265e2f3eb038647723d35e..f13ddc9a11ad0bc6396e31d7629f8ab9425cd4d7 100644
+index b30d6968fba2ab4d9cde0ac9d4f1cfc629c65359..2aeb819cfea737284a8061debcf829417c19aa3c 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
 @@ -56,6 +56,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
