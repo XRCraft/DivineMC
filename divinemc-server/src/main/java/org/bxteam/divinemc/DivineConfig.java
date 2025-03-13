@@ -175,6 +175,7 @@ public class DivineConfig {
     public static int maxViewDistance = 32;
     public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
+    public static boolean enableAsyncNoiseFill = false;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
     public static boolean slopesVisualFix = false;
@@ -208,6 +209,8 @@ public class DivineConfig {
             " - C2ME_NEW: Modern algorithm used by C2ME"));
         threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
+        enableAsyncNoiseFill = getBoolean("settings.chunk-generation.enable-async-noise-fill", enableAsyncNoiseFill,
+            "Runs noise filling and biome populating in a virtual thread executor. If disabled, it will run sync.");
 
         enableSecureSeed = getBoolean("settings.chunk-generation.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",

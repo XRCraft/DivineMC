@@ -102,6 +102,19 @@ index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e02
      }
 +    // DivineMC end - World gen optimizations
  }
+diff --git a/net/minecraft/world/level/chunk/ChunkGenerator.java b/net/minecraft/world/level/chunk/ChunkGenerator.java
+index 7e0b602e9fd9e3b3f60014ab179b3a82e3bf5c2a..a440b90e203ab6521bc45dbb1931e6a737c979fa 100644
+--- a/net/minecraft/world/level/chunk/ChunkGenerator.java
++++ b/net/minecraft/world/level/chunk/ChunkGenerator.java
+@@ -116,7 +116,7 @@ public abstract class ChunkGenerator {
+         return CompletableFuture.supplyAsync(() -> {
+             chunk.fillBiomesFromNoise(this.biomeSource, randomState.sampler());
+             return chunk;
+-        }, Runnable::run);  // Paper - rewrite chunk system
++        }, net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator.EXECUTOR);  // Paper - rewrite chunk system // DivineMC - Optimize noise fill
+     }
+ 
+     public abstract void applyCarvers(
 diff --git a/net/minecraft/world/level/chunk/LevelChunkSection.java b/net/minecraft/world/level/chunk/LevelChunkSection.java
 index c83d0667b19830304f22319a46a23422a8766790..5bc74d860923d6485593cacb67d4c18e20db2634 100644
 --- a/net/minecraft/world/level/chunk/LevelChunkSection.java
@@ -806,10 +819,22 @@ index c67168517774a0ad9ca43422a79ef14a8ea0c2e8..026dfbbb6c3fd5cd274dcbf721e5cf3a
          public RandomSource at(int x, int y, int z) {
              long seed = Mth.getSeed(x, y, z);
 diff --git a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
-index 65728ef17e63d71833677fdcbd5bb90794b4822b..6ef91bd952d4a0c1ffa6f534e4fcdd5c0a9db40b 100644
+index 65728ef17e63d71833677fdcbd5bb90794b4822b..f79db926dc154dae3dd5405aee4582f9b10e873e 100644
 --- a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
 +++ b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
-@@ -65,11 +65,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+@@ -57,6 +57,11 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+     private static final BlockState AIR = Blocks.AIR.defaultBlockState();
+     public final Holder<NoiseGeneratorSettings> settings;
+     private final Supplier<Aquifer.FluidPicker> globalFluidPicker;
++    // DivineMC start - Optimize noise fill
++    public static final java.util.concurrent.Executor EXECUTOR = org.bxteam.divinemc.DivineConfig.enableAsyncNoiseFill
++        ? java.util.concurrent.Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("worldgen_fill").factory())
++        : Runnable::run;
++    // DivineMC end - Optimize noise fill
+ 
+     public NoiseBasedChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings) {
+         super(biomeSource);
+@@ -65,11 +70,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
      }
  
      private static Aquifer.FluidPicker createFluidPicker(NoiseGeneratorSettings settings) {
@@ -828,6 +853,107 @@ index 65728ef17e63d71833677fdcbd5bb90794b4822b..6ef91bd952d4a0c1ffa6f534e4fcdd5c
      }
  
      @Override
+@@ -77,7 +84,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+         return CompletableFuture.supplyAsync(() -> {
+             this.doCreateBiomes(blender, randomState, structureManager, chunk);
+             return chunk;
+-        }, Runnable::run); // Paper - rewrite chunk system
++        }, EXECUTOR); // Paper - rewrite chunk system // DivineMC - Optimize noise fill
+     }
+ 
+     private void doCreateBiomes(Blender blender, RandomState random, StructureManager structureManager, ChunkAccess chunk) {
+@@ -294,30 +301,35 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+     public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
+         NoiseSettings noiseSettings = this.settings.value().noiseSettings().clampToHeightAccessor(chunk.getHeightAccessorForGeneration());
+         int minY = noiseSettings.minY();
+-        int i = Mth.floorDiv(minY, noiseSettings.getCellHeight());
+-        int i1 = Mth.floorDiv(noiseSettings.height(), noiseSettings.getCellHeight());
+-        return i1 <= 0 ? CompletableFuture.completedFuture(chunk) : CompletableFuture.supplyAsync(() -> {
+-            int sectionIndex = chunk.getSectionIndex(i1 * noiseSettings.getCellHeight() - 1 + minY);
+-            int sectionIndex1 = chunk.getSectionIndex(minY);
+-            Set<LevelChunkSection> set = Sets.newHashSet();
+-
+-            for (int i2 = sectionIndex; i2 >= sectionIndex1; i2--) {
+-                LevelChunkSection section = chunk.getSection(i2);
+-                section.acquire();
+-                set.add(section);
+-            }
++        // DivineMC start - Optimize noise fill
++        int minYDiv = Mth.floorDiv(minY, noiseSettings.getCellHeight());
++        int cellHeightDiv = Mth.floorDiv(noiseSettings.height(), noiseSettings.getCellHeight());
++
++        if (cellHeightDiv <= 0) {
++            return CompletableFuture.completedFuture(chunk);
++        }
+ 
+-            ChunkAccess var20;
++        return CompletableFuture.supplyAsync(() -> {
+             try {
+-                var20 = this.doFill(blender, structureManager, randomState, chunk, i, i1);
+-            } finally {
+-                for (LevelChunkSection levelChunkSection1 : set) {
+-                    levelChunkSection1.release();
++                int startIndex = chunk.getSectionIndex(cellHeightDiv * noiseSettings.getCellHeight() - 1 + minY);
++                int minYIndex = chunk.getSectionIndex(minY);
++                LevelChunkSection[] sections = chunk.getSections();
++
++                for (int i = startIndex; i >= minYIndex; --i) {
++                    sections[i].acquire();
++                }
++
++                ChunkAccess access = this.doFill(blender, structureManager, randomState, chunk, minYDiv, cellHeightDiv);
++                for (int i = startIndex; i >= minYIndex; --i) {
++                    sections[i].release();
+                 }
+-            }
+ 
+-            return var20;
+-        }, Runnable::run); // Paper - rewrite chunk system
++                return access;
++            } catch (Throwable throwable) {
++                throw new RuntimeException("Unexpected error when running noise fill", throwable);
++            }
++        }, EXECUTOR); // Paper - rewrite chunk system
++        // DivineMC end - Optimize noise fill
+     }
+ 
+     private ChunkAccess doFill(Blender blender, StructureManager structureManager, RandomState random, ChunkAccess chunk, int minCellY, int cellCountY) {
+@@ -375,7 +387,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+ 
+                                 interpolatedState = this.debugPreliminarySurfaceLevel(noiseChunk, i10, i7, i13, interpolatedState);
+                                 if (interpolatedState != AIR && !SharedConstants.debugVoidTerrain(chunk.getPos())) {
+-                                    section.setBlockState(i11, i8, i14, interpolatedState, false);
++                                    optimizedBlockSetOp(section, i11, i8, i14, interpolatedState, false); // DivineMC - Optimize noise fill
+                                     heightmapUnprimed.update(i11, i7, i14, interpolatedState);
+                                     heightmapUnprimed1.update(i11, i7, i14, interpolatedState);
+                                     if (aquifer.shouldScheduleFluidUpdate() && !interpolatedState.getFluidState().isEmpty()) {
+@@ -396,6 +408,26 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+         return chunk;
+     }
+ 
++    // DivineMC start - Optimize noise fill
++    private void optimizedBlockSetOp(@org.jetbrains.annotations.NotNull LevelChunkSection chunkSection, int chunkSectionBlockPosX, int chunkSectionBlockPosY, int chunkSectionBlockPosZ, @org.jetbrains.annotations.NotNull BlockState blockState, boolean lock) {
++        chunkSection.nonEmptyBlockCount += 1;
++
++        if (!blockState.getFluidState().isEmpty()) {
++            chunkSection.tickingFluidCount += 1;
++        }
++
++        if (blockState.isRandomlyTicking()) {
++            chunkSection.tickingBlockCount += 1;
++        }
++
++        var blockStateId = chunkSection.states.data.palette.idFor(blockState);
++        chunkSection.states.data.storage().set(
++            chunkSection.states.strategy.getIndex(chunkSectionBlockPosX, chunkSectionBlockPosY,
++                chunkSectionBlockPosZ
++            ), blockStateId);
++    }
++    // DivineMC end - Optimize noise fill
++
+     private BlockState debugPreliminarySurfaceLevel(NoiseChunk chunk, int x, int y, int z, BlockState state) {
+         return state;
+     }
 diff --git a/net/minecraft/world/level/levelgen/NoiseSettings.java b/net/minecraft/world/level/levelgen/NoiseSettings.java
 index 4cf3a364595ba5f81f741295695cb9a449bdf672..44df2ac0bd972c4d97fc89cd0c2d2d83480ca3e1 100644
 --- a/net/minecraft/world/level/levelgen/NoiseSettings.java

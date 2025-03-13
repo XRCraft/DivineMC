@@ -22,6 +22,7 @@ public net.minecraft.world.level.chunk.LevelChunkSection tickingBlockCount
 public net.minecraft.world.level.chunk.LevelChunkSection tickingFluidCount
 public net.minecraft.world.level.chunk.PalettedContainer palette
 public net.minecraft.world.level.chunk.PalettedContainer strategy
+public net.minecraft.world.level.chunk.PalettedContainer$Data palette
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendAlpha
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendDensity
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendOffset
