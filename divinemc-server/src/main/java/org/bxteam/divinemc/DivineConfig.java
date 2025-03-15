@@ -283,6 +283,8 @@ public class DivineConfig {
     public static boolean useCompactBitStorage = false;
     public static boolean fixIncorrectBounceLogic = false;
     public static boolean forceMinecraftCommand = false;
+    public static boolean disableLeafDecay = false;
+    public static boolean commandBlockParseResultsCaching = true;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -298,10 +300,15 @@ public class DivineConfig {
             "Fixes incorrect bounce logic in SlimeBlock.");
         forceMinecraftCommand = getBoolean("settings.misc.force-minecraft-command", forceMinecraftCommand,
             "Whether to force the use of vanilla commands over plugin commands.");
+        disableLeafDecay = getBoolean("settings.misc.disable-leaf-decay", disableLeafDecay,
+            "Disables leaf block decay.");
+        commandBlockParseResultsCaching = getBoolean("settings.misc.command-block-parse-results-caching", commandBlockParseResultsCaching,
+            "Caches the parse results of command blocks, can significantly reduce performance impact.");
     }
 
     public static boolean disableDisconnectSpam = false;
     public static boolean connectionFlushQueueRewrite = false;
+    public static boolean gracefulTeleportHandling  = false;
     private static void networkSettings() {
         disableDisconnectSpam = getBoolean("settings.network.disable-disconnect-spam", disableDisconnectSpam,
             "Prevents players being disconnected by 'disconnect.spam' when sending too many chat packets");
@@ -310,6 +317,8 @@ public class DivineConfig {
             "and also uses the Netty event loop to ensure thread safety.",
             "",
             "Note: May increase the Netty thread usage");
+        gracefulTeleportHandling  = getBoolean("settings.network.graceful-teleport-handling", gracefulTeleportHandling ,
+            "Disables being disconnected from 'multiplayer.disconnect.invalid_player_movement' (also declines the packet handling).");
     }
 
     public static boolean enableFasterTntOptimization = true;

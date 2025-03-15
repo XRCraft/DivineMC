@@ -6,7 +6,7 @@ Subject: [PATCH] Option to allow weird movement and disable teleporting
 
 
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index a854dbd0610fad8322985bf71afdc952fc25dcf2..e91232064a5024859954a04f549cb3b6e78da6bd 100644
+index 19c7802969aa9d1e15b4c67ee5c97e73daf0a460..b2881d1b0cc2bc172dd21349e07b7e6f89bd996c 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -574,7 +574,7 @@ public class ServerGamePacketListenerImpl
@@ -27,7 +27,7 @@ index a854dbd0610fad8322985bf71afdc952fc25dcf2..e91232064a5024859954a04f549cb3b6
                      flag2 = true; // Paper - diff on change, this should be moved wrongly
                      LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", rootVehicle.getName().getString(), this.player.getName().getString(), Math.sqrt(d7));
                  }
-@@ -1447,18 +1447,22 @@ public class ServerGamePacketListenerImpl
+@@ -1453,18 +1453,22 @@ public class ServerGamePacketListenerImpl
                                  if (this.shouldCheckPlayerMovement(isFallFlying)) {
                                      float f2 = isFallFlying ? 300.0F : 100.0F;
                                      if (d7 - d6 > Math.max(f2, Mth.square(org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed))) {
@@ -60,7 +60,7 @@ index a854dbd0610fad8322985bf71afdc952fc25dcf2..e91232064a5024859954a04f549cb3b6
                                      }
                                  }
                              }
-@@ -1519,6 +1523,7 @@ public class ServerGamePacketListenerImpl
+@@ -1525,6 +1529,7 @@ public class ServerGamePacketListenerImpl
                              d7 = d3 * d3 + d4 * d4 + d5 * d5;
                              boolean movedWrongly = false; // Paper - Add fail move event; rename
                              if (!this.player.isChangingDimension()

@@ -75,7 +75,7 @@ index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b
  
      @Override
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
-index 70ee86993d381445855ac7e7290da384d6675987..532d71cc1eaee799c193eb43085beb8c5892eac7 100644
+index bc22d67bba9b1ebb6bef84f5326375100d24461d..4aa5ecf3e7a7f58505de583dba7738dc1a596d72 100644
 --- a/net/minecraft/world/entity/Mob.java
 +++ b/net/minecraft/world/entity/Mob.java
 @@ -841,7 +841,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
@@ -108,10 +108,38 @@ index 70ee86993d381445855ac7e7290da384d6675987..532d71cc1eaee799c193eb43085beb8c
      protected final void serverAiStep() {
          this.noActionTime++;
 diff --git a/net/minecraft/world/level/LocalMobCapCalculator.java b/net/minecraft/world/level/LocalMobCapCalculator.java
-index 9641219c190261dea0db5f95f040a705ba0a3ff9..7ba64e71cfed16f07a9e1283145653745adb6388 100644
+index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8acda99a48d 100644
 --- a/net/minecraft/world/level/LocalMobCapCalculator.java
 +++ b/net/minecraft/world/level/LocalMobCapCalculator.java
-@@ -42,14 +42,14 @@ public class LocalMobCapCalculator {
+@@ -13,16 +13,24 @@ import net.minecraft.world.entity.MobCategory;
+ 
+ public class LocalMobCapCalculator {
+     private final Long2ObjectMap<List<ServerPlayer>> playersNearChunk = new Long2ObjectOpenHashMap<>();
+-    private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newHashMap();
++    private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newConcurrentMap(); // DivineMC - Some optimizations
+     private final ChunkMap chunkMap;
+ 
+     public LocalMobCapCalculator(ChunkMap chunkMap) {
+         this.chunkMap = chunkMap;
+     }
+ 
+-    private List<ServerPlayer> getPlayersNear(ChunkPos pos) {
+-        return this.playersNearChunk.computeIfAbsent(pos.toLong(), key -> this.chunkMap.getPlayersCloseForSpawning(pos));
++    // DivineMC start - Some optimizations
++    private synchronized @org.jetbrains.annotations.NotNull List<ServerPlayer> getPlayersNear(ChunkPos pos) {
++        List<ServerPlayer> retVal = this.playersNearChunk.get(pos.toLong());
++        if (retVal == null) {
++            List<ServerPlayer> newVal = this.chunkMap.getPlayersCloseForSpawning(pos);
++            this.playersNearChunk.put(pos.toLong(), newVal);
++            return newVal;
++        }
++        return retVal;
+     }
++    // DivineMC end - Some optimizations
+ 
+     public void addMob(ChunkPos pos, MobCategory category) {
+         for (ServerPlayer serverPlayer : this.getPlayersNear(pos)) {
+@@ -42,14 +50,14 @@ public class LocalMobCapCalculator {
      }
  
      static class MobCounts {
