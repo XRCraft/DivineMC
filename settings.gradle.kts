@@ -22,11 +22,12 @@ if (!file(".git").exists()) {
          the DivineMC repository using Git, not download a code
          zip from GitHub.
          
-         Built Gale jars are available for download at
-         https://github.com/BX-Team/DivineMC/actions
+         Built DivineMC jars are available for download at
+         https://github.com/BX-Team/DivineMC/releases or 
+         at https://mcjars.app/DIVINEMC/versions
          
-         See https://github.com/PaperMC/Paper/blob/main/CONTRIBUTING.md
-         for further information on building and modifying Paper forks.
+         See https://bxteam.org/docs/divinemc/development/contributing
+         for further information on building and modifying DivineMC.
         ===================================================
     """.trimIndent()
     error(errorText)

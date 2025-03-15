@@ -1,20 +1,23 @@
 package org.bxteam.divinemc;
 
-import io.papermc.paper.PaperBootstrap;
+import io.papermc.paper.ServerBuildInfo;
 import joptsimple.OptionSet;
+import net.minecraft.SharedConstants;
 import net.minecraft.server.Eula;
+import net.minecraft.server.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class DivineBootstrap {
-    private static final Logger LOGGER = LoggerFactory.getLogger("bootstrap");
+    private static final Logger LOGGER = LoggerFactory.getLogger("DivineBootstrap");
 
     public static void boot(final OptionSet options) {
-        runPreBootTasks();
-
-        // DivineMC start - Verify Minecraft EULA earlier
+        SharedConstants.tryDetectVersion();
         Path path2 = Paths.get("eula.txt");
         Eula eula = new Eula(path2);
         boolean eulaAgreed = Boolean.getBoolean("com.mojang.eula.agree");
@@ -28,28 +31,44 @@ public class DivineBootstrap {
             return;
         }
         System.out.println("Loading libraries, please wait..."); // Restore CraftBukkit log
-        // DivineMC end - Verify Minecraft EULA earlier
+        getStartupVersionMessages().forEach(LOGGER::info);
 
-        PaperBootstrap.boot(options);
+        Main.main(options);
     }
 
-    private static void runPreBootTasks() {
-        if (getJavaVersion() > 21) {
-            System.setProperty("jdk.console", "java.base");
-        }
-    }
+    private static List<String> getStartupVersionMessages() {
+        final String javaSpecVersion = System.getProperty("java.specification.version");
+        final String javaVmName = System.getProperty("java.vm.name");
+        final String javaVmVersion = System.getProperty("java.vm.version");
+        final String javaVendor = System.getProperty("java.vendor");
+        final String javaVendorVersion = System.getProperty("java.vendor.version");
+        final String osName = System.getProperty("os.name");
+        final String osVersion = System.getProperty("os.version");
+        final String osArch = System.getProperty("os.arch");
 
-    private static int getJavaVersion() {
-        String version = System.getProperty("java.version");
-        if (version.startsWith("1.")) {
-            version = version.substring(2, 3);
-        } else {
-            int dot = version.indexOf(".");
-            if (dot != -1) {
-                version = version.substring(0, dot);
-            }
-        }
-        version = version.split("-")[0];
-        return Integer.parseInt(version);
+        final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
+        return List.of(
+            String.format(
+                "Running Java %s (%s %s; %s %s) on %s %s (%s)",
+                javaSpecVersion,
+                javaVmName,
+                javaVmVersion,
+                javaVendor,
+                javaVendorVersion,
+                osName,
+                osVersion,
+                osArch
+            ),
+            String.format(
+                "Loading %s %s for Minecraft %s",
+                bi.brandName(),
+                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
+                bi.minecraftVersionId()
+            ),
+            String.format(
+                "Running JVM args %s",
+                ManagementFactory.getRuntimeMXBean().getInputArguments().toString()
+            )
+        );
     }
 }

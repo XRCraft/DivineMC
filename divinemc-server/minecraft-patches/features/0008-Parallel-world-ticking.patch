@@ -441,7 +441,7 @@ index 61eeec6a0d789e5e44abdeb5826d7ee2307301ba..d6b8486d8ec534b8fcfa50899cae4281
          try {
              org.purpurmc.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index fdfb92daeb5dd60360a80baf5c1778d641cfd9be..04d36514e55e31d867dca6cd46fdef4fa601c97d 100644
+index 95d24f500e919f1deae1b7b1ce6e67fa24566eff..a3f363d0c86142e03edc7fc6e2ff6ed81de8ed65 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -184,7 +184,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -521,10 +521,10 @@ index fdfb92daeb5dd60360a80baf5c1778d641cfd9be..04d36514e55e31d867dca6cd46fdef4f
          // Paper start - extra debug info
          if (entity.valid) {
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a80c75277 100644
+index a9f723528dd05cb9583319edcb14143b784a2fd7..16fb9ee92f2e7b648d81bb0d90ede61405700001 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
-@@ -427,6 +427,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -434,6 +434,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
          return this.viewDistanceHolder;
      }
      // Paper end - rewrite chunk system
@@ -532,7 +532,7 @@ index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a
  
      public ServerPlayer(MinecraftServer server, ServerLevel level, GameProfile gameProfile, ClientInformation clientInformation) {
          super(level, level.getSharedSpawnPos(), level.getSharedSpawnAngle(), gameProfile);
-@@ -803,6 +804,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -810,6 +811,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
  
      @Override
      public void tick() {
@@ -540,7 +540,7 @@ index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a
          // CraftBukkit start
          if (this.joining) {
              this.joining = false;
-@@ -1448,6 +1450,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1455,6 +1457,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return this;
              } else {
                  // CraftBukkit start
@@ -548,7 +548,7 @@ index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a
                  /*
                  this.isChangingDimension = true;
                  LevelData levelData = level.getLevelData();
-@@ -1815,6 +1818,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1822,6 +1825,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return OptionalInt.empty();
              } else {
                  // CraftBukkit start
@@ -561,7 +561,7 @@ index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a
                  this.containerMenu = abstractContainerMenu; // Moved up
                  if (!this.isImmobile())
                  this.connection
-@@ -1879,6 +1888,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1886,6 +1895,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
      }
      @Override
      public void closeContainer(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason) {
@@ -574,7 +574,7 @@ index 515b2178e71a3723eace26c89032e45678145224..7bafc62f601d0205bc673c2b6accbd2a
          // Paper end - Inventory close reason
          this.connection.send(new ClientboundContainerClosePacket(this.containerMenu.containerId));
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index 04fdd32394e473995648842027b88bf7ed0136ba..676b56c2898d714423dcc87170f325963749cec7 100644
+index 6f66c5a93383b2897425e117c32add9a34054add..3d8c1c5aa922ec0417388a1ff27d423cdb6d1351 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -150,6 +150,7 @@ public abstract class PlayerList {
@@ -630,7 +630,7 @@ index 3709efe15b30e4140ba677ffdcd4634b06e34d7d..33f24b21e2170700f3d38e072c106e1a
          List<Entity> list = new ArrayList<>(passengers.size());
          this.ejectPassengers();
 diff --git a/net/minecraft/world/inventory/AbstractContainerMenu.java b/net/minecraft/world/inventory/AbstractContainerMenu.java
-index 3dcd8df0b395a8fed8bc0cbe0ff78f4ae0056fd3..43a421306ee2ebd68981d12ec382ad63cdfeb897 100644
+index e6419715fab462b12790ecb175ce1e1a1fceed8f..40040b1e78765a4a686f9e430d16361c8c31fb14 100644
 --- a/net/minecraft/world/inventory/AbstractContainerMenu.java
 +++ b/net/minecraft/world/inventory/AbstractContainerMenu.java
 @@ -92,8 +92,14 @@ public abstract class AbstractContainerMenu {

@@ -113,6 +113,67 @@ index bc7e4e5560708fea89c584b1d8b471f4966f311a..6567ff18cb1c21230565c2d92caf3a7f
                  .variable(LineReader.HISTORY_FILE, java.nio.file.Paths.get(".console_history"))
                  .completer(new ConsoleCommandCompleter(this.server))
                  .option(LineReader.Option.COMPLETE_IN_WORD, true);
+diff --git a/src/main/java/io/papermc/paper/PaperBootstrap.java b/src/main/java/io/papermc/paper/PaperBootstrap.java
+deleted file mode 100644
+index d543b1b107ab8d3eeb1fc3c1cadf489928d2786e..0000000000000000000000000000000000000000
+--- a/src/main/java/io/papermc/paper/PaperBootstrap.java
++++ /dev/null
+@@ -1,55 +0,0 @@
+-package io.papermc.paper;
+-
+-import java.util.List;
+-import joptsimple.OptionSet;
+-import net.minecraft.SharedConstants;
+-import net.minecraft.server.Main;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-public final class PaperBootstrap {
+-    private static final Logger LOGGER = LoggerFactory.getLogger("bootstrap");
+-
+-    private PaperBootstrap() {
+-    }
+-
+-    public static void boot(final OptionSet options) {
+-        SharedConstants.tryDetectVersion();
+-
+-        getStartupVersionMessages().forEach(LOGGER::info);
+-
+-        Main.main(options);
+-    }
+-
+-    private static List<String> getStartupVersionMessages() {
+-        final String javaSpecVersion = System.getProperty("java.specification.version");
+-        final String javaVmName = System.getProperty("java.vm.name");
+-        final String javaVmVersion = System.getProperty("java.vm.version");
+-        final String javaVendor = System.getProperty("java.vendor");
+-        final String javaVendorVersion = System.getProperty("java.vendor.version");
+-        final String osName = System.getProperty("os.name");
+-        final String osVersion = System.getProperty("os.version");
+-        final String osArch = System.getProperty("os.arch");
+-
+-        final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
+-        return List.of(
+-            String.format(
+-                "Running Java %s (%s %s; %s %s) on %s %s (%s)",
+-                javaSpecVersion,
+-                javaVmName,
+-                javaVmVersion,
+-                javaVendor,
+-                javaVendorVersion,
+-                osName,
+-                osVersion,
+-                osArch
+-            ),
+-            String.format(
+-                "Loading %s %s for Minecraft %s",
+-                bi.brandName(),
+-                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
+-                bi.minecraftVersionId()
+-            )
+-        );
+-    }
+-}
 diff --git a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
 index b36e30fd4057a938e4d90cb42a2dca661f16478e..4e29f5f55b9a894099bef6f7c7f11e2a96b02fc8 100644
 --- a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
