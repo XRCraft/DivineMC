@@ -23,6 +23,11 @@ public net.minecraft.world.level.chunk.LevelChunkSection tickingFluidCount
 public net.minecraft.world.level.chunk.PalettedContainer palette
 public net.minecraft.world.level.chunk.PalettedContainer strategy
 public net.minecraft.world.level.chunk.PalettedContainer$Data palette
+public net.minecraft.world.level.chunk.storage.RegionFile getOversizedData(II)Lnet/minecraft/nbt/CompoundTag;
+public net.minecraft.world.level.chunk.storage.RegionFile isOversized(II)Z
+public net.minecraft.world.level.chunk.storage.RegionFile recalculateHeader()Z
+public net.minecraft.world.level.chunk.storage.RegionFile setOversized(IIZ)V
+public net.minecraft.world.level.chunk.storage.RegionFile write(Lnet/minecraft/world/level/ChunkPos;Ljava/nio/ByteBuffer;)V
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendAlpha
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendDensity
 public net.minecraft.world.level.levelgen.DensityFunctions$BlendOffset

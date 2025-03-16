@@ -102,3 +102,9 @@ subprojects {
         }
     }
 }
+
+tasks.register("printMinecraftVersion") {
+    doLast {
+        println(providers.gradleProperty("mcVersion").get().trim())
+    }
+}

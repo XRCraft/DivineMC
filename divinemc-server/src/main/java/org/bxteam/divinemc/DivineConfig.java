@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.comments.CommentType;
 import org.simpleyaml.configuration.file.YamlFile;
 import org.simpleyaml.exceptions.InvalidConfigurationException;
+import org.stupidcraft.linearpaper.region.EnumRegionFileExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -483,5 +484,36 @@ public class DivineConfig {
         }
 
         if (asyncEntityTrackerQueueSize <= 0) asyncEntityTrackerQueueSize = asyncEntityTrackerMaxThreads * 384;
+    }
+
+    public static EnumRegionFileExtension regionFormatTypeName = EnumRegionFileExtension.MCA;
+    public static int linearCompressionLevel = 1;
+    public static int linearFlushFrequency = 5;
+    private static void linearRegionFormat() {
+        regionFormatTypeName = EnumRegionFileExtension.fromName(getString("settings.linear-region-format.type", regionFormatTypeName.name(),
+            "The type of region file format to use for storing chunk data.",
+            "Valid values:",
+            " - LINEAR: Linear region file format",
+            " - MCA: Anvil region file format (default)"));
+        linearCompressionLevel = getInt("settings.linear-region-format.compression-level", linearCompressionLevel,
+            "The compression level to use for the linear region file format.");
+        linearFlushFrequency = getInt("settings.linear-region-format.flush-frequency", linearFlushFrequency,
+            "The frequency in seconds to flush the linear region file format.");
+
+        setComment("settings.linear-region-format",
+            "The linear region file format is a custom region file format that is designed to be more efficient than the MCA format.",
+            "It uses uses ZSTD compression instead of ZLIB. This format saves about 50% of disk space.",
+            "Read more information about linear region format at https://github.com/xymb-endcrystalme/LinearRegionFileFormatTools",
+            "WARNING: If you are want to use this format, make sure to create backup of your world before switching to it, there is potential risk to lose chunk data.");
+
+        if (regionFormatTypeName == EnumRegionFileExtension.UNKNOWN) {
+            LOGGER.error("Unknown region file type: {}, falling back to MCA format.", regionFormatTypeName);
+            regionFormatTypeName = EnumRegionFileExtension.MCA;
+        }
+
+        if (linearCompressionLevel > 23 || linearCompressionLevel < 1) {
+            LOGGER.warn("Invalid linear compression level: {}, resetting to default (1)", playerNearChunkDetectionRange);
+            linearCompressionLevel = 1;
+        }
     }
 }
