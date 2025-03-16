@@ -25,10 +25,10 @@ index 9fdd4bbbe0e4c75880e9f24741fea7c60c57d09a..ad308e75a58e7db5247489b5d4447b12
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 6fc3db6fa365da0512ff3c845586a9d54e8b23b2..e684eaed9740c3236a8f2bd7cce0d86661632a87 100644
+index 78be192760b5c4dfc9db740d856689a38a3ac1b1..69e1b06cc8876f8ef743b77c850e4f4198b5728f 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -219,6 +219,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -220,6 +220,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      public boolean hasEntityMoveEvent; // Paper - Add EntityMoveEvent
      private final alternate.current.wire.WireHandler wireHandler = new alternate.current.wire.WireHandler(this); // Paper - optimize redstone (Alternate Current)
      public boolean hasRidableMoveEvent = false; // Purpur - Ridables
@@ -36,7 +36,7 @@ index 6fc3db6fa365da0512ff3c845586a9d54e8b23b2..e684eaed9740c3236a8f2bd7cce0d866
  
      public LevelChunk getChunkIfLoaded(int x, int z) {
          return this.chunkSource.getChunkAtIfLoadedImmediately(x, z); // Paper - Use getChunkIfLoadedImmediately
-@@ -776,6 +777,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -778,6 +779,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
          }
  
@@ -45,7 +45,7 @@ index 6fc3db6fa365da0512ff3c845586a9d54e8b23b2..e684eaed9740c3236a8f2bd7cce0d866
          this.updateSkyBrightness();
          if (runsNormally) {
              this.tickTime();
-@@ -877,11 +880,18 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -878,11 +881,18 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
                      this.setDayTime(this.preciseTime);
                  } else
                  // Purpur end - Configurable daylight cycle

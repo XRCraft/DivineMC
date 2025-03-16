@@ -5,7 +5,7 @@ Subject: [PATCH] Regionized Chunk Ticking
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index b30d6968fba2ab4d9cde0ac9d4f1cfc629c65359..2aeb819cfea737284a8061debcf829417c19aa3c 100644
+index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500ed5772f35 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
 @@ -56,6 +56,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
@@ -19,7 +19,7 @@ index b30d6968fba2ab4d9cde0ac9d4f1cfc629c65359..2aeb819cfea737284a8061debcf82941
      public final Thread mainThread;
      final ThreadedLevelLightEngine lightEngine;
      public final ServerChunkCache.MainThreadExecutor mainThreadProcessor;
-@@ -479,6 +483,46 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -478,6 +482,46 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      }
      // CraftBukkit end
  
@@ -66,7 +66,7 @@ index b30d6968fba2ab4d9cde0ac9d4f1cfc629c65359..2aeb819cfea737284a8061debcf82941
      @Override
      public void tick(BooleanSupplier hasTimeLeft, boolean tickChunks) {
          ProfilerFiller profilerFiller = Profiler.get();
-@@ -519,7 +563,44 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -518,7 +562,44 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
                      this.shuffleRandom.setSeed(this.level.random.nextLong());
                      if (!this.level.paperConfig().entities.spawning.perPlayerMobSpawns) Util.shuffle(list, this.shuffleRandom); // Paper - Optional per player mob spawns; do not need this when per-player is enabled
                      // Paper end - chunk tick iteration optimisation

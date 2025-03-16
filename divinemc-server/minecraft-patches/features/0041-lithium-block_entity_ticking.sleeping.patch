@@ -5,10 +5,10 @@ Subject: [PATCH] lithium: block_entity_ticking.sleeping
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 9ccc6dd7d0e64a9cd54ab6f7bc276d380ea26717..c1a2d6716021909b511b1cb62f79aa68663faf41 100644
+index 4e04fa8f7f57d30a63867dafa6d26fc88ed87a32..62cc61d9d7115ed547ae87e74caf3d9131853a83 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -2439,7 +2439,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2440,7 +2440,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          CsvOutput csvOutput = CsvOutput.builder().addColumn("x").addColumn("y").addColumn("z").addColumn("type").build(output);
  
          for (TickingBlockEntity tickingBlockEntity : this.blockEntityTickers) {
@@ -17,7 +17,7 @@ index 9ccc6dd7d0e64a9cd54ab6f7bc276d380ea26717..c1a2d6716021909b511b1cb62f79aa68
              csvOutput.writeRow(pos.getX(), pos.getY(), pos.getZ(), tickingBlockEntity.getType());
          }
      }
-@@ -2494,6 +2494,16 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2495,6 +2495,16 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          return this;
      }
  
