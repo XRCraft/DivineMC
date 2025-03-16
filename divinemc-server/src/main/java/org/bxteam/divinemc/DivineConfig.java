@@ -174,6 +174,7 @@ public class DivineConfig {
     public static long chunkDataCacheSoftLimit = 8192L;
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
+    public static int playerNearChunkDetectionRange = 128;
     public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
     public static ChunkTaskPriority chunkTaskPriority = ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
@@ -201,6 +202,18 @@ public class DivineConfig {
         chunkDataCacheLimit = getLong("settings.chunk-generation.chunk-data-cache-limit", chunkDataCacheLimit);
         maxViewDistance = getInt("settings.chunk-generation.max-view-distance", maxViewDistance,
             "Changes the maximum view distance for the server, allowing clients to have render distances higher than 32");
+        playerNearChunkDetectionRange = getInt("settings.chunk-generation.player-near-chunk-detection-range", playerNearChunkDetectionRange,
+            "In certain checks, like if a player is near a chunk(primarily used for spawning), it checks if the player is within a certain",
+            "circular range of the chunk. This configuration allows configurability of the distance(in blocks) the player must be to pass the check.",
+            "",
+            "This value is used in the calculation 'range/16' to get the distance in chunks any player must be to allow the check to pass.",
+            "By default, this range is computed to 8, meaning a player must be within an 8 chunk radius of a chunk position to pass.",
+            "Keep in mind the result is rounded to the nearest whole number.");
+
+        if (playerNearChunkDetectionRange < 0) {
+            LOGGER.warn("Invalid player near chunk detection range: {}, resetting to default (128)", playerNearChunkDetectionRange);
+            playerNearChunkDetectionRange = 128;
+        }
 
         chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString("settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
             "Modifies what algorithm the chunk system will use to define thread counts.",
@@ -257,7 +270,7 @@ public class DivineConfig {
 
     public static boolean enableRegionizedChunkTicking = false;
     public static int regionizedChunkTickingExecutorThreadCount = 4;
-    public static int regionizedChunkTickingExecutorThreadPriority = Thread.NORM_PRIORITY;
+    public static int regionizedChunkTickingExecutorThreadPriority = Thread.NORM_PRIORITY + 2;
     private static void regionizedChunkTicking() {
         enableRegionizedChunkTicking = getBoolean("settings.regionized-chunk-ticking.enable", enableRegionizedChunkTicking,
             "Enables regionized chunk ticking, similar to like Folia works.",

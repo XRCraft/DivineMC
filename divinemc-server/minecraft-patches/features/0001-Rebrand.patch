@@ -18,7 +18,7 @@ index 394443d00e661715439be1e56dddc129947699a4..480ad57a6b7b74e6b83e9c6ceb69ea1f
      public CrashReport(String title, Throwable exception) {
          io.papermc.paper.util.StacktraceDeobfuscator.INSTANCE.deobfuscateThrowable(exception); // Paper
 diff --git a/net/minecraft/server/Main.java b/net/minecraft/server/Main.java
-index 1485186d4989874ef89c4e83830f26358a43759c..680369af59fd2aa36bf1cf4e28b598854383abe3 100644
+index 1485186d4989874ef89c4e83830f26358a43759c..b48fc9e0b95fe6c8f72c5501b8de374e6ac2e5d6 100644
 --- a/net/minecraft/server/Main.java
 +++ b/net/minecraft/server/Main.java
 @@ -62,6 +62,14 @@ import org.slf4j.Logger;
@@ -36,25 +36,6 @@ index 1485186d4989874ef89c4e83830f26358a43759c..680369af59fd2aa36bf1cf4e28b59885
  
      @SuppressForbidden(
          reason = "System.out needed before bootstrap"
-@@ -114,6 +122,18 @@ public class Main {
-             org.purpurmc.purpur.PurpurConfig.registerMinecraftDebugCommands = purpurConfiguration.getBoolean("settings.register-minecraft-debug-commands"); // Purpur - register minecraft debug commands
-             // Purpur end - Add toggle for enchant level clamping - load config files early
- 
-+            // DivineMC start - Server startup settings
-+            org.bukkit.configuration.file.YamlConfiguration divinemcConfiguration = io.papermc.paper.configuration.PaperConfigurations.loadLegacyConfigFile((File) optionSet.valueOf("divinemc-settings"));
-+            boolean divinemcNativeMathEnabled = divinemcConfiguration.getBoolean("settings.chunk-generation.native-acceleration-enabled", true);
-+            if (divinemcNativeMathEnabled) {
-+                try {
-+                    Class.forName("org.bxteam.divinemc.math.NativeLoader").getField("lookup").get(null);
-+                } catch (Throwable e) {
-+                    e.printStackTrace();
-+                }
-+            }
-+            // DivineMC end - Server startup settings
-+
-             io.papermc.paper.plugin.PluginInitializerManager.load(optionSet); // Paper
-             Bootstrap.bootStrap();
-             Bootstrap.validate();
 diff --git a/net/minecraft/server/gui/MinecraftServerGui.java b/net/minecraft/server/gui/MinecraftServerGui.java
 index 614c7d9f673c926562acc8fa3b3788623900db41..33456c7c106abbddf743e1203a6e8122cf10b797 100644
 --- a/net/minecraft/server/gui/MinecraftServerGui.java

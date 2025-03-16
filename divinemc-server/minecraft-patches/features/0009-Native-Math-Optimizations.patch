@@ -500,3 +500,71 @@ index 45060882654217eeb9a07357c5149b12fbff02c1..c17f43164009f47050a390eb50688460
      }
  
      public double maxValue() {
+diff --git a/net/minecraft/world/phys/AABB.java b/net/minecraft/world/phys/AABB.java
+index c9c6e4e460ad8435f12761704bb9b0284d6aa708..54807bb4b4189ceaded1f78a1a9ab85ce40ab2b1 100644
+--- a/net/minecraft/world/phys/AABB.java
++++ b/net/minecraft/world/phys/AABB.java
+@@ -189,13 +189,15 @@ public class AABB {
+     }
+ 
+     public AABB intersect(AABB other) {
+-        double max = Math.max(this.minX, other.minX);
+-        double max1 = Math.max(this.minY, other.minY);
+-        double max2 = Math.max(this.minZ, other.minZ);
+-        double min = Math.min(this.maxX, other.maxX);
+-        double min1 = Math.min(this.maxY, other.maxY);
+-        double min2 = Math.min(this.maxZ, other.maxZ);
+-        return new AABB(max, max1, max2, min, min1, min2);
++        // DivineMC start - Math Optimizations
++        return new AABB(
++            this.minX > other.minX ? this.minX : other.minX,
++            this.minY > other.minY ? this.minY : other.minY,
++            this.minZ > other.minZ ? this.minZ : other.minZ,
++            this.maxX < other.maxX ? this.maxX : other.maxX,
++            this.maxY < other.maxY ? this.maxY : other.maxY,
++            this.maxZ < other.maxZ ? this.maxZ : other.maxZ
++        );
+     }
+ 
+     public AABB minmax(AABB other) {
+@@ -227,16 +229,37 @@ public class AABB {
+     }
+ 
+     public boolean intersects(AABB other) {
+-        return this.intersects(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);
++        // DivineMC start - Math Optimizations
++        return this.minX < other.maxX &&
++            this.maxX > other.minX &&
++            this.minY < other.maxY &&
++            this.maxY > other.minY &&
++            this.minZ < other.maxZ &&
++            this.maxZ > other.minZ;
++        // DivineMC end - Math Optimizations
+     }
+ 
+     public boolean intersects(double x1, double y1, double z1, double x2, double y2, double z2) {
+-        return this.minX < x2 && this.maxX > x1 && this.minY < y2 && this.maxY > y1 && this.minZ < z2 && this.maxZ > z1;
++        // DivineMC start - Math Optimizations
++        return this.minX < x2 &&
++            this.maxX > x1 &&
++            this.minY < y2 &&
++            this.maxY > y1 &&
++            this.minZ < z2 &&
++            this.maxZ > z1;
++        // DivineMC end - Math Optimizations
+     }
+ 
+     public boolean intersects(Vec3 min, Vec3 max) {
+         return this.intersects(
+-            Math.min(min.x, max.x), Math.min(min.y, max.y), Math.min(min.z, max.z), Math.max(min.x, max.x), Math.max(min.y, max.y), Math.max(min.z, max.z)
++            // DivineMC start - Math Optimizations
++            min.x < max.x ? min.x : max.x,
++            min.y < max.y ? min.y : max.y,
++            min.z < max.z ? min.z : max.z,
++            min.x > max.x ? min.x : max.x,
++            min.y > max.y ? min.y : max.y,
++            min.z > max.z ? min.z : max.z
++            // DivineMC end - Math Optimizations
+         );
+     }
+ 
