@@ -154,7 +154,7 @@ public class DivineConfig {
 		return config.getStringList(key);
 	}
 
-    public static boolean enableParallelWorldTicking = true;
+    public static boolean enableParallelWorldTicking = false;
     public static int parallelThreadCount = 4;
     public static boolean logContainerCreationStacktraces = false;
     public static boolean disableHardThrow = false;
