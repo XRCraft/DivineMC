@@ -299,6 +299,7 @@ public class DivineConfig {
     public static boolean forceMinecraftCommand = false;
     public static boolean disableLeafDecay = false;
     public static boolean commandBlockParseResultsCaching = true;
+    public static boolean enableAsyncSpawning = true;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
         clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
@@ -318,6 +319,8 @@ public class DivineConfig {
             "Disables leaf block decay.");
         commandBlockParseResultsCaching = getBoolean("settings.misc.command-block-parse-results-caching", commandBlockParseResultsCaching,
             "Caches the parse results of command blocks, can significantly reduce performance impact.");
+        enableAsyncSpawning = getBoolean("settings.misc.enable-async-spawning", enableAsyncSpawning,
+            "Enables optimization that will offload much of the computational effort involved with spawning new mobs to a different thread.");
     }
 
     public static boolean disableDisconnectSpam = false;

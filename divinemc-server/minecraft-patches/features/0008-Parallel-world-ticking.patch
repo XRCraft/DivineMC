@@ -994,13 +994,13 @@ index 048ad8e11c6913ef08c977c7fab3200cc610519c..66c7f0d2adc8c00b53125b8cdc5da8c4
          int y = pos.getY();
          LevelChunkSection section = this.getSection(this.getSectionIndex(y));
 diff --git a/net/minecraft/world/level/entity/EntityTickList.java b/net/minecraft/world/level/entity/EntityTickList.java
-index 423779a2b690f387a4f0bd07b97b50e0baefda76..2567e3a0988fcd21a39b0c82e1a4b43946810987 100644
+index c89701d7bdc9b889038d3c52f2232fb17624b113..3c6ec711bf9a75657c13da647e4ae7947257b627 100644
 --- a/net/minecraft/world/level/entity/EntityTickList.java
 +++ b/net/minecraft/world/level/entity/EntityTickList.java
 @@ -10,17 +10,27 @@ import net.minecraft.world.entity.Entity;
  
  public class EntityTickList {
-     private final ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<net.minecraft.world.entity.Entity> entities = new ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<>(); // Paper - rewrite chunk system
+     public final ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<net.minecraft.world.entity.Entity> entities = new ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<>(); // Paper - rewrite chunk system
 +    // DivineMC start - parallel world ticking
 +    // Used to track async entity additions/removals/loops
 +    private final net.minecraft.server.level.ServerLevel serverLevel;
