@@ -1,6 +1,7 @@
 package org.bxteam.divinemc;
 
 import com.google.common.base.Throwables;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
@@ -321,6 +322,20 @@ public class DivineConfig {
             "Caches the parse results of command blocks, can significantly reduce performance impact.");
         enableAsyncSpawning = getBoolean("settings.misc.enable-async-spawning", enableAsyncSpawning,
             "Enables optimization that will offload much of the computational effort involved with spawning new mobs to a different thread.");
+    }
+
+    public static String sentryDsn = "";
+    public static String logLevel = "WARN";
+    public static boolean onlyLogThrown = true;
+    private static void sentrySettings() {
+        sentryDsn = getString("settings.sentry.dsn", sentryDsn,
+            "The DSN for Sentry, a service that provides real-time crash reporting that helps you monitor and fix crashes in real time. Leave blank to disable. Obtain link at https://sentry.io");
+        logLevel = getString("settings.sentry.log-level", logLevel,
+            "Logs with a level higher than or equal to this level will be recorded.");
+        onlyLogThrown = getBoolean("settings.sentry.only-log-thrown", onlyLogThrown,
+            "Only log Throwable exceptions to Sentry.");
+
+        if (sentryDsn != null && !sentryDsn.isBlank()) gg.pufferfish.pufferfish.sentry.SentryManager.init(Level.getLevel(logLevel));
     }
 
     public static boolean disableDisconnectSpam = false;
