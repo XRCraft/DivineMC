@@ -403,10 +403,10 @@ index 24d1928445b5571e040a2b12d5c82e77a880d9bd..dac0a23aebf2dea1972c07d5c82079da
      private boolean isVillagerBaby(LivingEntity livingEntity) {
          return livingEntity.getType() == EntityType.VILLAGER && livingEntity.isBaby();
 diff --git a/net/minecraft/world/entity/animal/goat/Goat.java b/net/minecraft/world/entity/animal/goat/Goat.java
-index 6f106f10466440f8e65e04511f67d48f082d703f..15728d4fbe7a12c7a3b94a9ef88e7141b1225fa3 100644
+index 9b8f5d9926d68fd8b9f1f976e0be0975158cafc3..e21f024d0ed7f936ff17df16bd9666fffbf44a75 100644
 --- a/net/minecraft/world/entity/animal/goat/Goat.java
 +++ b/net/minecraft/world/entity/animal/goat/Goat.java
-@@ -98,6 +98,13 @@ public class Goat extends Animal {
+@@ -96,6 +96,13 @@ public class Goat extends Animal {
          this.getNavigation().setCanFloat(true);
          this.setPathfindingMalus(PathType.POWDER_SNOW, -1.0F);
          this.setPathfindingMalus(PathType.DANGER_POWDER_SNOW, -1.0F);

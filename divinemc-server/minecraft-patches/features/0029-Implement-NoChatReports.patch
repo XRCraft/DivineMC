@@ -206,7 +206,7 @@ index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c7409161
          private static final String PREFIX = "data:image/png;base64,";
          public static final Codec<ServerStatus.Favicon> CODEC = Codec.STRING.comapFlatMap(string -> {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index d6b8486d8ec534b8fcfa50899cae4281acf9e7cb..f56bfa062d47c2c333e774ec618710d6dd49e833 100644
+index 9fcdff2be139296f4e14b54c33cc795efdff0c7f..64c3bbe540599e5195f0cc89635bff2c56d1a320 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -668,6 +668,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
@@ -218,10 +218,10 @@ index d6b8486d8ec534b8fcfa50899cae4281acf9e7cb..f56bfa062d47c2c333e774ec618710d6
          // Paper start - Add setting for proxy online mode status
          return properties.enforceSecureProfile
 diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index 398c1733824b689520170de0be94006731afa5cd..072e9b8810a6ccc292f1eb5ffe02355ab4719c5e 100644
+index 0c499eca39371993c46d510fa45298efdd67d20c..2eccb615dfebf64ca76d2cce1876d6ec2afe518d 100644
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-@@ -312,10 +312,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -308,10 +308,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
      }
  
      public void send(Packet<?> packet) {

@@ -5,10 +5,10 @@ Subject: [PATCH] Re-Fix MC-117075
 
 
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 38190a7cf602d1b52c9d8a37bef0d917dd8bae1b..533b6d4c5238607818002f0b43ff71226c645886 100644
+index 9608aa7231e1e19ac34f7fcf6cc4051da01f2f3e..440d890d32a6705aa5ebc84040c4290634bbae9b 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
-@@ -115,7 +115,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -113,7 +113,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
      public static final int TICKS_PER_DAY = 24000;
      public static final int MAX_ENTITY_SPAWN_Y = 20000000;
      public static final int MIN_ENTITY_SPAWN_Y = -20000000;
@@ -17,7 +17,7 @@ index 38190a7cf602d1b52c9d8a37bef0d917dd8bae1b..533b6d4c5238607818002f0b43ff7122
      protected final NeighborUpdater neighborUpdater;
      private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
      private boolean tickingBlockEntities;
-@@ -1534,7 +1534,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1528,7 +1528,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
              TickingBlockEntity tickingBlockEntity = this.blockEntityTickers.get(this.tileTickPosition);
              // Spigot end
              if (tickingBlockEntity.isRemoved()) {
@@ -26,11 +26,11 @@ index 38190a7cf602d1b52c9d8a37bef0d917dd8bae1b..533b6d4c5238607818002f0b43ff7122
              } else if (runsNormally && this.shouldTickBlocksAt(tickingBlockEntity.getPos())) {
                  tickingBlockEntity.tick();
                  // DivineMC start - Parallel world ticking
-@@ -1547,6 +1547,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1541,6 +1541,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          }
          this.blockEntityTickers.removeAll(toRemove); // Paper - Fix MC-117075
  
 +        this.blockEntityTickers.removeMarkedEntries(); // DivineMC - optimize block entity removals - Fix MC-117075
          this.tickingBlockEntities = false;
-         profilerFiller.pop();
          this.spigotConfig.currentPrimedTnt = 0; // Spigot
+     }

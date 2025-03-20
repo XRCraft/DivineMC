@@ -5,22 +5,22 @@ Subject: [PATCH] Optimize hoppers
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 3002ed51a579e81c3266da79a5dd38bac0b4a39c..9fdd4bbbe0e4c75880e9f24741fea7c60c57d09a 100644
+index 18c83691fa48abf83ba775d66171d72d9103049c..bc7c8140051192dccdd2500e53d946eb3849b3b8 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1789,7 +1789,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1745,7 +1745,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
                  serverLevel.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
                  serverLevel.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
                  serverLevel.updateLagCompensationTick(); // Paper - lag compensation
 -                net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = serverLevel.paperConfig().hopper.disableMoveEvent || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper - Perf: Optimize Hoppers
                  serverLevel.hasRidableMoveEvent = org.purpurmc.purpur.event.entity.RidableMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Purpur - Ridables
-                 profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().location());
- 
+                 if (org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking) {
+                     serverLevelTickingSemaphore.acquire();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index e5ef117e3fb3dd822a7d69e2e47fa25416be38b7..78be192760b5c4dfc9db740d856689a38a3ac1b1 100644
+index 1581bf8ff425c6e0df28d107300d7266e9f87ed5..8c136d77451c17613834c4a7dab6ab6c2fe4d716 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -196,7 +196,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -194,7 +194,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      private final LevelTicks<Fluid> fluidTicks = new LevelTicks<>(this::isPositionTickingWithEntitiesLoaded);
      private final PathTypeCache pathTypesByPosCache = new PathTypeCache();
      final Set<Mob> navigatingMobs = new ObjectOpenHashSet<>();
@@ -29,7 +29,7 @@ index e5ef117e3fb3dd822a7d69e2e47fa25416be38b7..78be192760b5c4dfc9db740d856689a3
      protected final Raids raids;
      private final ObjectLinkedOpenHashSet<BlockEventData> blockEvents = new ObjectLinkedOpenHashSet<>();
      private final List<BlockEventData> blockEventsToReschedule = new ArrayList<>(64);
-@@ -1771,7 +1771,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1729,7 +1729,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public void sendBlockUpdated(BlockPos pos, BlockState oldState, BlockState newState, int flags) {
@@ -38,7 +38,7 @@ index e5ef117e3fb3dd822a7d69e2e47fa25416be38b7..78be192760b5c4dfc9db740d856689a3
              String string = "recursive call to sendBlockUpdated";
              Util.logAndPauseIfInIde("recursive call to sendBlockUpdated", new IllegalStateException("recursive call to sendBlockUpdated"));
          }
-@@ -1802,13 +1802,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1760,13 +1760,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              // Paper end - catch CME see below why
  
              try {
@@ -54,7 +54,7 @@ index e5ef117e3fb3dd822a7d69e2e47fa25416be38b7..78be192760b5c4dfc9db740d856689a3
              }
          }
          } // Paper - option to disable pathfinding updates
-@@ -2695,7 +2695,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2653,7 +2653,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {
@@ -63,7 +63,7 @@ index e5ef117e3fb3dd822a7d69e2e47fa25416be38b7..78be192760b5c4dfc9db740d856689a3
                      String string = "onTrackingStart called during navigation iteration";
                      Util.logAndPauseIfInIde(
                          "onTrackingStart called during navigation iteration", new IllegalStateException("onTrackingStart called during navigation iteration")
-@@ -2765,7 +2765,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2723,7 +2723,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {

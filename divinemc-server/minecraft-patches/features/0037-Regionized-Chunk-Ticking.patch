@@ -5,10 +5,10 @@ Subject: [PATCH] Regionized Chunk Ticking
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500ed5772f35 100644
+index ae0e36d198ad8243920c8e8a55c0be4945542763..7f982949304535376dabf42aab1848cabc8987cf 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -56,6 +56,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -54,6 +54,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      private static final Logger LOGGER = LogUtils.getLogger();
      private final DistanceManager distanceManager;
      private final ServerLevel level;
@@ -19,9 +19,9 @@ index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500e
      public final Thread mainThread;
      final ThreadedLevelLightEngine lightEngine;
      public final ServerChunkCache.MainThreadExecutor mainThreadProcessor;
-@@ -478,6 +482,46 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -461,6 +465,46 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+         ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel)this.level).moonrise$getChunkTaskScheduler().chunkHolderManager.close(save, true); // Paper - rewrite chunk system
      }
-     // CraftBukkit end
  
 +    // DivineMC start - Regionized Chunk Ticking
 +    private static final int[] DX = {1, -1, 0, 0, 1, -1, -1, 1};
@@ -65,12 +65,12 @@ index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500e
 +
      @Override
      public void tick(BooleanSupplier hasTimeLeft, boolean tickChunks) {
-         ProfilerFiller profilerFiller = Profiler.get();
-@@ -518,7 +562,44 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+         if (this.level.tickRateManager().runsNormally() || !tickChunks || this.level.spigotConfig.unloadFrozenChunks) { // Spigot
+@@ -492,7 +536,44 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
                      this.shuffleRandom.setSeed(this.level.random.nextLong());
                      if (!this.level.paperConfig().entities.spawning.perPlayerMobSpawns) Util.shuffle(list, this.shuffleRandom); // Paper - Optional per player mob spawns; do not need this when per-player is enabled
                      // Paper end - chunk tick iteration optimisation
--                    this.tickChunks(profilerFiller, l, list);
+-                    this.tickChunks(l, list);
 +                    // DivineMC start - Regionized Chunk Ticking
 +                    if (org.bxteam.divinemc.DivineConfig.enableRegionizedChunkTicking) {
 +                        List<LevelChunk>[] regions = splitChunksIntoRegions(list);
@@ -86,7 +86,7 @@ index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500e
 +                                        if (region == null) continue;
 +                                        REGION_EXECUTOR.execute(() -> {
 +                                            try {
-+                                                tickChunks(profilerFiller, l, region);
++                                                tickChunks(l, region);
 +                                            } finally {
 +                                                latch.countDown();
 +                                            }
@@ -106,9 +106,9 @@ index cce12dce852457325ed6e57e5a4cc00555631ea6..0c542bfa8f6d8fd47427dcf74f71500e
 +                            throw new RuntimeException("Interrupted managed block during region ticking", ex);
 +                        }
 +                    } else {
-+                        this.tickChunks(profilerFiller, l, list);
++                        this.tickChunks(l, list);
 +                    }
 +                    // DivineMC end - Regionized Chunk Ticking
-                     profilerFiller.pop();
                  } finally {
                      list.clear();
+                 }

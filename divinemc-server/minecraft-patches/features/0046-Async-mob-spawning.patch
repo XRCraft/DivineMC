@@ -5,10 +5,10 @@ Subject: [PATCH] Async mob spawning
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 466fc421e0191ce1854e114fd3a013d241bc89f3..3ec8f7f0f6fdd00d4c2926b19bedd0c5e4e07e09 100644
+index 761f648df387e49750eac9000f7f46d1ae22e257..3af1afe0fe0f411c48a07fd111aa18b38773157e 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -309,6 +309,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -291,6 +291,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      public java.util.concurrent.Semaphore serverLevelTickingSemaphore = null; // DivineMC - parallel world ticking
      public final org.bxteam.divinemc.util.tps.TPSCalculator tpsCalculator = new org.bxteam.divinemc.util.tps.TPSCalculator(); // DivineMC - Lag compensation
      public final Set<net.minecraft.world.entity.Entity> entitiesWithScheduledTasks = java.util.concurrent.ConcurrentHashMap.newKeySet(); // DivineMC - Skip EntityScheduler's executeTick checks if there isn't any tasks to be run
@@ -17,10 +17,10 @@ index 466fc421e0191ce1854e114fd3a013d241bc89f3..3ec8f7f0f6fdd00d4c2926b19bedd0c5
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
          ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.init(); // Paper - rewrite data converter system
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece549e8173 100644
+index 7f982949304535376dabf42aab1848cabc8987cf..a2bb32b964d08079456d93d49f12b23f7c17a7db 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -185,6 +185,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -183,6 +183,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      }
      // Paper end - chunk tick iteration optimisations
  
@@ -31,9 +31,9 @@ index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece
  
      public ServerChunkCache(
          ServerLevel level,
-@@ -609,6 +613,35 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
-             this.broadcastChangedChunks(profilerFiller);
-             profilerFiller.pop();
+@@ -581,6 +585,35 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+ 
+             this.broadcastChangedChunks();
          }
 +
 +        // DivineMC start - Async mob spawning
@@ -66,8 +66,8 @@ index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece
 +        // DivineMC end - Async mob spawning
      }
  
-     private void broadcastChangedChunks(ProfilerFiller profiler) {
-@@ -653,27 +686,31 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+     private void broadcastChangedChunks() {
+@@ -621,27 +654,31 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
          int naturalSpawnChunkCount = this.distanceManager.getNaturalSpawnChunkCount();
          // Paper start - Optional per player mob spawns
          NaturalSpawner.SpawnState spawnState;
@@ -110,10 +110,10 @@ index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece
 +        // DivineMC end - Async mob spawning
          // Paper end - Optional per player mob spawns
 -        this.lastSpawnState = spawnState;
-         profiler.popPush("spawnAndTick");
          boolean _boolean = this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING) && !this.level.players().isEmpty(); // CraftBukkit
          int _int = this.level.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
-@@ -688,7 +725,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+         List<MobCategory> filteredSpawningCategories;
+@@ -655,7 +692,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
              }
              // Paper end - PlayerNaturallySpawnCreaturesEvent
              boolean flag = this.level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) != 0L && this.level.getLevelData().getGameTime() % this.level.ticksPerSpawnCategory.getLong(org.bukkit.entity.SpawnCategory.ANIMAL) == 0L; // CraftBukkit
@@ -122,7 +122,7 @@ index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece
          } else {
              filteredSpawningCategories = List.of();
          }
-@@ -696,8 +733,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -663,8 +700,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
          for (LevelChunk levelChunk : chunks) {
              ChunkPos pos = levelChunk.getPos();
              levelChunk.incrementInhabitedTime(timeInhabited);
@@ -136,19 +136,16 @@ index 0c542bfa8f6d8fd47427dcf74f71500ed5772f35..39b2a29ec3eb94a00b08b4f1cc05dece
  
              if (true) { // Paper - rewrite chunk system
 diff --git a/net/minecraft/world/level/NaturalSpawner.java b/net/minecraft/world/level/NaturalSpawner.java
-index 8aeeeffae50b3ec68ab972e793bb5edb4530ca78..3ba648ead9680ea9a4c7962543caa24357015cca 100644
+index d3f5242fc66529bf3137da4d505a6cf55e749e43..650dfce05bfc68d4c664471b430bd5c0f9629283 100644
 --- a/net/minecraft/world/level/NaturalSpawner.java
 +++ b/net/minecraft/world/level/NaturalSpawner.java
-@@ -157,10 +157,21 @@ public final class NaturalSpawner {
+@@ -155,7 +155,18 @@ public final class NaturalSpawner {
          return list;
      }
  
 +    private static int maxCapPerPlayer = -1; // DivineMC - Async mob spawning
 +
      public static void spawnForChunk(ServerLevel level, LevelChunk chunk, NaturalSpawner.SpawnState spawnState, List<MobCategory> categories) {
-         ProfilerFiller profilerFiller = Profiler.get();
-         profilerFiller.push("spawner");
- 
 +        // DivineMC start - Async mob spawning
 +        if (maxCapPerPlayer < 0) {
 +            maxCapPerPlayer = 0;
@@ -161,7 +158,7 @@ index 8aeeeffae50b3ec68ab972e793bb5edb4530ca78..3ba648ead9680ea9a4c7962543caa243
          for (MobCategory mobCategory : categories) {
              // Paper start - Optional per player mob spawns
              final boolean canSpawn;
-@@ -649,6 +660,13 @@ public final class NaturalSpawner {
+@@ -642,6 +653,13 @@ public final class NaturalSpawner {
          }
  
          boolean canSpawnForCategoryLocal(MobCategory category, ChunkPos chunkPos) {
@@ -174,4 +171,33 @@ index 8aeeeffae50b3ec68ab972e793bb5edb4530ca78..3ba648ead9680ea9a4c7962543caa243
 +
              return this.localMobCapCalculator.canSpawn(category, chunkPos);
          }
+     }
+diff --git a/net/minecraft/world/level/entity/EntityTickList.java b/net/minecraft/world/level/entity/EntityTickList.java
+index 3c6ec711bf9a75657c13da647e4ae7947257b627..564a00938ef45837b1f8fa90504c54a6dc9bb383 100644
+--- a/net/minecraft/world/level/entity/EntityTickList.java
++++ b/net/minecraft/world/level/entity/EntityTickList.java
+@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
+ import net.minecraft.world.entity.Entity;
+ 
+ public class EntityTickList {
+-    public final ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<net.minecraft.world.entity.Entity> entities = new ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet<>(); // Paper - rewrite chunk system
++    public final java.util.concurrent.ConcurrentLinkedQueue<Entity> entities = new java.util.concurrent.ConcurrentLinkedQueue<>(); // Paper - rewrite chunk system // DivineMC - Async mob spawning
+     // DivineMC start - parallel world ticking
+     // Used to track async entity additions/removals/loops
+     private final net.minecraft.server.level.ServerLevel serverLevel;
+@@ -44,13 +44,13 @@ public class EntityTickList {
+         // Paper start - rewrite chunk system
+         // To ensure nothing weird happens with dimension travelling, do not iterate over new entries...
+         // (by dfl iterator() is configured to not iterate over new entries)
+-        final ca.spottedleaf.moonrise.common.list.IteratorSafeOrderedReferenceSet.Iterator<Entity> iterator = this.entities.iterator();
++        final java.util.Iterator<Entity> iterator = this.entities.iterator(); // DivineMC - Async mob spawning
+         try {
+             while (iterator.hasNext()) {
+                 entity.accept(iterator.next());
+             }
+         } finally {
+-            iterator.finishedIterating();
++            //iterator.finishedIterating(); // DivineMC - Async mob spawning
+         }
+         // Paper end - rewrite chunk system
      }

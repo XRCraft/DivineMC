@@ -5,10 +5,10 @@ Subject: [PATCH] Optimize explosions
 
 
 diff --git a/net/minecraft/world/level/ServerExplosion.java b/net/minecraft/world/level/ServerExplosion.java
-index 278761647a6095581f8d8ff4f94ccc28b6e9c8a7..6d1a73c319e19dbc17122abb508aff462c4a56f4 100644
+index 6bddf42504039f2be5eb9a5a35a0835e0e3239fe..ea6da35e6c38a0b8b67d0b7a1426445eadfb540c 100644
 --- a/net/minecraft/world/level/ServerExplosion.java
 +++ b/net/minecraft/world/level/ServerExplosion.java
-@@ -377,6 +377,11 @@ public class ServerExplosion implements Explosion {
+@@ -375,6 +375,11 @@ public class ServerExplosion implements Explosion {
      }
  
      private List<BlockPos> calculateExplodedPositions() {
@@ -20,7 +20,7 @@ index 278761647a6095581f8d8ff4f94ccc28b6e9c8a7..6d1a73c319e19dbc17122abb508aff46
          // Paper start - collision optimisations
          final ObjectArrayList<BlockPos> ret = new ObjectArrayList<>();
  
-@@ -475,6 +480,157 @@ public class ServerExplosion implements Explosion {
+@@ -473,6 +478,157 @@ public class ServerExplosion implements Explosion {
          // Paper end - collision optimisations
      }
  
@@ -178,7 +178,7 @@ index 278761647a6095581f8d8ff4f94ccc28b6e9c8a7..6d1a73c319e19dbc17122abb508aff46
      private void hurtEntities() {
          float f = this.radius * 2.0F;
          int floor = Mth.floor(this.center.x - f - 1.0);
-@@ -567,6 +723,11 @@ public class ServerExplosion implements Explosion {
+@@ -565,6 +721,11 @@ public class ServerExplosion implements Explosion {
      }
  
      private void interactWithBlocks(List<BlockPos> blocks) {

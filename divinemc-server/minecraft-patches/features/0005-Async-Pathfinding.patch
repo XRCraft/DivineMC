@@ -393,10 +393,10 @@ index 045cfafb3afe8271d60852ae3c7cdcb039b44d4f..f544bf28ac6531061da08c7266846874
      }
  
 diff --git a/net/minecraft/world/entity/ai/navigation/PathNavigation.java b/net/minecraft/world/entity/ai/navigation/PathNavigation.java
-index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6afa9d9af 100644
+index 6c8fb611943aee8cabc471c63166f9b44ef14826..02814be0e1ac9b743a4c6b5b75015a5e87fc2aa6 100644
 --- a/net/minecraft/world/entity/ai/navigation/PathNavigation.java
 +++ b/net/minecraft/world/entity/ai/navigation/PathNavigation.java
-@@ -169,6 +169,10 @@ public abstract class PathNavigation {
+@@ -167,6 +167,10 @@ public abstract class PathNavigation {
              return null;
          } else if (!this.canUpdatePath()) {
              return null;
@@ -407,11 +407,10 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
          } else if (this.path != null && !this.path.isDone() && targets.contains(this.targetPos)) {
              return this.path;
          } else {
-@@ -195,12 +199,30 @@ public abstract class PathNavigation {
+@@ -191,11 +195,29 @@ public abstract class PathNavigation {
              int i = (int)(followRange + regionOffset);
              PathNavigationRegion pathNavigationRegion = new PathNavigationRegion(this.level, blockPos.offset(-i, -i, -i), blockPos.offset(i, i, i));
              Path path = this.pathFinder.findPath(pathNavigationRegion, this.mob, targets, followRange, accuracy, this.maxVisitedNodesMultiplier);
--            profilerFiller.pop();
 -            if (path != null && path.getTarget() != null) {
 -                this.targetPos = path.getTarget();
 -                this.reachRange = accuracy;
@@ -432,7 +431,6 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
 +                    }
 +                });
 +            } else {
-+                profilerFiller.pop();
 +                if (path != null && path.getTarget() != null) {
 +                    this.targetPos = path.getTarget();
 +                    this.reachRange = accuracy;
@@ -443,7 +441,7 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
  
              return path;
          }
-@@ -251,8 +273,8 @@ public abstract class PathNavigation {
+@@ -246,8 +268,8 @@ public abstract class PathNavigation {
              if (this.isDone()) {
                  return false;
              } else {
@@ -454,7 +452,7 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
                      return false;
                  } else {
                      this.speedModifier = speed;
-@@ -275,6 +297,7 @@ public abstract class PathNavigation {
+@@ -270,6 +292,7 @@ public abstract class PathNavigation {
          if (this.hasDelayedRecomputation) {
              this.recomputePath();
          }
@@ -462,7 +460,7 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
  
          if (!this.isDone()) {
              if (this.canUpdatePath()) {
-@@ -304,6 +327,7 @@ public abstract class PathNavigation {
+@@ -299,6 +322,7 @@ public abstract class PathNavigation {
      }
  
      protected void followThePath() {
@@ -470,7 +468,7 @@ index b44f2c49509d847817a78e9c4fb1499fb378054b..c0b61c38a82fd3de046b550a49d8cde6
          Vec3 tempMobPos = this.getTempMobPos();
          this.maxDistanceToWaypoint = this.mob.getBbWidth() > 0.75F ? this.mob.getBbWidth() / 2.0F : 0.75F - this.mob.getBbWidth() / 2.0F;
          Vec3i nextNodePos = this.path.getNextNodePos();
-@@ -460,7 +484,7 @@ public abstract class PathNavigation {
+@@ -455,7 +479,7 @@ public abstract class PathNavigation {
      public boolean shouldRecomputePath(BlockPos pos) {
          if (this.hasDelayedRecomputation) {
              return false;
@@ -581,10 +579,10 @@ index d5727999eb67ff30dbf47865d59452483338e170..ddbee0f0f42fae0a26321bb324d22f5e
          }
      }
 diff --git a/net/minecraft/world/entity/animal/frog/Frog.java b/net/minecraft/world/entity/animal/frog/Frog.java
-index 143a740ce2e7f9d384b71b4d64e8b8218f60cba7..3c657179644750846180ab1c45250a9e17dda396 100644
+index 4aabb98e0b37b652ad4d334b99c48a818c2859b4..dfcba5c2c8a489ebe74c2d5c1fa980c401806757 100644
 --- a/net/minecraft/world/entity/animal/frog/Frog.java
 +++ b/net/minecraft/world/entity/animal/frog/Frog.java
-@@ -480,6 +480,17 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
+@@ -473,6 +473,17 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
              super(mob, level);
          }
  
@@ -602,7 +600,7 @@ index 143a740ce2e7f9d384b71b4d64e8b8218f60cba7..3c657179644750846180ab1c45250a9e
          @Override
          public boolean canCutCorner(PathType pathType) {
              return pathType != PathType.WATER_BORDER && super.canCutCorner(pathType);
-@@ -488,6 +499,11 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
+@@ -481,6 +492,11 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
          @Override
          protected PathFinder createPathFinder(int maxVisitedNodes) {
              this.nodeEvaluator = new Frog.FrogNodeEvaluator(true);
@@ -658,10 +656,10 @@ index 241526239bdbd5d9276f85e7fca46a7051f46a25..2329973f735e1ae7fbb76798dc113f42
          }
  
 diff --git a/net/minecraft/world/entity/monster/warden/Warden.java b/net/minecraft/world/entity/monster/warden/Warden.java
-index f968e5c99bdb23b268bc34ea1ba5d54ae9ad0ff9..7b185f07f099c2704ecd5c983a11f4085a4f13c2 100644
+index e4b8a74fae6d058a9a75a12d2ff08c7984442538..59a12809e5c7f5ee85ca1f587f6b77383a1ff062 100644
 --- a/net/minecraft/world/entity/monster/warden/Warden.java
 +++ b/net/minecraft/world/entity/monster/warden/Warden.java
-@@ -602,6 +602,16 @@ public class Warden extends Monster implements VibrationSystem {
+@@ -597,6 +597,16 @@ public class Warden extends Monster implements VibrationSystem {
              @Override
              protected PathFinder createPathFinder(int maxVisitedNodes) {
                  this.nodeEvaluator = new WalkNodeEvaluator();
@@ -709,10 +707,10 @@ index d6d3c8f5e5dd4a8cab0d3fcc131c3a59f06130c6..839653a997f1e10970fa2956fadaf493
              return false;
          } else if (pathentity.nodes.size() != this.nodes.size()) {
 diff --git a/net/minecraft/world/level/pathfinder/PathFinder.java b/net/minecraft/world/level/pathfinder/PathFinder.java
-index 81de6c1bbef1cafd3036e736dd305fbedc8368c6..0796343f89c8424d0f7553c60dde952ab06b9f3a 100644
+index c2baadcdceb1df6a881d6f73aa4eb4dd264bcdfe..965c1d2dd1acd542936fad8034c2de1746193355 100644
 --- a/net/minecraft/world/level/pathfinder/PathFinder.java
 +++ b/net/minecraft/world/level/pathfinder/PathFinder.java
-@@ -25,11 +25,19 @@ public class PathFinder {
+@@ -22,11 +22,19 @@ public class PathFinder {
      public final NodeEvaluator nodeEvaluator;
      private static final boolean DEBUG = false;
      private final BinaryHeap openSet = new BinaryHeap();
@@ -733,7 +731,7 @@ index 81de6c1bbef1cafd3036e736dd305fbedc8368c6..0796343f89c8424d0f7553c60dde952a
  
      public void setMaxVisitedNodes(int maxVisitedNodes) {
          this.maxVisitedNodes = maxVisitedNodes;
-@@ -37,26 +45,63 @@ public class PathFinder {
+@@ -34,26 +42,63 @@ public class PathFinder {
  
      @Nullable
      public Path findPath(PathNavigationRegion region, Mob mob, Set<BlockPos> targetPositions, float maxRange, int accuracy, float searchDepthMultiplier) {
@@ -801,10 +799,10 @@ index 81de6c1bbef1cafd3036e736dd305fbedc8368c6..0796343f89c8424d0f7553c60dde952a
 +    private synchronized @org.jetbrains.annotations.NotNull Path processPath(NodeEvaluator nodeEvaluator, Node node, List<Map.Entry<Target, BlockPos>> positions, float maxRange, int accuracy, float searchDepthMultiplier) { // sync to only use the caching functions in this class on a single thread
 +        org.apache.commons.lang3.Validate.isTrue(!positions.isEmpty()); // ensure that we have at least one position, which means we'll always return a path
 +        // DivineMC end - split pathfinding into the original sync method for compat and processing for delaying
-         ProfilerFiller profilerFiller = Profiler.get();
-         profilerFiller.push("find_path");
-         profilerFiller.markForCharting(MetricCategory.PATH_FINDING);
-@@ -95,7 +140,7 @@ public class PathFinder {
+         // Set<Target> set = targetPositions.keySet(); // Paper
+         node.g = 0.0F;
+         node.h = this.getBestH(node, positions); // Paper - optimize collection
+@@ -89,7 +134,7 @@ public class PathFinder {
              }
  
              if (!(node1.distanceTo(node) >= maxRange)) {

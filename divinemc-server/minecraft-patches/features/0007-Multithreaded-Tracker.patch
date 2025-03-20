@@ -22,10 +22,10 @@ index 8ffe79b81777015ff807538e461ec68463225557..b28083be4384d6c5efbdce898a0e9d7a
          private static final byte CHUNK_TICKET_STAGE_NONE           = 0;
          private static final byte CHUNK_TICKET_STAGE_LOADING        = 1;
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed8ba34670 100644
+index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d34be87a0 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -264,9 +264,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -262,9 +262,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          final ServerPlayer[] backingSet = inRange.getRawDataUnchecked();
@@ -47,7 +47,7 @@ index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed
      }
  
      // Paper start - per player mob count backoff
-@@ -972,6 +982,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -965,6 +975,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
      // Paper end - optimise entity tracker
  
      protected void tick() {
@@ -61,7 +61,7 @@ index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed
          // Paper start - optimise entity tracker
          if (true) {
              this.newTrackerTick();
-@@ -1094,7 +1111,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1087,7 +1104,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          final Entity entity;
          private final int range;
          SectionPos lastSectionPos;
@@ -74,7 +74,7 @@ index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed
  
          // Paper start - optimise entity tracker
          private long lastChunkUpdate = -1L;
-@@ -1121,21 +1142,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1114,21 +1135,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
              this.lastTrackedChunk = chunk;
  
              final ServerPlayer[] playersRaw = players.getRawDataUnchecked();
@@ -140,7 +140,7 @@ index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed
          }
  
          @Override
-@@ -1197,7 +1252,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1190,7 +1245,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcast(Packet<?> packet) {
@@ -149,7 +149,7 @@ index da2921268a9aa4545a12c155a33bed9fccb4f19c..3bf5f76dd61f6d20819440b28cbf46ed
                  serverPlayerConnection.send(packet);
              }
          }
-@@ -1210,21 +1265,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1203,21 +1258,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcastRemoved() {
@@ -230,10 +230,10 @@ index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9
  
              attributesToSync.clear();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index d9bd09b52db10cad5ad5c392649379ab1e5dab8c..95d24f500e919f1deae1b7b1ce6e67fa24566eff 100644
+index 9afd448ede87c9192dc576f66e08676a68b34d98..6e1ed33463c6280159d7f8187b9a9210d6b85e0c 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -2513,7 +2513,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2471,7 +2471,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public LevelEntityGetter<Entity> getEntities() {

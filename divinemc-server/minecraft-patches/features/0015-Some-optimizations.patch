@@ -231,10 +231,10 @@ index 15de39fa82c7aea18298509fe9587d027c30cc15..c199f99efe25737602a3565ca6f70177
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
-index bc22d67bba9b1ebb6bef84f5326375100d24461d..4aa5ecf3e7a7f58505de583dba7738dc1a596d72 100644
+index 66f3565b978f2ed91cb2bc3a816f1701c0873c73..b4e19cc65701d5ef94e1cc0a7473225c222725c3 100644
 --- a/net/minecraft/world/entity/Mob.java
 +++ b/net/minecraft/world/entity/Mob.java
-@@ -841,7 +841,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+@@ -832,7 +832,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
          if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
              this.discard(EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
          } else if (!this.isPersistenceRequired() && !this.requiresCustomPersistence()) {
@@ -243,7 +243,7 @@ index bc22d67bba9b1ebb6bef84f5326375100d24461d..4aa5ecf3e7a7f58505de583dba7738dc
              if (nearestPlayer != null) {
                  // Paper start - Configurable despawn distances
                  final io.papermc.paper.configuration.WorldConfiguration.Entities.Spawning.DespawnRangePair despawnRangePair = this.level().paperConfig().entities.spawning.despawnRanges.get(this.getType().getCategory());
-@@ -870,6 +870,19 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+@@ -861,6 +861,19 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
          }
      }
  

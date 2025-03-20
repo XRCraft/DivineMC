@@ -5,10 +5,10 @@ Subject: [PATCH] Threaded light engine
 
 
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index b3f498558614243cf633dcd71e3c49c2c55e6e0f..da2921268a9aa4545a12c155a33bed9fccb4f19c 100644
+index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..72f019e3034d3268cf5526237ff0927eccc0c5bb 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -212,7 +212,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -210,7 +210,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          ConsecutiveExecutor consecutiveExecutor = new ConsecutiveExecutor(dispatcher, "worldgen");
          this.progressListener = progressListener;
          this.chunkStatusListener = chunkStatusListener;
@@ -17,7 +17,7 @@ index b3f498558614243cf633dcd71e3c49c2c55e6e0f..da2921268a9aa4545a12c155a33bed9f
          // Paper - rewrite chunk system
          this.lightEngine = new ThreadedLevelLightEngine(
              lightChunk, this, this.level.dimensionType().hasSkyLight(), consecutiveExecutor1, null // Paper - rewrite chunk system
-@@ -232,6 +232,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -230,6 +230,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          this.worldGenContext = new WorldGenContext(level, generator, structureManager, this.lightEngine, null, this::setChunkUnsaved); // Paper - rewrite chunk system
      }
  

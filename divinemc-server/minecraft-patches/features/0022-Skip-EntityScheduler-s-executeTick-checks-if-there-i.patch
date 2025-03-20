@@ -6,10 +6,10 @@ Subject: [PATCH] Skip EntityScheduler's executeTick checks if there isn't any
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 8feec3f633f2fa12591fb84c90e0b28b7fde7697..7c0081b01140800977ad2dc053d4c4619f263fc2 100644
+index ea19137150115a592a501e10e92a011855c135e3..72b2d9c0d9b5b2038f13ea961c977fe4b36d7291 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -308,6 +308,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -290,6 +290,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      protected boolean upnp = false; // Purpur - UPnP Port Forwarding
      public java.util.concurrent.Semaphore serverLevelTickingSemaphore = null; // DivineMC - parallel world ticking
      public final org.bxteam.divinemc.util.tps.TPSCalculator tpsCalculator = new org.bxteam.divinemc.util.tps.TPSCalculator(); // DivineMC - Lag compensation
@@ -17,7 +17,7 @@ index 8feec3f633f2fa12591fb84c90e0b28b7fde7697..7c0081b01140800977ad2dc053d4c461
  
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
          ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.init(); // Paper - rewrite data converter system
-@@ -1747,17 +1748,18 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1705,17 +1706,18 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
          // Paper start - Folia scheduler API
          ((io.papermc.paper.threadedregions.scheduler.FoliaGlobalRegionScheduler) org.bukkit.Bukkit.getGlobalRegionScheduler()).tick();
@@ -45,4 +45,4 @@ index 8feec3f633f2fa12591fb84c90e0b28b7fde7697..7c0081b01140800977ad2dc053d4c461
 +        // DivineMC end - Skip EntityScheduler's executeTick checks if there isn't any tasks to be run
          // Paper end - Folia scheduler API
          io.papermc.paper.adventure.providers.ClickCallbackProviderImpl.CALLBACK_MANAGER.handleQueue(this.tickCount); // Paper
-         profilerFiller.push("commandFunctions");
+         this.getFunctions().tick();

@@ -52,10 +52,10 @@ index 5748658abf0b90812005ae9d426df92daf5532f0..8b4b91be368b4195326eeb1c714d713a
              this.get("generator-settings", property -> GsonHelper.parse(!property.isEmpty() ? property : "{}"), new JsonObject()),
              this.get("level-type", property -> property.toLowerCase(Locale.ROOT), WorldPresets.NORMAL.location().toString())
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 6540b2d6a1062d883811ce240c49d30d1925b291..2678bf59d557f085c7265e2f3eb038647723d35e 100644
+index 8055b8552b40160732953b15876dda7983890d06..ab30af9cd58ff7310e05be87b08f42bacf69e11e 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -652,6 +652,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -618,6 +618,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      }
  
      public ChunkGenerator getGenerator() {
@@ -64,10 +64,10 @@ index 6540b2d6a1062d883811ce240c49d30d1925b291..2678bf59d557f085c7265e2f3eb03864
      }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 59d03ddc42d53e2b825abe0cf2ab24e85d586a19..dd113d67356177a8d98ea10a8b6d4a4d5159674c 100644
+index 3980e0dfb08a357384ea33670fb282a26a598f6e..9afd448ede87c9192dc576f66e08676a68b34d98 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -634,6 +634,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -632,6 +632,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
          }
          // CraftBukkit end
