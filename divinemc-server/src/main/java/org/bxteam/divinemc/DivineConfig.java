@@ -159,6 +159,7 @@ public class DivineConfig {
     public static int parallelThreadCount = 4;
     public static boolean logContainerCreationStacktraces = false;
     public static boolean disableHardThrow = false;
+    public static boolean pwtCompatabilityMode = false;
     private static void parallelWorldTicking() {
         enableParallelWorldTicking = getBoolean("settings.parallel-world-ticking.enable", enableParallelWorldTicking,
             "Enables Parallel World Ticking, which executes each world’s tick in a separate thread while ensuring that all worlds complete their tick before the next cycle begins.",
@@ -168,6 +169,8 @@ public class DivineConfig {
         logContainerCreationStacktraces = getBoolean("settings.parallel-world-ticking.log-container-creation-stacktraces", logContainerCreationStacktraces);
         disableHardThrow = getBoolean("settings.parallel-world-ticking.disable-hard-throw", disableHardThrow,
             "Disables annoying 'not on main thread' throws. But, THIS IS NOT RECOMMENDED because you SHOULD FIX THE ISSUES THEMSELVES instead of RISKING DATA CORRUPTION! If you lose something, take the blame on yourself.");
+        pwtCompatabilityMode = getBoolean("settings.parallel-world-ticking.compatability-mode", pwtCompatabilityMode,
+            "Enables compatibility mode for plugins that are not compatible with Parallel World Ticking. This makes all async tasks run synchronously.");
     }
 
     public static boolean nativeAccelerationEnabled = true;
@@ -181,6 +184,7 @@ public class DivineConfig {
     public static ChunkTaskPriority chunkTaskPriority = ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
     public static boolean enableAsyncNoiseFill = false;
+    public static boolean asyncChunkSendingEnabled = true;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
     public static boolean slopesVisualFix = false;
@@ -238,6 +242,8 @@ public class DivineConfig {
             "",
             "Terrain and biome generation remains the same, but all the ores and structures are generated with 1024-bit seed, instead of the usual 64-bit seed.",
             "This seed is almost impossible to crack, and there are no weird links between structures.");
+        asyncChunkSendingEnabled = getBoolean("settings.chunk-generation.enable-async-chunk-sending", asyncChunkSendingEnabled,
+            "Makes chunk sending asynchronous, which can significantly reduce main thread load when many players are loading chunks.");
 
         smoothBedrockLayer = getBoolean("settings.chunk-generation.smooth-bedrock-layer", smoothBedrockLayer,
             "Smoothens the bedrock layer at the bottom of overworld, and on the top of nether during the world generation.");
@@ -254,20 +260,6 @@ public class DivineConfig {
             "This will not break the structure generation, but it will make the structure layout different than",
             "if this config was off (breaking vanilla seed parity). The cost of speed may be worth it in large",
             "modpacks where many structure mods are using very high weight values in their template pools.");
-    }
-
-    public static boolean asyncChunkSendingEnabled = true;
-    public static int asyncChunkSendingThreadCount = 1;
-    public static boolean asyncChunkSendingUseVirtualThreads = false;
-    private static void asyncChunkSending() {
-        asyncChunkSendingEnabled = getBoolean("settings.async-chunk-sending.enable", asyncChunkSendingEnabled,
-            "Enables chunk sending runs off-main thread.");
-
-        asyncChunkSendingThreadCount = getInt("settings.async-chunk-sending.thread-count", asyncChunkSendingThreadCount,
-            "Amount of threads to use for async chunk sending. (If use-virtual-threads is enabled, this will be ignored)");
-
-        asyncChunkSendingUseVirtualThreads = getBoolean("settings.async-chunk-sending.use-virtual-threads", asyncChunkSendingUseVirtualThreads,
-            "Similar to the 'virtual-thread' options. This will use the virtual thread executor for chunk sending.");
     }
 
     public static boolean enableRegionizedChunkTicking = false;

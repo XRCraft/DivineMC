@@ -4,6 +4,38 @@ Date: Fri, 31 Jan 2025 21:50:46 +0300
 Subject: [PATCH] Native Math Optimizations
 
 
+diff --git a/com/mojang/math/OctahedralGroup.java b/com/mojang/math/OctahedralGroup.java
+index 11902e7427761746ee098fea3276a34fef0096ba..3ba23fa243f7af712a41316066ca554f1c23b495 100644
+--- a/com/mojang/math/OctahedralGroup.java
++++ b/com/mojang/math/OctahedralGroup.java
+@@ -112,6 +112,7 @@ public enum OctahedralGroup implements StringRepresentable {
+         this.transformation = new Matrix3f().scaling(invertX ? -1.0F : 1.0F, invertY ? -1.0F : 1.0F, invertZ ? -1.0F : 1.0F);
+         this.transformation.mul(permutation.transformation());
+         this.initializeRotationDirections(); // Paper - Avoid Lazy Initialization for Enum Fields
++        this.rotate(Direction.UP); // DivineMC - Math Optimizations
+     }
+ 
+     private BooleanList packInversions() {
+diff --git a/com/mojang/math/Transformation.java b/com/mojang/math/Transformation.java
+index aa755b8b7f8bc5910322e0c5b520f603da06a85a..e781dea43279aa77cc40a7afd2281c32cc8347a9 100644
+--- a/com/mojang/math/Transformation.java
++++ b/com/mojang/math/Transformation.java
+@@ -51,6 +51,7 @@ public final class Transformation {
+         } else {
+             this.matrix = matrix;
+         }
++        ensureDecomposed(); // DivineMC - Math Optimizations
+     }
+ 
+     public Transformation(@Nullable Vector3f translation, @Nullable Quaternionf leftRotation, @Nullable Vector3f scale, @Nullable Quaternionf rightRotation) {
+@@ -60,6 +61,7 @@ public final class Transformation {
+         this.scale = scale != null ? scale : new Vector3f(1.0F, 1.0F, 1.0F);
+         this.rightRotation = rightRotation != null ? rightRotation : new Quaternionf();
+         this.decomposed = true;
++        ensureDecomposed(); // DivineMC - Math Optimizations
+     }
+ 
+     public static Transformation identity() {
 diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
 index ae1ab070a93b46a0790eed3feda1d09f5fbe9b25..3befc00c10ce8f29d3ee1ea493c2b220df5eaaea 100644
 --- a/net/minecraft/util/Mth.java

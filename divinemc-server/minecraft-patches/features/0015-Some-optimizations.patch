@@ -4,6 +4,19 @@ Date: Sat, 1 Feb 2025 15:59:29 +0300
 Subject: [PATCH] Some optimizations
 
 
+diff --git a/com/mojang/brigadier/tree/CommandNode.java b/com/mojang/brigadier/tree/CommandNode.java
+index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..59c93bbf431836fd29101ff9e7e467d9ea3f5df9 100644
+--- a/com/mojang/brigadier/tree/CommandNode.java
++++ b/com/mojang/brigadier/tree/CommandNode.java
+@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
+ import java.util.function.Predicate;
+ 
+ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
+-    private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
++    private final Map<String, CommandNode<S>> children = Collections.synchronizedMap(new LinkedHashMap<>()); // DivineMC - Some optimizations
+     private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
+     private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
+     public Predicate<S> requirement; // Paper - public-f
 diff --git a/net/minecraft/core/MappedRegistry.java b/net/minecraft/core/MappedRegistry.java
 index 5f752603aa5611ce9d3dd44cc5b70c27ac46a86e..332122c0b700fb743f91f3fed16aade41dceec28 100644
 --- a/net/minecraft/core/MappedRegistry.java
@@ -95,6 +108,62 @@ index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b
      }
  
      @Override
+diff --git a/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java b/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
+index f28fbf81a417a678726d3f77b3999054676d522e..fbf17cc11fa8e56c5ada2f0f60c944b6b22591a5 100644
+--- a/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
++++ b/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
+@@ -52,23 +52,23 @@ public class CrudeIncrementalIntIdentityHashBiMap<K> implements IdMap<K>, ca.spo
+ 
+     @Nullable
+     @Override
+-    public K byId(int value) {
++    public synchronized K byId(int value) { // DivineMC - Some optimizations
+         return value >= 0 && value < this.byId.length ? this.byId[value] : null;
+     }
+ 
+-    private int getValue(int key) {
++    private synchronized int getValue(int key) { // DivineMC - Some optimizations
+         return key == -1 ? -1 : this.values[key];
+     }
+ 
+-    public boolean contains(K value) {
++    public synchronized boolean contains(K value) { // DivineMC - Some optimizations
+         return this.getId(value) != -1;
+     }
+ 
+-    public boolean contains(int value) {
++    public synchronized boolean contains(int value) { // DivineMC - Some optimizations
+         return this.byId(value) != null;
+     }
+ 
+-    public int add(K object) {
++    public synchronized int add(K object) { // DivineMC - Some optimizations
+         int i = this.nextId();
+         this.addMapping(object, i);
+         return i;
+@@ -106,7 +106,7 @@ public class CrudeIncrementalIntIdentityHashBiMap<K> implements IdMap<K>, ca.spo
+         // Paper end - optimise palette reads
+     }
+ 
+-    public void addMapping(K object, int intKey) {
++    public synchronized void addMapping(K object, int intKey) { // DivineMC - Some optimizations
+         int max = Math.max(intKey, this.size + 1);
+         if (max >= this.keys.length * 0.8F) {
+             int i = this.keys.length << 1;
+@@ -173,11 +173,11 @@ public class CrudeIncrementalIntIdentityHashBiMap<K> implements IdMap<K>, ca.spo
+     }
+ 
+     @Override
+-    public Iterator<K> iterator() {
++    public synchronized Iterator<K> iterator() { // DivineMC - Some optimizations
+         return Iterators.filter(Iterators.forArray(this.byId), Predicates.notNull());
+     }
+ 
+-    public void clear() {
++    public synchronized void clear() { // DivineMC - Some optimizations
+         Arrays.fill(this.keys, null);
+         Arrays.fill(this.byId, null);
+         this.nextId = 0;
 diff --git a/net/minecraft/util/CubicSpline.java b/net/minecraft/util/CubicSpline.java
 index f36f8f2d49d4eba5c80eb243883749d6f831eb8a..5abd899c88683cb79bb8f02e43c4bfbe8563f496 100644
 --- a/net/minecraft/util/CubicSpline.java
@@ -230,6 +299,19 @@ index 15de39fa82c7aea18298509fe9587d027c30cc15..c199f99efe25737602a3565ca6f70177
  
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
+diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
+index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..40641a649631cfe63b0077d66115aaa525377cf0 100644
+--- a/net/minecraft/world/entity/Entity.java
++++ b/net/minecraft/world/entity/Entity.java
+@@ -143,7 +143,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+     }
+ 
+     // Paper start - Share random for entities to make them more random
+-    public static RandomSource SHARED_RANDOM = new RandomRandomSource();
++    public static RandomSource SHARED_RANDOM = new net.minecraft.world.level.levelgen.ThreadSafeLegacyRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // DivineMC - Some optimizations
+     // Paper start - replace random
+     private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
+         public RandomRandomSource() {
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
 index 66f3565b978f2ed91cb2bc3a816f1701c0873c73..b4e19cc65701d5ef94e1cc0a7473225c222725c3 100644
 --- a/net/minecraft/world/entity/Mob.java
@@ -313,6 +395,18 @@ index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8ac
          }
      }
  }
+diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
+index 681dec447486138088fe5f705ef4fadab531139f..c34515e0a2954730665acf429dfec6fc3069e7c4 100644
+--- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
++++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
+@@ -198,6 +198,7 @@ public class MapItemSavedData extends SavedData {
+             }
+         }
+ 
++        mapItemSavedData.setDirty(false); // DivineMC - Some optimizations
+         return mapItemSavedData;
+     }
+ 
 diff --git a/net/minecraft/world/level/storage/DimensionDataStorage.java b/net/minecraft/world/level/storage/DimensionDataStorage.java
 index d9a3b5a2e6495b7e22c114506c2bd1e406f58f8f..a6e03345afd6d8a38e06a43c59103209618baa14 100644
 --- a/net/minecraft/world/level/storage/DimensionDataStorage.java

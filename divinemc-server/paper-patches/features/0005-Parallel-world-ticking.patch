@@ -570,3 +570,37 @@ index 822ee4a2515ad1d4400bafeaf7177622e88b4aaf..69c44017e7ca2861200c83a16fa9daca
              if (!event.callEvent()) {
                  return itemStack;
              }
+diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java
+index e4e2e42d0ca25df7fe9f2dd4275610e45fcb2c84..8d0816dcc4159b62e5bbb03e3897b255feb961e6 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java
++++ b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java
+@@ -19,11 +19,28 @@ class CraftAsyncTask extends CraftTask {
+ 
+     @Override
+     public boolean isSync() {
+-        return false;
++        return org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking && org.bxteam.divinemc.DivineConfig.pwtCompatabilityMode; // DivineMC - Parallel world ticking
+     }
+ 
+     @Override
+     public void run() {
++        // DivineMC start - Parallel world ticking
++        if (org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking && org.bxteam.divinemc.DivineConfig.pwtCompatabilityMode) {
++            try {
++                super.run();
++            } catch (final Throwable t) {
++                this.getOwner().getLogger().log(
++                    Level.WARNING,
++                    String.format(
++                        "Plugin %s generated an exception while executing task %s (sync mode)",
++                        this.getOwner().getDescription().getFullName(),
++                        this.getTaskId()),
++                    t);
++            }
++            return;
++        }
++        // DivineMC end - Parallel world ticking
++
+         final Thread thread = Thread.currentThread();
+         // Paper start - name threads according to running plugin
+         final String nameBefore = thread.getName();
