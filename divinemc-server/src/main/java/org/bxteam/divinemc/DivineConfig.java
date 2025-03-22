@@ -178,9 +178,6 @@ public class DivineConfig {
             "Enables compatibility mode for plugins that are not compatible with Parallel World Ticking. This makes all async tasks run synchronously.");
     }
 
-    public static boolean nativeAccelerationEnabled = true;
-    public static boolean allowAVX512 = false;
-    public static int isaTargetLevelOverride = -1;
     public static long chunkDataCacheSoftLimit = 8192L;
     public static long chunkDataCacheLimit = 32678L;
     public static int maxViewDistance = 32;
@@ -195,25 +192,12 @@ public class DivineConfig {
     public static boolean slopesVisualFix = false;
     public static boolean enableStructureLayoutOptimizer = true;
     public static boolean deduplicateShuffledTemplatePoolElementList = false;
-    private static void chunkGeneration() {
-        nativeAccelerationEnabled = getBoolean("settings.chunk-generation.native-acceleration-enabled", nativeAccelerationEnabled);
-
-        allowAVX512 = getBoolean("settings.chunk-generation.allow-avx512", allowAVX512,
-            "Enables AVX512 support for natives-math optimizations");
-        isaTargetLevelOverride = getInt("settings.chunk-generation.isa-target-level-override", isaTargetLevelOverride,
-            "Overrides the ISA target located by the native loader, which allows forcing AVX512 (must be a value between 6-9 for AVX512 support).",
-            "Value must be between 1-9, and -1 to disable override");
-
-        if (isaTargetLevelOverride < -1 || isaTargetLevelOverride > 9) {
-            LOGGER.warn("Invalid ISA target level override: {}, resetting to -1", isaTargetLevelOverride);
-            isaTargetLevelOverride = -1;
-        }
-
-        chunkDataCacheSoftLimit = getLong("settings.chunk-generation.chunk-data-cache-soft-limit", chunkDataCacheSoftLimit);
-        chunkDataCacheLimit = getLong("settings.chunk-generation.chunk-data-cache-limit", chunkDataCacheLimit);
-        maxViewDistance = getInt("settings.chunk-generation.max-view-distance", maxViewDistance,
+    private static void chunkSettings() {
+        chunkDataCacheSoftLimit = getLong("settings.chunks.chunk-data-cache-soft-limit", chunkDataCacheSoftLimit);
+        chunkDataCacheLimit = getLong("settings.chunks.chunk-data-cache-limit", chunkDataCacheLimit);
+        maxViewDistance = getInt("settings.chunks.max-view-distance", maxViewDistance,
             "Changes the maximum view distance for the server, allowing clients to have render distances higher than 32");
-        playerNearChunkDetectionRange = getInt("settings.chunk-generation.player-near-chunk-detection-range", playerNearChunkDetectionRange,
+        playerNearChunkDetectionRange = getInt("settings.chunks.player-near-chunk-detection-range", playerNearChunkDetectionRange,
             "In certain checks, like if a player is near a chunk(primarily used for spawning), it checks if the player is within a certain",
             "circular range of the chunk. This configuration allows configurability of the distance(in blocks) the player must be to pass the check.",
             "",
@@ -226,38 +210,38 @@ public class DivineConfig {
             playerNearChunkDetectionRange = 128;
         }
 
-        chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString("settings.chunk-generation.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
+        chunkWorkerAlgorithm = ChunkSystemAlgorithms.valueOf(getString("settings.chunks.chunk-worker-algorithm", chunkWorkerAlgorithm.name(),
             "Modifies what algorithm the chunk system will use to define thread counts.",
             "Valid values:",
             " - MOONRISE: Default algorithm, used by default in Paper",
             " - C2ME: Algorithm used by C2ME (old)",
             " - C2ME_NEW: Modern algorithm used by C2ME"));
-        chunkTaskPriority = ChunkTaskPriority.valueOf(getString("settings.chunk-generation.chunk-task-priority", chunkTaskPriority.name(),
+        chunkTaskPriority = ChunkTaskPriority.valueOf(getString("settings.chunks.chunk-task-priority", chunkTaskPriority.name(),
             "Sets the algorithm for determining chunk task priorities (generation, loading and etc.).",
             "Valid values:",
             " - EUCLIDEAN_CIRCLE_PATTERN: Euclidean distance squared algorithm, chunk priorities will be ordered in a circle pattern",
             " - DEFAULT_DIAMOND_PATTERN: Default one, chunk priorities will be ordered in a diamond pattern"));
-        threadPoolPriority = getInt("settings.chunk-generation.thread-pool-priority", threadPoolPriority,
+        threadPoolPriority = getInt("settings.chunks.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
-        enableAsyncNoiseFill = getBoolean("settings.chunk-generation.enable-async-noise-fill", enableAsyncNoiseFill,
+        enableAsyncNoiseFill = getBoolean("settings.chunks.enable-async-noise-fill", enableAsyncNoiseFill,
             "Runs noise filling and biome populating in a virtual thread executor. If disabled, it will run sync.");
 
-        enableSecureSeed = getBoolean("settings.chunk-generation.enable-secure-seed", enableSecureSeed,
+        enableSecureSeed = getBoolean("settings.chunks.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",
             "",
             "Terrain and biome generation remains the same, but all the ores and structures are generated with 1024-bit seed, instead of the usual 64-bit seed.",
             "This seed is almost impossible to crack, and there are no weird links between structures.");
-        asyncChunkSendingEnabled = getBoolean("settings.chunk-generation.enable-async-chunk-sending", asyncChunkSendingEnabled,
+        asyncChunkSendingEnabled = getBoolean("settings.chunks.enable-async-chunk-sending", asyncChunkSendingEnabled,
             "Makes chunk sending asynchronous, which can significantly reduce main thread load when many players are loading chunks.");
 
-        smoothBedrockLayer = getBoolean("settings.chunk-generation.smooth-bedrock-layer", smoothBedrockLayer,
+        smoothBedrockLayer = getBoolean("settings.chunks.smooth-bedrock-layer", smoothBedrockLayer,
             "Smoothens the bedrock layer at the bottom of overworld, and on the top of nether during the world generation.");
-        slopesVisualFix = getBoolean("settings.chunk-generation.slopes-visual-fix", slopesVisualFix,
+        slopesVisualFix = getBoolean("settings.chunks.slopes-visual-fix", slopesVisualFix,
             "Fixes MC-258859, fixing slopes visual bug in biomes like Snowy Slopes, Frozen Peaks, Jagged Peaks, and including Terralith.");
 
-        enableStructureLayoutOptimizer = getBoolean("settings.chunk-generation.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
+        enableStructureLayoutOptimizer = getBoolean("settings.chunks.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
             "Enables a port of the mod StructureLayoutOptimizer, which optimizes general Jigsaw structure generation");
-        deduplicateShuffledTemplatePoolElementList = getBoolean("settings.chunk-generation.experimental.deduplicate-shuffled-template-pool-element-list", deduplicateShuffledTemplatePoolElementList,
+        deduplicateShuffledTemplatePoolElementList = getBoolean("settings.chunks.experimental.deduplicate-shuffled-template-pool-element-list", deduplicateShuffledTemplatePoolElementList,
             "Whether to use an alternative strategy to make structure layouts generate slightly even faster than",
             "the default optimization this mod has for template pool weights. This alternative strategy works by",
             "changing the list of pieces that structures collect from the template pool to not have duplicate entries.",
