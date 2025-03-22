@@ -1,6 +1,9 @@
 package org.bxteam.divinemc;
 
 import com.google.common.base.Throwables;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +23,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @SuppressWarnings({"unused", "SameParameterValue"})
 public class DivineConfig {
@@ -429,6 +434,49 @@ public class DivineConfig {
             "Uses virtual threads for the Profile Lookup Pool, that is used for fetching player profiles.");
         virtualServerTextFilterPool = getBoolean("settings.virtual-threads.server-text-filter-pool", virtualServerTextFilterPool,
             "Uses virtual threads for the server text filter pool.");
+    }
+
+    public static boolean dabEnabled = true;
+    public static int dabStartDistance = 12;
+    public static int dabStartDistanceSquared;
+    public static int dabMaximumActivationFrequency = 20;
+    public static int dabActivationDistanceMod = 8;
+    public static boolean dabDontEnableIfInWater = false;
+    public static List<String> dabBlackedEntities = new ArrayList<>();
+    private static void dab() {
+        dabEnabled = getBoolean("settings.dab.enabled", dabEnabled,
+            "Enables DAB feature");
+        dabStartDistance = getInt("settings.dab.start-distance", dabStartDistance,
+            "This value determines how far away an entity has to be");
+        dabStartDistanceSquared = dabStartDistance * dabStartDistance;
+        dabMaximumActivationFrequency = getInt("settings.dab.maximum-activation-frequency", dabMaximumActivationFrequency,
+            "How often in ticks, the furthest entity will get their pathfinders and behaviors ticked.");
+        dabActivationDistanceMod = getInt("settings.dab.activation-distance-mod", dabActivationDistanceMod,
+            "Modifies an entity's tick frequency.",
+            "The exact calculation to obtain the tick frequency for an entity is: freq = (distanceToPlayer^2) / (2^value), where value is this configuration setting.",
+            "Large servers may want to reduce the value to 7, but this value should never be reduced below 6. If you want further away entities to tick more often, set the value to 9");
+        dabDontEnableIfInWater = getBoolean("settings.dab.dont-enable-if-in-water", dabDontEnableIfInWater,
+            "When this is enabled, non-aquatic entities in the water will not be affected by DAB.");
+        dabBlackedEntities = getStringList("settings.dab.blacked-entities", dabBlackedEntities,
+            "Use this configuration option to specify that certain entities should not be impacted by DAB.");
+
+        setComment("settings.dab",
+            "DAB is an optimization that reduces the frequency of brain ticks. Brain ticks are very intensive, which is why they",
+            "are limited. DAB can be tuned to meet your preferred performance-experience tradeoff. The farther away entities",
+            "are from players, the less frequently their brains will be ticked. While DAB does impact the AI goal selector",
+            "behavior of all entities, the only entities who's brain ticks are limited are: Villager, Axolotl, Hoglin, Zombified Piglin and Goat");
+
+        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
+            entityType.dabEnabled = true;
+        }
+
+        final String DEFAULT_PREFIX = ResourceLocation.DEFAULT_NAMESPACE + ResourceLocation.NAMESPACE_SEPARATOR;
+        for (String name : dabBlackedEntities) {
+            String lowerName = name.toLowerCase(Locale.ROOT);
+            String typeId = lowerName.startsWith(DEFAULT_PREFIX) ? lowerName : DEFAULT_PREFIX + lowerName;
+
+            EntityType.byString(typeId).ifPresentOrElse(entityType -> entityType.dabEnabled = false, () -> LOGGER.warn("Unknown entity {}, in {}", name, "settings.dab.blacked-entities"));
+        }
     }
 
     public static boolean asyncPathfinding = true;
