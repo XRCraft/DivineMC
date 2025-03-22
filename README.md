@@ -15,13 +15,15 @@ DivineMC is a high-performance [Purpur](https://github.com/PurpurMC/Purpur) fork
 > DivineMC is a performance-oriented fork. Make sure to take backups **before** switching to it. We also welcome a new contributor to help us improve the fork.
 
 ## ⚙️ Features
+- **Based on [Purpur](https://github.com/PurpurMC/Purpur)** that adds a high customization level to the server.
 - All worlds **are ticked in parallel**, so the server can take full advantage of multicore processors.
 - **Implemented Secure Seed mod** that changes default 64-bit seed to a 1024-bit seed, making it almost impossible to crack the seed.
-- **Native math functions** using a new Java 22 feature, calling C functions directly from Java.
 - **Optimized chunk generation** that can generate chunks up to 70% faster than vanilla.
-- **Async pathfinding and entity tracker**
+- **Async** pathfinding, mob spawning and entity tracker
+- Implemented **Linear region file format**
 - **Fully compatible** with Bukkit, Spigot and Paper plugins
 - **Fixes** some Minecraft bugs
+- Integrated with [Sentry](https://sentry.io/welcome/) to easy track all errors coming from your server in excruciating detail (original by [Pufferfish](https://github.com/pufferfish-gg/Pufferfish))
 - and more...
 
 ## 📥 Downloading & Installing
