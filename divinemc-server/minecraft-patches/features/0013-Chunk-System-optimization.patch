@@ -96,7 +96,7 @@ index 866f38eb0f379ffbe2888023a7d1c290f521a231..08666b4aa1c7663861dc361f60e6f1cc
          if (indexer == null) {
              return dfl;
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557da6b90ede 100644
+index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557da6b90ede 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 @@ -301,7 +301,7 @@ public final class RegionizedPlayerChunkLoader {
@@ -125,7 +125,31 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
          {
              this.chunkTicketStage.defaultReturnValue(CHUNK_TICKET_STAGE_NONE);
          }
-@@ -499,7 +500,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -384,10 +385,19 @@ public final class RegionizedPlayerChunkLoader {
+             final int centerX = PlayerChunkLoaderData.this.lastChunkX;
+             final int centerZ = PlayerChunkLoaderData.this.lastChunkZ;
+ 
+-            return Integer.compare(
+-                Math.abs(c1x - centerX) + Math.abs(c1z - centerZ),
+-                Math.abs(c2x - centerX) + Math.abs(c2z - centerZ)
+-            );
++            // DivineMC start - Chunk Loading Priority Optimization
++            if (org.bxteam.divinemc.DivineConfig.chunkTaskPriority == org.bxteam.divinemc.server.chunk.ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN) {
++                return Integer.compare(
++                    (c1x - centerX) * (c1x - centerX) + (c1z - centerZ) * (c1z - centerZ),
++                    (c2x - centerX) * (c2x - centerX) + (c2z - centerZ) * (c2z - centerZ)
++                );
++            } else {
++                return Integer.compare(
++                    Math.abs(c1x - centerX) + Math.abs(c1z - centerZ),
++                    Math.abs(c2x - centerX) + Math.abs(c2z - centerZ)
++                );
++            }
++            // DivineMC end - Chunk Loading Priority Optimization
+         };
+         private final LongHeapPriorityQueue sendQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
+         private final LongHeapPriorityQueue tickingQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
+@@ -490,7 +500,7 @@ public final class RegionizedPlayerChunkLoader {
              }
  
              @Override
@@ -134,7 +158,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
                  final long chunk = CoordinateUtils.getChunkKey(chunkX, chunkZ);
                  // note: by the time this is called, the tick cleanup should have ran - so, if the chunk is at
                  // the tick stage it was deemed in range for loading. Thus, we need to move it to generated
-@@ -633,7 +634,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -624,7 +634,7 @@ public final class RegionizedPlayerChunkLoader {
              return Math.max(Math.abs(dx), Math.abs(dz)) <= this.lastTickDistance;
          }
  
@@ -143,7 +167,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
              for (int dz = -radius; dz <= radius; ++dz) {
                  for (int dx = -radius; dx <= radius; ++dx) {
                      if ((dx | dz) == 0) {
-@@ -652,19 +653,11 @@ public final class RegionizedPlayerChunkLoader {
+@@ -643,19 +653,11 @@ public final class RegionizedPlayerChunkLoader {
              return true;
          }
  
@@ -164,7 +188,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
  
              // try to progress chunk loads
              while (!this.loadingQueue.isEmpty()) {
-@@ -691,8 +684,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -682,8 +684,7 @@ public final class RegionizedPlayerChunkLoader {
              }
  
              // try to push more chunk loads
@@ -174,7 +198,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
              if (maxLoadsThisTick > 0) {
                  final LongArrayList chunks = new LongArrayList(maxLoadsThisTick);
                  for (int i = 0; i < maxLoadsThisTick; ++i) {
-@@ -767,9 +759,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -758,9 +759,7 @@ public final class RegionizedPlayerChunkLoader {
              }
  
              // try to push more chunk generations
@@ -185,7 +209,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
              long ratedGensThisTick = 0L;
              while (!this.genQueue.isEmpty()) {
                  final long chunkKey = this.genQueue.firstLong();
-@@ -799,8 +789,6 @@ public final class RegionizedPlayerChunkLoader {
+@@ -790,8 +789,6 @@ public final class RegionizedPlayerChunkLoader {
                  );
                  this.generatingQueue.enqueue(chunkKey);
              }
@@ -194,7 +218,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
  
              // try to pull ticking chunks
              while (!this.tickingQueue.isEmpty()) {
-@@ -830,10 +818,10 @@ public final class RegionizedPlayerChunkLoader {
+@@ -821,10 +818,10 @@ public final class RegionizedPlayerChunkLoader {
              }
  
              // try to pull sending chunks
@@ -207,7 +231,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
                  final long pendingSend = this.sendQueue.firstLong();
                  final int pendingSendX = CoordinateUtils.getChunkX(pendingSend);
                  final int pendingSendZ = CoordinateUtils.getChunkZ(pendingSend);
-@@ -898,9 +886,6 @@ public final class RegionizedPlayerChunkLoader {
+@@ -889,9 +886,6 @@ public final class RegionizedPlayerChunkLoader {
  
              // reset limiters, they will start at a zero allocation
              final long time = System.nanoTime();
@@ -217,7 +241,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
  
              // now we can update
              this.update();
-@@ -919,10 +904,10 @@ public final class RegionizedPlayerChunkLoader {
+@@ -910,10 +904,10 @@ public final class RegionizedPlayerChunkLoader {
              );
          }
  
@@ -230,7 +254,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
              }
              final ViewDistances playerDistances = ((ChunkSystemServerPlayer)this.player).moonrise$getViewDistanceHolder().getViewDistances();
              final ViewDistances worldDistances = ((ChunkSystemServerLevel)this.world).moonrise$getViewDistanceHolder().getViewDistances();
-@@ -1071,7 +1056,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -1062,7 +1056,7 @@ public final class RegionizedPlayerChunkLoader {
              this.flushDelayedTicketOps();
          }
  
@@ -239,7 +263,7 @@ index b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3..76b8d42ae530b59cdaba0583365a557d
              TickThread.ensureTickThread(this.player, "Cannot add player asynchronously");
              if (this.removed) {
                  throw new IllegalStateException("Removing removed player chunk loader");
-@@ -1099,7 +1084,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -1090,7 +1084,7 @@ public final class RegionizedPlayerChunkLoader {
          }
  
          public LongOpenHashSet getSentChunksRaw() {

@@ -345,6 +345,19 @@ index 66f3565b978f2ed91cb2bc3a816f1701c0873c73..b4e19cc65701d5ef94e1cc0a7473225c
      @Override
      protected final void serverAiStep() {
          this.noActionTime++;
+diff --git a/net/minecraft/world/level/GameRules.java b/net/minecraft/world/level/GameRules.java
+index 5ded2f808a9fcb26856567de6bc56e206f948a84..02d64a5ea756b2c91a71b7a0fc0f21219983616a 100644
+--- a/net/minecraft/world/level/GameRules.java
++++ b/net/minecraft/world/level/GameRules.java
+@@ -249,7 +249,7 @@ public class GameRules {
+     }
+ 
+     private GameRules(Map<GameRules.Key<?>, GameRules.Value<?>> rules, FeatureFlagSet enabledFeatures) {
+-        this.rules = rules;
++        this.rules = new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>(rules); // DivineMC - lithium: collections.gamerules
+         this.enabledFeatures = enabledFeatures;
+ 
+         // Paper start - Perf: Use array for gamerule storage
 diff --git a/net/minecraft/world/level/LocalMobCapCalculator.java b/net/minecraft/world/level/LocalMobCapCalculator.java
 index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8acda99a48d 100644
 --- a/net/minecraft/world/level/LocalMobCapCalculator.java

@@ -799,6 +799,18 @@ index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be
      }
  
      private static double getBeardContribution(int x, int y, int z, int height) {
+diff --git a/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java b/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
+index 4993ace2b3d615570de3d4b6621aeba3a3e7fe99..1be79332446559c95ae3048a71a6634fd01cf2e2 100644
+--- a/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
++++ b/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
+@@ -82,6 +82,7 @@ public final class BelowZeroRetrogen {
+     }
+ 
+     public void applyBedrockMask(ProtoChunk chunk) {
++        if (org.bxteam.divinemc.DivineConfig.smoothBedrockLayer) return; // DivineMC - Smooth bedrock layer
+         LevelHeightAccessor heightAccessorForGeneration = chunk.getHeightAccessorForGeneration();
+         int minY = heightAccessorForGeneration.getMinY();
+         int maxY = heightAccessorForGeneration.getMaxY();
 diff --git a/net/minecraft/world/level/levelgen/LegacyRandomSource.java b/net/minecraft/world/level/levelgen/LegacyRandomSource.java
 index c67168517774a0ad9ca43422a79ef14a8ea0c2e8..026dfbbb6c3fd5cd274dcbf721e5cf3af889e3d9 100644
 --- a/net/minecraft/world/level/levelgen/LegacyRandomSource.java

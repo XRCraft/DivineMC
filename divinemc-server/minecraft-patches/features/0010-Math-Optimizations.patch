@@ -37,9 +37,23 @@ index aa755b8b7f8bc5910322e0c5b520f603da06a85a..e781dea43279aa77cc40a7afd2281c32
  
      public static Transformation identity() {
 diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
-index ae1ab070a93b46a0790eed3feda1d09f5fbe9b25..3befc00c10ce8f29d3ee1ea493c2b220df5eaaea 100644
+index ab3a221c115992d0f4ea921aa92cf0976b815ff4..076a931341da486162f289a5f19d3d6736df7768 100644
 --- a/net/minecraft/util/Mth.java
 +++ b/net/minecraft/util/Mth.java
+@@ -46,11 +46,11 @@ public class Mth {
+     private static final double[] COS_TAB = new double[257];
+ 
+     public static float sin(float value) {
+-        return SIN[(int)(value * 10430.378F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.sin(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float cos(float value) {
+-        return SIN[(int)(value * 10430.378F + 16384.0F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.cos(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float sqrt(float value) {
 @@ -58,18 +58,15 @@ public class Mth {
      }
  

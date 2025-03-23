@@ -7,7 +7,7 @@ Original author - Taiyou06
 Original patch - https://github.com/Winds-Studio/Leaf/pull/235
 
 diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
-index 5b46036868b6c9d082e35591e58735e16adaae62..0cd7cfb4ef5303f8f756640ed0f7e49b51bf9627 100644
+index 00a82873d226f113278632a53c0faca420dd67d4..332f33dcdd337397c06ce8ace97d048942e321af 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
 @@ -85,7 +85,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
@@ -23,7 +23,15 @@ index 5b46036868b6c9d082e35591e58735e16adaae62..0cd7cfb4ef5303f8f756640ed0f7e49b
      public Channel channel;
      public SocketAddress address;
      // Spigot start
-@@ -542,10 +546,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -325,6 +329,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+ 
+     private static void syncAfterConfigurationChange(ChannelFuture future) {
+         try {
++            if (ca.spottedleaf.moonrise.common.util.TickThread.isTickThread()) net.minecraft.server.MinecraftServer.getServer().managedBlock(future::isDone); // DivineMC - Don't block main thread in Connection#syncAfterConfigurationChange
+             future.syncUninterruptibly();
+         } catch (Exception var2) {
+             if (var2 instanceof ClosedChannelException) {
+@@ -541,10 +546,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
          if (io.papermc.paper.util.MCUtil.isMainThread()) {
              return this.processQueue();
          } else if (this.isPending) {
@@ -43,7 +51,7 @@ index 5b46036868b6c9d082e35591e58735e16adaae62..0cd7cfb4ef5303f8f756640ed0f7e49b
          }
          return false;
      }
-@@ -555,33 +565,52 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -554,33 +565,52 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
              return true;
          }
  
@@ -115,7 +123,7 @@ index 5b46036868b6c9d082e35591e58735e16adaae62..0cd7cfb4ef5303f8f756640ed0f7e49b
          return true;
      }
      // Paper end - Optimize network
-@@ -914,15 +943,40 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -913,15 +943,40 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
      // Paper start - Optimize network
      public void clearPacketQueue() {
          final net.minecraft.server.level.ServerPlayer player = getPlayer();
