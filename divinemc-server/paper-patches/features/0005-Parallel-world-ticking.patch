@@ -222,7 +222,7 @@ index 69cdd304d255d52c9b7dc9b6a33ffdb630b79abe..c153e79ebe1f2338f0d0ca6b45b39279
 +    // DivineMC end - Parallel world ticking
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index a22e24ac44e16fed4ba9259497e251617ab1b1a3..fed3abe16b78a15ab18772637b49d036617d90c8 100644
+index bc2522968205d0c701a2fa23f29565a500881492..fc4fd93632cbeea929ee866673d721cf4ef1f418 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -446,7 +446,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
@@ -540,7 +540,7 @@ index 56453454cbd4b9e9270fc833f8ab38d5fa7a3763..a8e740b255336c2d611e44129418b5fb
          // Paper end
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 822ee4a2515ad1d4400bafeaf7177622e88b4aaf..69c44017e7ca2861200c83a16fa9dacaa822d505 100644
+index 4df143dfa4c01dc70e496ec8dc44fdde00ab40c6..1a398376298fbc5a247d6645e733f7c543106fb1 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 @@ -960,7 +960,7 @@ public class CraftEventFactory {
@@ -561,7 +561,7 @@ index 822ee4a2515ad1d4400bafeaf7177622e88b4aaf..69c44017e7ca2861200c83a16fa9daca
          Bukkit.getPluginManager().callEvent(event);
  
          if (!event.isCancelled()) {
-@@ -2242,7 +2242,7 @@ public class CraftEventFactory {
+@@ -2245,7 +2245,7 @@ public class CraftEventFactory {
          CraftItemStack craftItem = CraftItemStack.asCraftMirror(itemStack.copyWithCount(1));
  
          org.bukkit.event.block.BlockDispenseEvent event = new org.bukkit.event.block.BlockDispenseEvent(bukkitBlock, craftItem.clone(), CraftVector.toBukkit(to));
