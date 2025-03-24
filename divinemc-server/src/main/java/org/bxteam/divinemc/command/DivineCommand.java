@@ -10,9 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
-import org.bxteam.divinemc.command.subcommands.MSPTCommand;
-import org.bxteam.divinemc.command.subcommands.ReloadCommand;
-import org.bxteam.divinemc.command.subcommands.VersionCommand;
+import org.bxteam.divinemc.command.subcommands.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -28,15 +26,17 @@ public final class DivineCommand extends Command {
     public static final String BASE_PERM = DivineCommands.COMMAND_BASE_PERM + "." + COMMAND_LABEL;
     private static final Permission basePermission = new Permission(BASE_PERM, PermissionDefault.TRUE);
 
-    private static final DivineSubCommand RELOAD_SUBCOMMAND = new ReloadCommand();
-    private static final DivineSubCommand VERSION_SUBCOMMAND = new VersionCommand();
     private static final DivineSubCommand MSPT_SUBCOMMAND = new MSPTCommand();
+    private static final DivineSubCommand RELOAD_SUBCOMMAND = new ReloadCommand();
+    private static final DivineSubCommand RESEND_CHUNKS_SUBCOMMAND = new ResendChunksCommand();
+    private static final DivineSubCommand VERSION_SUBCOMMAND = new VersionCommand();
     private static final Map<String, DivineSubCommand> SUBCOMMANDS = Util.make(() -> {
         final Map<Set<String>, DivineSubCommand> commands = new HashMap<>();
 
-        commands.put(Set.of(ReloadCommand.LITERAL_ARGUMENT), RELOAD_SUBCOMMAND);
-        commands.put(Set.of(VersionCommand.LITERAL_ARGUMENT), VERSION_SUBCOMMAND);
         commands.put(Set.of(MSPTCommand.LITERAL_ARGUMENT), MSPT_SUBCOMMAND);
+        commands.put(Set.of(ReloadCommand.LITERAL_ARGUMENT), RELOAD_SUBCOMMAND);
+        commands.put(Set.of(ResendChunksCommand.LITERAL_ARGUMENT), RESEND_CHUNKS_SUBCOMMAND);
+        commands.put(Set.of(VersionCommand.LITERAL_ARGUMENT), VERSION_SUBCOMMAND);
 
         return commands.entrySet().stream()
                 .flatMap(entry -> entry.getKey().stream().map(s -> Map.entry(s, entry.getValue())))
