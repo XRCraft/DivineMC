@@ -5,10 +5,10 @@ Subject: [PATCH] Optimize hoppers
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 18c83691fa48abf83ba775d66171d72d9103049c..bc7c8140051192dccdd2500e53d946eb3849b3b8 100644
+index 9f7698f8ce56d5d89cf86f6ea2d5b4d51b18c9a2..351b035d1f3025af28b5147b95b912e0e2ab9212 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -1745,7 +1745,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1746,7 +1746,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
                  serverLevel.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
                  serverLevel.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
                  serverLevel.updateLagCompensationTick(); // Paper - lag compensation

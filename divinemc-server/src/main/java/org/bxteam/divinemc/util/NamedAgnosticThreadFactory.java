@@ -3,6 +3,7 @@ package org.bxteam.divinemc.util;
 import com.mojang.logging.LogUtils;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.bxteam.divinemc.spark.ThreadDumperRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -19,6 +20,7 @@ public class NamedAgnosticThreadFactory<T extends Thread> implements ThreadFacto
         this.priority = priority;
         this.group = Thread.currentThread().getThreadGroup();
         this.namePrefix = name + "-";
+        ThreadDumperRegistry.REGISTRY.add(namePrefix);
     }
 
     @Override

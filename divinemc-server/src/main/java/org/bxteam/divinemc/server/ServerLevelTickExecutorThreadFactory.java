@@ -1,6 +1,7 @@
 package org.bxteam.divinemc.server;
 
 import ca.spottedleaf.moonrise.common.util.TickThread;
+import org.bxteam.divinemc.spark.ThreadDumperRegistry;
 import java.util.concurrent.ThreadFactory;
 
 public class ServerLevelTickExecutorThreadFactory implements ThreadFactory {
@@ -8,6 +9,7 @@ public class ServerLevelTickExecutorThreadFactory implements ThreadFactory {
 
     public ServerLevelTickExecutorThreadFactory(String worldName) {
         this.worldName = worldName;
+        ThreadDumperRegistry.REGISTRY.add("serverlevel-tick-worker [" + worldName + "]");
     }
 
     @Override

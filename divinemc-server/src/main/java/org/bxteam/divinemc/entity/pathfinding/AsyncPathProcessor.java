@@ -1,11 +1,12 @@
 package org.bxteam.divinemc.entity.pathfinding;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import ca.spottedleaf.moonrise.common.util.TickThread;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.pathfinder.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bxteam.divinemc.DivineConfig;
+import org.bxteam.divinemc.util.NamedAgnosticThreadFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +20,7 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("DuplicatedCode")
 public class AsyncPathProcessor {
-    private static final String THREAD_PREFIX = "DivineMC Async Pathfinding";
+    private static final String THREAD_PREFIX = "Async Pathfinding";
     private static final Logger LOGGER = LogManager.getLogger(THREAD_PREFIX);
 
     private static long lastWarnMillis = System.currentTimeMillis();
@@ -28,10 +29,7 @@ public class AsyncPathProcessor {
         DivineConfig.asyncPathfindingMaxThreads,
         DivineConfig.asyncPathfindingKeepalive, TimeUnit.SECONDS,
         getQueueImpl(),
-        new ThreadFactoryBuilder()
-            .setNameFormat(THREAD_PREFIX + " Thread - %d")
-            .setPriority(Thread.NORM_PRIORITY - 2)
-            .build(),
+        new NamedAgnosticThreadFactory<>(THREAD_PREFIX, TickThread::new, Thread.NORM_PRIORITY - 2),
         new RejectedTaskHandler()
     );
 

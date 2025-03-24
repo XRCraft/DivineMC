@@ -4,21 +4,8 @@ Date: Mon, 27 Jan 2025 20:53:24 +0300
 Subject: [PATCH] Configuration
 
 
-diff --git a/src/main/java/io/papermc/paper/SparksFly.java b/src/main/java/io/papermc/paper/SparksFly.java
-index 62e2d5704c348955bc8284dc2d54c933b7bcdd06..341f13e57896f03058ea3ec68e69b7cb946ce3fc 100644
---- a/src/main/java/io/papermc/paper/SparksFly.java
-+++ b/src/main/java/io/papermc/paper/SparksFly.java
-@@ -42,7 +42,7 @@ public final class SparksFly {
-         this.mainThreadTaskQueue = new ConcurrentLinkedQueue<>();
-         this.logger = Logger.getLogger(ID);
-         this.logger.log(Level.INFO, "This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling");
--        this.spark = PaperSparkModule.create(Compatibility.VERSION_1_0, server, this.logger, new PaperScheduler() {
-+        this.spark = org.bxteam.divinemc.spark.DivineSparkPlugin.create(Compatibility.VERSION_1_0, server, this.logger, new PaperScheduler() { // DivineMC - use own spark module
-             @Override
-             public void executeAsync(final Runnable runnable) {
-                 MCUtil.scheduleAsyncTask(this.catching(runnable, "asynchronous"));
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index f87062cdaf4e02e51904f275913907c0269f4d41..037ca6ea2edb3c4ff9bf9f7856360cd2c19b7628 100644
+index 362ab47d0cdba42d7174e9558dd9b926538136d1..d0adbe6fc8ed89ece59226905608cdceb04a6752 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -1103,6 +1103,13 @@ public final class CraftServer implements Server {

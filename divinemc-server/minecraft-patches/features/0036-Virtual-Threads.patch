@@ -36,10 +36,10 @@ index 212d2bcfd34f7cb14e18a8af2cd296fc01d371f6..ec76e4f29ba96b31a24a5d195b852342
          new java.util.concurrent.LinkedBlockingQueue<>(),
          new com.google.common.util.concurrent.ThreadFactoryBuilder()
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 4480bb9de51a1a0ffbc1b3c1374876212f1f20db..19ebcc9a175fa1bcd3bb4f954bdda00664a86f19 100644
+index fe2d9328a7e9365f8c7e24e862038bc94ddfe1ca..daf6141a6aed6baf7b8de4030324703a0fe872d3 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -2708,8 +2708,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -2709,8 +2709,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          }
      }
  

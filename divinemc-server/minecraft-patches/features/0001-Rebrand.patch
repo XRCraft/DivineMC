@@ -36,6 +36,18 @@ index 1485186d4989874ef89c4e83830f26358a43759c..b48fc9e0b95fe6c8f72c5501b8de374e
  
      @SuppressForbidden(
          reason = "System.out needed before bootstrap"
+diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
+index 781030cb2e0316151c20351f04347c8db63f43e1..6bb8afb3b0e92c374474c92fa44dc7b80af0bd73 100644
+--- a/net/minecraft/server/MinecraftServer.java
++++ b/net/minecraft/server/MinecraftServer.java
+@@ -1182,6 +1182,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+     protected void runServer() {
+         try {
++            org.bxteam.divinemc.spark.ThreadDumperRegistry.REGISTRY.add(Thread.currentThread().getName()); // DivineMC
+             if (!this.initServer()) {
+                 throw new IllegalStateException("Failed to initialize server");
+             }
 diff --git a/net/minecraft/server/gui/MinecraftServerGui.java b/net/minecraft/server/gui/MinecraftServerGui.java
 index 614c7d9f673c926562acc8fa3b3788623900db41..33456c7c106abbddf743e1203a6e8122cf10b797 100644
 --- a/net/minecraft/server/gui/MinecraftServerGui.java

@@ -2,10 +2,10 @@ package org.bxteam.divinemc.entity.tracking;
 
 import ca.spottedleaf.moonrise.common.list.ReferenceList;
 import ca.spottedleaf.moonrise.common.misc.NearbyPlayers;
+import ca.spottedleaf.moonrise.common.util.TickThread;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.server.ServerEntityLookup;
 import ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
@@ -13,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bxteam.divinemc.DivineConfig;
+import org.bxteam.divinemc.util.NamedAgnosticThreadFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MultithreadedTracker {
-    private static final String THREAD_PREFIX = "DivineMC Async Tracker";
+    private static final String THREAD_PREFIX = "Async Tracker";
     private static final Logger LOGGER = LogManager.getLogger(THREAD_PREFIX);
 
     private static long lastWarnMillis = System.currentTimeMillis();
@@ -148,11 +149,7 @@ public class MultithreadedTracker {
     }
 
     private static @NotNull ThreadFactory getThreadFactory() {
-        return new ThreadFactoryBuilder()
-            .setThreadFactory(MultithreadedTrackerThread::new)
-            .setNameFormat(THREAD_PREFIX + " Thread - %d")
-            .setPriority(Thread.NORM_PRIORITY - 2)
-            .build();
+        return new NamedAgnosticThreadFactory<>(THREAD_PREFIX, TickThread::new, Thread.NORM_PRIORITY - 2);
     }
 
     private static @NotNull RejectedExecutionHandler getRejectedPolicy() {
