@@ -1,4 +1,4 @@
-name: DivineMC CI
+name: Build DivineMC 1.21.5
 
 on:
   push:
