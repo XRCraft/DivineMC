@@ -5,7 +5,7 @@ Subject: [PATCH] Configurable MC-67
 
 
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..64ba7d3573461a97c842849ee80642b0d43ee1c8 100644
+index 9c0e539f09bddac018f93d212e3cdbc446f3c672..04ae7636d14a40a427b5d9b746632b0c489efa21 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -3997,6 +3997,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess

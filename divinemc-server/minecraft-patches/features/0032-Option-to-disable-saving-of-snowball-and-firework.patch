@@ -5,7 +5,7 @@ Subject: [PATCH] Option to disable saving of snowball and firework
 
 
 diff --git a/net/minecraft/world/entity/projectile/FireworkRocketEntity.java b/net/minecraft/world/entity/projectile/FireworkRocketEntity.java
-index 774ca9e0b56fd175ae246051de762d0c4256ca58..3a380d038ef1231624a646c38b60a4344694e321 100644
+index c7ae41b2cbc1eb85a6eb9c16813bd326fb8f49f0..e6764ee35f9d9d20a7693d50ea61b703867e3c79 100644
 --- a/net/minecraft/world/entity/projectile/FireworkRocketEntity.java
 +++ b/net/minecraft/world/entity/projectile/FireworkRocketEntity.java
 @@ -364,4 +364,14 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {

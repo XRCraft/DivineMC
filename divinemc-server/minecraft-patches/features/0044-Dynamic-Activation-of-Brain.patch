@@ -43,7 +43,7 @@ index fdaf752b4d39402de504cc8dfb6f0593f9b19d9a..74d6cf9b0fa0e47d5c94a16ce54f3281
                              if (!tickRateManager.isEntityFrozen(entity)) {
                                  entity.checkDespawn();
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 96775eadaac9afb600b5c1b553db40970d9d7a3d..b6becf5e14abddcb60b1f4c4babecfe81cf5c09c 100644
+index 04ae7636d14a40a427b5d9b746632b0c489efa21..f1cd66d7d96771bc4967e214f70c756fec30efe5 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -336,6 +336,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess

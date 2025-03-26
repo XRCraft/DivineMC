@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
-Date: Sat, 1 Feb 2025 15:59:29 +0300
-Subject: [PATCH] Some optimizations
+Date: Fri, 31 Jan 2025 21:50:46 +0300
+Subject: [PATCH] Misc Optimizations
 
 
 diff --git a/com/mojang/brigadier/tree/CommandNode.java b/com/mojang/brigadier/tree/CommandNode.java
-index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..59c93bbf431836fd29101ff9e7e467d9ea3f5df9 100644
+index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..00a63a6a5983e6a25f2a9014a2f9eefeda468cdf 100644
 --- a/com/mojang/brigadier/tree/CommandNode.java
 +++ b/com/mojang/brigadier/tree/CommandNode.java
 @@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
@@ -13,10 +13,42 @@ index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..59c93bbf431836fd29101ff9e7e467d9
  
  public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
 -    private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-+    private final Map<String, CommandNode<S>> children = Collections.synchronizedMap(new LinkedHashMap<>()); // DivineMC - Some optimizations
++    private final Map<String, CommandNode<S>> children = Collections.synchronizedMap(new LinkedHashMap<>()); // DivineMC - Misc Optimizations
      private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
      private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
      public Predicate<S> requirement; // Paper - public-f
+diff --git a/com/mojang/math/OctahedralGroup.java b/com/mojang/math/OctahedralGroup.java
+index 11902e7427761746ee098fea3276a34fef0096ba..3ba23fa243f7af712a41316066ca554f1c23b495 100644
+--- a/com/mojang/math/OctahedralGroup.java
++++ b/com/mojang/math/OctahedralGroup.java
+@@ -112,6 +112,7 @@ public enum OctahedralGroup implements StringRepresentable {
+         this.transformation = new Matrix3f().scaling(invertX ? -1.0F : 1.0F, invertY ? -1.0F : 1.0F, invertZ ? -1.0F : 1.0F);
+         this.transformation.mul(permutation.transformation());
+         this.initializeRotationDirections(); // Paper - Avoid Lazy Initialization for Enum Fields
++        this.rotate(Direction.UP); // DivineMC - Math Optimizations
+     }
+ 
+     private BooleanList packInversions() {
+diff --git a/com/mojang/math/Transformation.java b/com/mojang/math/Transformation.java
+index aa755b8b7f8bc5910322e0c5b520f603da06a85a..e781dea43279aa77cc40a7afd2281c32cc8347a9 100644
+--- a/com/mojang/math/Transformation.java
++++ b/com/mojang/math/Transformation.java
+@@ -51,6 +51,7 @@ public final class Transformation {
+         } else {
+             this.matrix = matrix;
+         }
++        ensureDecomposed(); // DivineMC - Math Optimizations
+     }
+ 
+     public Transformation(@Nullable Vector3f translation, @Nullable Quaternionf leftRotation, @Nullable Vector3f scale, @Nullable Quaternionf rightRotation) {
+@@ -60,6 +61,7 @@ public final class Transformation {
+         this.scale = scale != null ? scale : new Vector3f(1.0F, 1.0F, 1.0F);
+         this.rightRotation = rightRotation != null ? rightRotation : new Quaternionf();
+         this.decomposed = true;
++        ensureDecomposed(); // DivineMC - Math Optimizations
+     }
+ 
+     public static Transformation identity() {
 diff --git a/net/minecraft/core/MappedRegistry.java b/net/minecraft/core/MappedRegistry.java
 index 5f752603aa5611ce9d3dd44cc5b70c27ac46a86e..332122c0b700fb743f91f3fed16aade41dceec28 100644
 --- a/net/minecraft/core/MappedRegistry.java
@@ -62,7 +94,7 @@ index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e68156
  
      public record Positioned(ChunkPos center, int viewDistance) implements ChunkTrackingView {
 diff --git a/net/minecraft/util/ClassInstanceMultiMap.java b/net/minecraft/util/ClassInstanceMultiMap.java
-index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b892ad042 100644
+index 2a708ae0d5bb209650b525e3c56051f8b5655074..4c7670224f0c90c1d0d833ff0b3d908846133b4a 100644
 --- a/net/minecraft/util/ClassInstanceMultiMap.java
 +++ b/net/minecraft/util/ClassInstanceMultiMap.java
 @@ -14,9 +14,9 @@ import java.util.Map.Entry;
@@ -70,10 +102,10 @@ index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b
  
  public class ClassInstanceMultiMap<T> extends AbstractCollection<T> {
 -    private final Map<Class<?>, List<T>> byClass = Maps.newHashMap();
-+    private final Map<Class<?>, List<T>> byClass = new it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap<>(); // DivineMC - Some optimizations
++    private final Map<Class<?>, List<T>> byClass = new it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap<>(); // DivineMC - Misc Optimizations
      private final Class<T> baseClass;
 -    private final List<T> allInstances = Lists.newArrayList();
-+    private final List<T> allInstances = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(); // DivineMC - Some optimizations
++    private final List<T> allInstances = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(); // DivineMC - Misc Optimizations
  
      public ClassInstanceMultiMap(Class<T> baseClass) {
          this.baseClass = baseClass;
@@ -109,7 +141,7 @@ index 2a708ae0d5bb209650b525e3c56051f8b5655074..762cba15597623f95a242bdd44742d9b
  
      @Override
 diff --git a/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java b/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
-index f28fbf81a417a678726d3f77b3999054676d522e..fbf17cc11fa8e56c5ada2f0f60c944b6b22591a5 100644
+index f28fbf81a417a678726d3f77b3999054676d522e..7ff32b1f93b31fafd13f4e0857d14d85ef1f28c7 100644
 --- a/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
 +++ b/net/minecraft/util/CrudeIncrementalIntIdentityHashBiMap.java
 @@ -52,23 +52,23 @@ public class CrudeIncrementalIntIdentityHashBiMap<K> implements IdMap<K>, ca.spo
@@ -117,27 +149,27 @@ index f28fbf81a417a678726d3f77b3999054676d522e..fbf17cc11fa8e56c5ada2f0f60c944b6
      @Nullable
      @Override
 -    public K byId(int value) {
-+    public synchronized K byId(int value) { // DivineMC - Some optimizations
++    public synchronized K byId(int value) { // DivineMC - Misc Optimizations
          return value >= 0 && value < this.byId.length ? this.byId[value] : null;
      }
  
 -    private int getValue(int key) {
-+    private synchronized int getValue(int key) { // DivineMC - Some optimizations
++    private synchronized int getValue(int key) { // DivineMC - Misc Optimizations
          return key == -1 ? -1 : this.values[key];
      }
  
 -    public boolean contains(K value) {
-+    public synchronized boolean contains(K value) { // DivineMC - Some optimizations
++    public synchronized boolean contains(K value) { // DivineMC - Misc Optimizations
          return this.getId(value) != -1;
      }
  
 -    public boolean contains(int value) {
-+    public synchronized boolean contains(int value) { // DivineMC - Some optimizations
++    public synchronized boolean contains(int value) { // DivineMC - Misc Optimizations
          return this.byId(value) != null;
      }
  
 -    public int add(K object) {
-+    public synchronized int add(K object) { // DivineMC - Some optimizations
++    public synchronized int add(K object) { // DivineMC - Misc Optimizations
          int i = this.nextId();
          this.addMapping(object, i);
          return i;
@@ -146,7 +178,7 @@ index f28fbf81a417a678726d3f77b3999054676d522e..fbf17cc11fa8e56c5ada2f0f60c944b6
      }
  
 -    public void addMapping(K object, int intKey) {
-+    public synchronized void addMapping(K object, int intKey) { // DivineMC - Some optimizations
++    public synchronized void addMapping(K object, int intKey) { // DivineMC - Misc Optimizations
          int max = Math.max(intKey, this.size + 1);
          if (max >= this.keys.length * 0.8F) {
              int i = this.keys.length << 1;
@@ -155,12 +187,12 @@ index f28fbf81a417a678726d3f77b3999054676d522e..fbf17cc11fa8e56c5ada2f0f60c944b6
  
      @Override
 -    public Iterator<K> iterator() {
-+    public synchronized Iterator<K> iterator() { // DivineMC - Some optimizations
++    public synchronized Iterator<K> iterator() { // DivineMC - Misc Optimizations
          return Iterators.filter(Iterators.forArray(this.byId), Predicates.notNull());
      }
  
 -    public void clear() {
-+    public synchronized void clear() { // DivineMC - Some optimizations
++    public synchronized void clear() { // DivineMC - Misc Optimizations
          Arrays.fill(this.keys, null);
          Arrays.fill(this.byId, null);
          this.nextId = 0;
@@ -264,8 +296,110 @@ index f36f8f2d49d4eba5c80eb243883749d6f831eb8a..5abd899c88683cb79bb8f02e43c4bfbe
 +        // DivineMC end - Some optimizations
      }
  }
+diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
+index ab3a221c115992d0f4ea921aa92cf0976b815ff4..076a931341da486162f289a5f19d3d6736df7768 100644
+--- a/net/minecraft/util/Mth.java
++++ b/net/minecraft/util/Mth.java
+@@ -46,11 +46,11 @@ public class Mth {
+     private static final double[] COS_TAB = new double[257];
+ 
+     public static float sin(float value) {
+-        return SIN[(int)(value * 10430.378F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.sin(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float cos(float value) {
+-        return SIN[(int)(value * 10430.378F + 16384.0F) & 65535];
++        return net.caffeinemc.mods.lithium.common.util.math.CompactSineLUT.cos(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float sqrt(float value) {
+@@ -58,18 +58,15 @@ public class Mth {
+     }
+ 
+     public static int floor(float value) {
+-        int i = (int)value;
+-        return value < i ? i - 1 : i;
++        return (int) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int floor(double value) {
+-        int i = (int)value;
+-        return value < i ? i - 1 : i;
++        return (int) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static long lfloor(double value) {
+-        long l = (long)value;
+-        return value < l ? l - 1L : l;
++        return (long) Math.floor(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static float abs(float value) {
+@@ -81,13 +78,11 @@ public class Mth {
+     }
+ 
+     public static int ceil(float value) {
+-        int i = (int)value;
+-        return value > i ? i + 1 : i;
++        return (int) Math.ceil(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int ceil(double value) {
+-        int i = (int)value;
+-        return value > i ? i + 1 : i;
++        return (int) Math.ceil(value); // DivineMC - Math Optimizations
+     }
+ 
+     public static int clamp(int value, int min, int max) {
+@@ -123,15 +118,7 @@ public class Mth {
+     }
+ 
+     public static double absMax(double x, double y) {
+-        if (x < 0.0) {
+-            x = -x;
+-        }
+-
+-        if (y < 0.0) {
+-            y = -y;
+-        }
+-
+-        return Math.max(x, y);
++        return Math.max(Math.abs(x), Math.abs(y)); // DivineMC - Math Optimizations
+     }
+ 
+     public static int floorDiv(int dividend, int divisor) {
+@@ -162,14 +149,26 @@ public class Mth {
+         return Math.floorMod(x, y);
+     }
+ 
+-    public static float positiveModulo(float numerator, float denominator) {
++    public static float positiveModuloForAnyDenominator(float numerator, float denominator) { // DivineMC - Math Optimizations
+         return (numerator % denominator + denominator) % denominator;
+     }
+ 
+-    public static double positiveModulo(double numerator, double denominator) {
++    public static double positiveModuloForAnyDenominator(double numerator, double denominator) { // DivineMC - Math Optimizations
+         return (numerator % denominator + denominator) % denominator;
+     }
+ 
++    // DivineMC start - Math Optimizations
++    public static float positiveModuloForPositiveIntegerDenominator(float numerator, float denominator) {
++        var modulo = numerator % denominator;
++        return modulo < 0 ? modulo + denominator : modulo;
++    }
++
++    public static double positiveModuloForPositiveIntegerDenominator(double numerator, double denominator) {
++        var modulo = numerator % denominator;
++        return modulo < 0 ? modulo + denominator : modulo;
++    }
++    // DivineMC end - Math Optimizations
++
+     public static boolean isMultipleOf(int number, int multiple) {
+         return number % multiple == 0;
+     }
 diff --git a/net/minecraft/util/RandomSource.java b/net/minecraft/util/RandomSource.java
-index 98a54bc4de251014342cda6d0951b7fea79ce553..cd17a4c7f02abf16fcb3b793c10d8b86d47b7974 100644
+index 98a54bc4de251014342cda6d0951b7fea79ce553..663edee4dfa660e3d3a04c728fd764258867916d 100644
 --- a/net/minecraft/util/RandomSource.java
 +++ b/net/minecraft/util/RandomSource.java
 @@ -12,7 +12,7 @@ public interface RandomSource {
@@ -273,7 +407,7 @@ index 98a54bc4de251014342cda6d0951b7fea79ce553..cd17a4c7f02abf16fcb3b793c10d8b86
  
      static RandomSource create() {
 -        return create(RandomSupport.generateUniqueSeed());
-+        return createThreadSafe(); // DivineMC - Some optimizations
++        return createThreadSafe(); // DivineMC - Misc Optimizations
      }
  
      @Deprecated
@@ -282,12 +416,12 @@ index 98a54bc4de251014342cda6d0951b7fea79ce553..cd17a4c7f02abf16fcb3b793c10d8b86
  
      static RandomSource create(long seed) {
 -        return new LegacyRandomSource(seed);
-+        return new ThreadSafeLegacyRandomSource(seed); // DivineMC - Some optimizations
++        return new ThreadSafeLegacyRandomSource(seed); // DivineMC - Misc Optimizations
      }
  
      static RandomSource createNewThreadLocalInstance() {
 diff --git a/net/minecraft/util/debugchart/DebugSampleSubscriptionTracker.java b/net/minecraft/util/debugchart/DebugSampleSubscriptionTracker.java
-index 15de39fa82c7aea18298509fe9587d027c30cc15..c199f99efe25737602a3565ca6f70177571ff886 100644
+index 15de39fa82c7aea18298509fe9587d027c30cc15..eb534ed5a7478fc632db096328e3582f4ec410b8 100644
 --- a/net/minecraft/util/debugchart/DebugSampleSubscriptionTracker.java
 +++ b/net/minecraft/util/debugchart/DebugSampleSubscriptionTracker.java
 @@ -15,7 +15,7 @@ public class DebugSampleSubscriptionTracker {
@@ -295,12 +429,12 @@ index 15de39fa82c7aea18298509fe9587d027c30cc15..c199f99efe25737602a3565ca6f70177
      private final PlayerList playerList;
      private final EnumMap<RemoteDebugSampleType, Map<ServerPlayer, DebugSampleSubscriptionTracker.SubscriptionStartedAt>> subscriptions;
 -    private final Queue<DebugSampleSubscriptionTracker.SubscriptionRequest> subscriptionRequestQueue = new LinkedList<>();
-+    private final java.util.List<SubscriptionRequest> subscriptionRequestQueue = java.util.Collections.synchronizedList(new LinkedList<>()); // DivineMC - Some optimizations
++    private final java.util.List<SubscriptionRequest> subscriptionRequestQueue = java.util.Collections.synchronizedList(new LinkedList<>()); // DivineMC - Misc Optimizations
  
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..40641a649631cfe63b0077d66115aaa525377cf0 100644
+index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..9c0e539f09bddac018f93d212e3cdbc446f3c672 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -143,7 +143,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -308,7 +442,7 @@ index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..40641a649631cfe63b0077d66115aaa5
  
      // Paper start - Share random for entities to make them more random
 -    public static RandomSource SHARED_RANDOM = new RandomRandomSource();
-+    public static RandomSource SHARED_RANDOM = new net.minecraft.world.level.levelgen.ThreadSafeLegacyRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // DivineMC - Some optimizations
++    public static RandomSource SHARED_RANDOM = new net.minecraft.world.level.levelgen.ThreadSafeLegacyRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // DivineMC - Misc Optimizations
      // Paper start - replace random
      private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
          public RandomRandomSource() {
@@ -359,7 +493,7 @@ index 5ded2f808a9fcb26856567de6bc56e206f948a84..02d64a5ea756b2c91a71b7a0fc0f2121
  
          // Paper start - Perf: Use array for gamerule storage
 diff --git a/net/minecraft/world/level/LocalMobCapCalculator.java b/net/minecraft/world/level/LocalMobCapCalculator.java
-index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8acda99a48d 100644
+index 9641219c190261dea0db5f95f040a705ba0a3ff9..a3fccdeb2c076e12b611683da55d45e00a166417 100644
 --- a/net/minecraft/world/level/LocalMobCapCalculator.java
 +++ b/net/minecraft/world/level/LocalMobCapCalculator.java
 @@ -13,16 +13,24 @@ import net.minecraft.world.entity.MobCategory;
@@ -367,7 +501,7 @@ index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8ac
  public class LocalMobCapCalculator {
      private final Long2ObjectMap<List<ServerPlayer>> playersNearChunk = new Long2ObjectOpenHashMap<>();
 -    private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newHashMap();
-+    private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newConcurrentMap(); // DivineMC - Some optimizations
++    private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newConcurrentMap(); // DivineMC - Misc Optimizations
      private final ChunkMap chunkMap;
  
      public LocalMobCapCalculator(ChunkMap chunkMap) {
@@ -395,28 +529,149 @@ index 9641219c190261dea0db5f95f040a705ba0a3ff9..91966607f8f48b56e2c7e9389bd7d8ac
  
      static class MobCounts {
 -        private final Object2IntMap<MobCategory> counts = new Object2IntOpenHashMap<>(MobCategory.values().length);
-+        private final int[] spawnGroupDensities = new int[MobCategory.values().length]; // DivineMC - Some optimizations
++        private final int[] spawnGroupDensities = new int[MobCategory.values().length]; // DivineMC - Misc Optimizations
  
          public void add(MobCategory category) {
 -            this.counts.computeInt(category, (key, value) -> value == null ? 1 : value + 1);
-+            this.spawnGroupDensities[category.ordinal()] ++; // DivineMC - Some optimizations
++            this.spawnGroupDensities[category.ordinal()] ++; // DivineMC - Misc Optimizations
          }
  
          public boolean canSpawn(MobCategory category) {
 -            return this.counts.getOrDefault(category, 0) < category.getMaxInstancesPerChunk();
-+            return this.spawnGroupDensities[category.ordinal()] < category.getMaxInstancesPerChunk(); // DivineMC - Some optimizations
++            return this.spawnGroupDensities[category.ordinal()] < category.getMaxInstancesPerChunk(); // DivineMC - Misc Optimizations
          }
      }
  }
+diff --git a/net/minecraft/world/level/biome/BiomeManager.java b/net/minecraft/world/level/biome/BiomeManager.java
+index 73962e79a0f3d892e3155443a1b84508b0f4042e..db400d7b25e454b4a1ac8d09a590c3c7d2504052 100644
+--- a/net/minecraft/world/level/biome/BiomeManager.java
++++ b/net/minecraft/world/level/biome/BiomeManager.java
+@@ -14,6 +14,7 @@ public class BiomeManager {
+     private static final int ZOOM_MASK = 3;
+     private final BiomeManager.NoiseBiomeSource noiseBiomeSource;
+     private final long biomeZoomSeed;
++    private static final double maxOffset = 0.4500000001D; // DivineMC - Math Optimizations
+ 
+     public BiomeManager(BiomeManager.NoiseBiomeSource noiseBiomeSource, long biomeZoomSeed) {
+         this.noiseBiomeSource = noiseBiomeSource;
+@@ -29,39 +30,65 @@ public class BiomeManager {
+     }
+ 
+     public Holder<Biome> getBiome(BlockPos pos) {
+-        int i = pos.getX() - 2;
+-        int i1 = pos.getY() - 2;
+-        int i2 = pos.getZ() - 2;
+-        int i3 = i >> 2;
+-        int i4 = i1 >> 2;
+-        int i5 = i2 >> 2;
+-        double d = (i & 3) / 4.0;
+-        double d1 = (i1 & 3) / 4.0;
+-        double d2 = (i2 & 3) / 4.0;
+-        int i6 = 0;
+-        double d3 = Double.POSITIVE_INFINITY;
++        // DivineMC start - Math Optimizations
++        int xMinus2 = pos.getX() - 2;
++        int yMinus2 = pos.getY() - 2;
++        int zMinus2 = pos.getZ() - 2;
++        int x = xMinus2 >> 2;
++        int y = yMinus2 >> 2;
++        int z = zMinus2 >> 2;
++        double quartX = (double) (xMinus2 & 3) / 4.0;
++        double quartY = (double) (yMinus2 & 3) / 4.0;
++        double quartZ = (double) (zMinus2 & 3) / 4.0;
++        int smallestX = 0;
++        double smallestDist = Double.POSITIVE_INFINITY;
++        for (int biomeX = 0; biomeX < 8; ++biomeX) {
++            boolean everyOtherQuad = (biomeX & 4) == 0;
++            boolean everyOtherPair = (biomeX & 2) == 0;
++            boolean everyOther = (biomeX & 1) == 0;
++            double quartXX = everyOtherQuad ? quartX : quartX - 1.0;
++            double quartYY = everyOtherPair ? quartY : quartY - 1.0;
++            double quartZZ = everyOther ? quartZ : quartZ - 1.0;
+ 
+-        for (int i7 = 0; i7 < 8; i7++) {
+-            boolean flag = (i7 & 4) == 0;
+-            boolean flag1 = (i7 & 2) == 0;
+-            boolean flag2 = (i7 & 1) == 0;
+-            int i8 = flag ? i3 : i3 + 1;
+-            int i9 = flag1 ? i4 : i4 + 1;
+-            int i10 = flag2 ? i5 : i5 + 1;
+-            double d4 = flag ? d : d - 1.0;
+-            double d5 = flag1 ? d1 : d1 - 1.0;
+-            double d6 = flag2 ? d2 : d2 - 1.0;
+-            double fiddledDistance = getFiddledDistance(this.biomeZoomSeed, i8, i9, i10, d4, d5, d6);
+-            if (d3 > fiddledDistance) {
+-                i6 = i7;
+-                d3 = fiddledDistance;
++            double maxQuartYY = 0.0, maxQuartZZ = 0.0;
++            if (biomeX != 0) {
++                maxQuartYY = Mth.square(Math.max(quartYY + maxOffset, Math.abs(quartYY - maxOffset)));
++                maxQuartZZ = Mth.square(Math.max(quartZZ + maxOffset, Math.abs(quartZZ - maxOffset)));
++                double maxQuartXX = Mth.square(Math.max(quartXX + maxOffset, Math.abs(quartXX - maxOffset)));
++                if (smallestDist < maxQuartXX + maxQuartYY + maxQuartZZ) continue;
+             }
+-        }
++            int xx = everyOtherQuad ? x : x + 1;
++            int yy = everyOtherPair ? y : y + 1;
++            int zz = everyOther ? z : z + 1;
++
++            long seed = LinearCongruentialGenerator.next(this.biomeZoomSeed, xx);
++            seed = LinearCongruentialGenerator.next(seed, yy);
++            seed = LinearCongruentialGenerator.next(seed, zz);
++            seed = LinearCongruentialGenerator.next(seed, xx);
++            seed = LinearCongruentialGenerator.next(seed, yy);
++            seed = LinearCongruentialGenerator.next(seed, zz);
++            double offsetX = getFiddle(seed);
++            double sqrX = Mth.square(quartXX + offsetX);
++            if (biomeX != 0 && smallestDist < sqrX + maxQuartYY + maxQuartZZ) continue;
++            seed = LinearCongruentialGenerator.next(seed, this.biomeZoomSeed);
++            double offsetY = getFiddle(seed);
++            double sqrY = Mth.square(quartYY + offsetY);
++            if (biomeX != 0 && smallestDist < sqrX + sqrY + maxQuartZZ) continue;
++            seed = LinearCongruentialGenerator.next(seed, this.biomeZoomSeed);
++            double offsetZ = getFiddle(seed);
++            double biomeDist = sqrX + sqrY + Mth.square(quartZZ + offsetZ);
+ 
+-        int i7x = (i6 & 4) == 0 ? i3 : i3 + 1;
+-        int i11 = (i6 & 2) == 0 ? i4 : i4 + 1;
+-        int i12 = (i6 & 1) == 0 ? i5 : i5 + 1;
+-        return this.noiseBiomeSource.getNoiseBiome(i7x, i11, i12);
++            if (smallestDist > biomeDist) {
++                smallestX = biomeX;
++                smallestDist = biomeDist;
++            }
++        }
++        return this.noiseBiomeSource.getNoiseBiome(
++            (smallestX & 4) == 0 ? x : x + 1,
++            (smallestX & 2) == 0 ? y : y + 1,
++            (smallestX & 1) == 0 ? z : z + 1
++        );
++        // DivineMC end - Math Optimizations
+     }
+ 
+     public Holder<Biome> getNoiseBiomeAtPosition(double x, double y, double z) {
+diff --git a/net/minecraft/world/level/levelgen/blending/Blender.java b/net/minecraft/world/level/levelgen/blending/Blender.java
+index 01e5b29d6e9a5c53c0e23b61ed0c1d7be1a0fe08..d80df05e40f3941ade5ed320e12f8dcf47e6b247 100644
+--- a/net/minecraft/world/level/levelgen/blending/Blender.java
++++ b/net/minecraft/world/level/levelgen/blending/Blender.java
+@@ -144,7 +144,7 @@ public class Blender {
+     private static double heightToOffset(double height) {
+         double d = 1.0;
+         double d1 = height + 0.5;
+-        double d2 = Mth.positiveModulo(d1, 8.0);
++        double d2 = Mth.positiveModuloForPositiveIntegerDenominator(d1, 8.0); // DivineMC - Math optimizations
+         return 1.0 * (32.0 * (d1 - 128.0) - 3.0 * (d1 - 120.0) * d2 + 3.0 * d2 * d2) / (128.0 * (32.0 - 3.0 * d2));
+     }
+ 
 diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-index 681dec447486138088fe5f705ef4fadab531139f..c34515e0a2954730665acf429dfec6fc3069e7c4 100644
+index 681dec447486138088fe5f705ef4fadab531139f..12ea268eaec629fde20d55460e618fde3a3e006d 100644
 --- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 +++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 @@ -198,6 +198,7 @@ public class MapItemSavedData extends SavedData {
              }
          }
  
-+        mapItemSavedData.setDirty(false); // DivineMC - Some optimizations
++        mapItemSavedData.setDirty(false); // DivineMC - Misc Optimizations
          return mapItemSavedData;
      }
  
@@ -433,3 +688,71 @@ index d9a3b5a2e6495b7e22c114506c2bd1e406f58f8f..a6e03345afd6d8a38e06a43c59103209
      private final DataFixer fixerUpper;
      private final HolderLookup.Provider registries;
      private final Path dataFolder;
+diff --git a/net/minecraft/world/phys/AABB.java b/net/minecraft/world/phys/AABB.java
+index c9c6e4e460ad8435f12761704bb9b0284d6aa708..54807bb4b4189ceaded1f78a1a9ab85ce40ab2b1 100644
+--- a/net/minecraft/world/phys/AABB.java
++++ b/net/minecraft/world/phys/AABB.java
+@@ -189,13 +189,15 @@ public class AABB {
+     }
+ 
+     public AABB intersect(AABB other) {
+-        double max = Math.max(this.minX, other.minX);
+-        double max1 = Math.max(this.minY, other.minY);
+-        double max2 = Math.max(this.minZ, other.minZ);
+-        double min = Math.min(this.maxX, other.maxX);
+-        double min1 = Math.min(this.maxY, other.maxY);
+-        double min2 = Math.min(this.maxZ, other.maxZ);
+-        return new AABB(max, max1, max2, min, min1, min2);
++        // DivineMC start - Math Optimizations
++        return new AABB(
++            this.minX > other.minX ? this.minX : other.minX,
++            this.minY > other.minY ? this.minY : other.minY,
++            this.minZ > other.minZ ? this.minZ : other.minZ,
++            this.maxX < other.maxX ? this.maxX : other.maxX,
++            this.maxY < other.maxY ? this.maxY : other.maxY,
++            this.maxZ < other.maxZ ? this.maxZ : other.maxZ
++        );
+     }
+ 
+     public AABB minmax(AABB other) {
+@@ -227,16 +229,37 @@ public class AABB {
+     }
+ 
+     public boolean intersects(AABB other) {
+-        return this.intersects(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);
++        // DivineMC start - Math Optimizations
++        return this.minX < other.maxX &&
++            this.maxX > other.minX &&
++            this.minY < other.maxY &&
++            this.maxY > other.minY &&
++            this.minZ < other.maxZ &&
++            this.maxZ > other.minZ;
++        // DivineMC end - Math Optimizations
+     }
+ 
+     public boolean intersects(double x1, double y1, double z1, double x2, double y2, double z2) {
+-        return this.minX < x2 && this.maxX > x1 && this.minY < y2 && this.maxY > y1 && this.minZ < z2 && this.maxZ > z1;
++        // DivineMC start - Math Optimizations
++        return this.minX < x2 &&
++            this.maxX > x1 &&
++            this.minY < y2 &&
++            this.maxY > y1 &&
++            this.minZ < z2 &&
++            this.maxZ > z1;
++        // DivineMC end - Math Optimizations
+     }
+ 
+     public boolean intersects(Vec3 min, Vec3 max) {
+         return this.intersects(
+-            Math.min(min.x, max.x), Math.min(min.y, max.y), Math.min(min.z, max.z), Math.max(min.x, max.x), Math.max(min.y, max.y), Math.max(min.z, max.z)
++            // DivineMC start - Math Optimizations
++            min.x < max.x ? min.x : max.x,
++            min.y < max.y ? min.y : max.y,
++            min.z < max.z ? min.z : max.z,
++            min.x > max.x ? min.x : max.x,
++            min.y > max.y ? min.y : max.y,
++            min.z > max.z ? min.z : max.z
++            // DivineMC end - Math Optimizations
+         );
+     }
+ 
