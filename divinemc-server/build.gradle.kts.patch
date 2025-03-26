@@ -1,14 +1,14 @@
 --- a/purpur-server/build.gradle.kts
 +++ b/purpur-server/build.gradle.kts
-@@ -22,6 +_,7 @@
-     // gitFilePatches = true
+@@ -25,6 +_,7 @@
+     //}
  
      val purpur = forks.register("purpur") {
 +        rootDirectory = upstreamsDirectory().map { it.dir("purpur") }
          upstream.patchDir("paperServer") {
              upstreamPath = "paper-server"
              excludes = setOf("src/minecraft", "patches", "build.gradle.kts")
-@@ -29,7 +_,23 @@
+@@ -32,7 +_,23 @@
              outputDir = rootDirectory.dir("paper-server")
          }
      }
@@ -32,8 +32,8 @@
 +    activeFork = divinemc
  
      spigot {
-         buildDataRef = "3edaf46ec1eed4115ce1b18d2846cded42577e42"
-@@ -115,10 +_,14 @@
+         buildDataRef = "702e1a0a5072b2c4082371d5228cb30525687efc"
+@@ -119,10 +_,14 @@
      main {
          java { srcDir("../paper-server/src/main/java") }
          resources { srcDir("../paper-server/src/main/resources") }
@@ -48,7 +48,7 @@
      }
  }
  
-@@ -142,10 +_,22 @@
+@@ -146,10 +_,22 @@
  }
  
  dependencies {
@@ -74,7 +74,7 @@
      implementation("net.minecrell:terminalconsoleappender:1.3.0")
      implementation("net.kyori:adventure-text-serializer-ansi:4.18.0") // Keep in sync with adventureVersion from Paper-API build file
  
-@@ -155,16 +_,16 @@
+@@ -159,16 +_,16 @@
        all its classes to check if they are plugins.
        Scanning takes about 1-2 seconds so adding this speeds up the server start.
       */
@@ -95,7 +95,7 @@
      implementation("org.ow2.asm:asm-commons:9.7.1")
      implementation("org.spongepowered:configurate-yaml:4.2.0-20250225.064233-199")
      implementation("org.spongepowered:configurate-core:4.2.0-20250225.064233-204") // Pinned dependency of above pinned yaml snapshot.
-@@ -173,22 +_,24 @@
+@@ -177,22 +_,24 @@
      runtimeOnly("com.mysql:mysql-connector-j:9.1.0")
      runtimeOnly("com.lmax:disruptor:3.4.4")
  
@@ -129,7 +129,7 @@
  
      implementation("net.neoforged:srgutils:1.0.9") // Mappings handling
      implementation("net.neoforged:AutoRenamingTool:2.0.3") // Remap plugins
-@@ -204,30 +_,41 @@
+@@ -208,30 +_,41 @@
      implementation("me.lucko:spark-paper:1.10.119-20241121.092015-1")
  }
  
@@ -156,16 +156,16 @@
 +        val experimental = rootProject.providers.gradleProperty("experimental").get()
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
--            "Implementation-Title" to "Purpur", // Purpur
+-            "Implementation-Title" to "Purpur",
 +            "Implementation-Title" to "DivineMC", // DivineMC
              "Implementation-Version" to implementationVersion,
              "Implementation-Vendor" to date,
--            "Specification-Title" to "Purpur", // Purpur
+-            "Specification-Title" to "Purpur",
 +            "Specification-Title" to "DivineMC", // DivineMC
              "Specification-Version" to project.version,
--            "Specification-Vendor" to "Purpur Team", // Purpur
--            "Brand-Id" to "purpurmc:purpur", // Purpur
--            "Brand-Name" to "Purpur", // Purpur
+-            "Specification-Vendor" to "Purpur Team",
+-            "Brand-Id" to "purpurmc:purpur",
+-            "Brand-Name" to "Purpur",
 +            "Specification-Vendor" to "BX Team", // DivineMC
 +            "Brand-Id" to "bxteam:divinemc", // DivineMC
 +            "Brand-Name" to "DivineMC", // DivineMC

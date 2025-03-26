@@ -5,7 +5,7 @@ Subject: [PATCH] Extend Sound API
 
 
 diff --git a/src/main/java/org/bukkit/block/Block.java b/src/main/java/org/bukkit/block/Block.java
-index b703ad820ff873097dadff9e55b53fcc6b1b8698..b35c3852a3b8e62c7d2f67fc3ff651c8e0a4d5f2 100644
+index d309e28d7e6756afed82390fd2a99a6131e29140..468e2fa5e059e19c14d095c840723f10a6aa9287 100644
 --- a/src/main/java/org/bukkit/block/Block.java
 +++ b/src/main/java/org/bukkit/block/Block.java
 @@ -817,4 +817,29 @@ public interface Block extends Metadatable, Translatable, net.kyori.adventure.tr
@@ -39,10 +39,10 @@ index b703ad820ff873097dadff9e55b53fcc6b1b8698..b35c3852a3b8e62c7d2f67fc3ff651c8
 +    // DivineMC end - Extend Sound API
  }
 diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
-index be56f0f42d4ec23397f9974e158b49fcc7ed44f3..82117a1b258d43f68ff803c4c1af0a33c99065a8 100644
+index 97ba2c698da6820eae7d254008579bb64052f474..5a8635890b83b5eab24a3c155b98b50d07e9d7e4 100644
 --- a/src/main/java/org/bukkit/entity/Entity.java
 +++ b/src/main/java/org/bukkit/entity/Entity.java
-@@ -1251,4 +1251,35 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
+@@ -1269,4 +1269,35 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
       */
      void setImmuneToFire(@Nullable Boolean fireImmune);
      // Purpur end - Fire Immunity API
