@@ -20,7 +20,7 @@ import org.bxteam.divinemc.DivineConfig;
 import java.util.Map;
 
 public class PufferfishSentryAppender extends AbstractAppender {
-    private static final org.apache.logging.log4j.Logger LOGGER = LogManager.getLogger(PufferfishSentryAppender.class.getSimpleName());
+    private static final org.apache.logging.log4j.Logger LOGGER = LogManager.getLogger("PufferfishSentryAppender");
 
     private static final Gson GSON = new Gson();
     private final Level logLevel;

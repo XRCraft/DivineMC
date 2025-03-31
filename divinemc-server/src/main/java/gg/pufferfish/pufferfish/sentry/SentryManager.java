@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.bxteam.divinemc.DivineConfig;
 
 public class SentryManager {
-    private static final Logger LOGGER = LogManager.getLogger(SentryManager.class);
+    private static final Logger LOGGER = LogManager.getLogger("SentryManager");
     private static boolean initialized = false;
 
     private SentryManager() {
