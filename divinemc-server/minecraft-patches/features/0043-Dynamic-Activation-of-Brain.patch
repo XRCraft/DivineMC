@@ -31,7 +31,7 @@ index ae0a3c3d9d6300293a6d0dff5cae49ebe7c11dab..3b08dad7a9fac7ac9acec0bfb85d4826
          }
      }
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index fdaf752b4d39402de504cc8dfb6f0593f9b19d9a..74d6cf9b0fa0e47d5c94a16ce54f32810afb2da5 100644
+index a8a5da1f8519fe97f45ddd140afb9dc2a64c015e..60fe99648a3d579f24172eb10067d859115d0ac9 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -816,6 +816,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe

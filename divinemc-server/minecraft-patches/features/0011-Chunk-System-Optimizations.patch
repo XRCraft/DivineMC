@@ -1,0 +1,2411 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sat, 1 Feb 2025 00:09:39 +0300
+Subject: [PATCH] Chunk System Optimizations
+
+
+diff --git a/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java b/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
+index 1b8193587814225c2ef2c5d9e667436eb50ff6c5..b588449cfe766c14a0cf4ea9640b04a51bbcf433 100644
+--- a/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
++++ b/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
+@@ -59,12 +59,15 @@ public final class NearbyPlayers {
+     public static final int GENERAL_REALLY_SMALL_AREA_VIEW_DISTANCE_BLOCKS = (GENERAL_REALLY_SMALL_VIEW_DISTANCE << 4);
+ 
+     private final ServerLevel world;
+-    private final Reference2ReferenceOpenHashMap<ServerPlayer, TrackedPlayer[]> players = new Reference2ReferenceOpenHashMap<>();
+-    private final Long2ReferenceOpenHashMap<TrackedChunk> byChunk = new Long2ReferenceOpenHashMap<>();
+-    private final Long2ReferenceOpenHashMap<ReferenceList<ServerPlayer>>[] directByChunk = new Long2ReferenceOpenHashMap[TOTAL_MAP_TYPES];
++    // DivineMC start - Chunk System optimization
++    private final Object callbackLock = new Object();
++    private final it.unimi.dsi.fastutil.objects.Reference2ReferenceMap<ServerPlayer, TrackedPlayer[]> players = it.unimi.dsi.fastutil.objects.Reference2ReferenceMaps.synchronize(new Reference2ReferenceOpenHashMap<>());
++    private final it.unimi.dsi.fastutil.longs.Long2ReferenceMap<TrackedChunk> byChunk = it.unimi.dsi.fastutil.longs.Long2ReferenceMaps.synchronize(new Long2ReferenceOpenHashMap<>());
++    private final it.unimi.dsi.fastutil.longs.Long2ReferenceMap<ReferenceList<ServerPlayer>>[] directByChunk = new it.unimi.dsi.fastutil.longs.Long2ReferenceMap[TOTAL_MAP_TYPES];
++    // DivineMC end - Chunk System optimization
+     {
+         for (int i = 0; i < this.directByChunk.length; ++i) {
+-            this.directByChunk[i] = new Long2ReferenceOpenHashMap<>();
++            this.directByChunk[i] = it.unimi.dsi.fastutil.longs.Long2ReferenceMaps.synchronize(new Long2ReferenceOpenHashMap<>()); // DivineMC - Chunk System optimization
+         }
+     }
+ 
+@@ -188,7 +191,10 @@ public final class NearbyPlayers {
+             final ReferenceList<ServerPlayer> list = this.players[idx];
+             if (list == null) {
+                 ++this.nonEmptyLists;
+-                final ReferenceList<ServerPlayer> players = (this.players[idx] = new ReferenceList<>(EMPTY_PLAYERS_ARRAY));
++                // DivineMC start - Chunk System optimization
++                this.players[idx] = new ReferenceList<>(EMPTY_PLAYERS_ARRAY);
++                final ReferenceList<ServerPlayer> players = this.players[idx];
++                // DivineMC end - Chunk System optimization
+                 this.nearbyPlayers.directByChunk[idx].put(this.chunkKey, players);
+                 players.add(player);
+                 return;
+diff --git a/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java b/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
+index 866f38eb0f379ffbe2888023a7d1c290f521a231..08666b4aa1c7663861dc361f60e6f1cc46694521 100644
+--- a/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
++++ b/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
+@@ -21,13 +21,15 @@ import net.minecraft.world.level.block.state.properties.Property;
+ 
+ public final class ZeroCollidingReferenceStateTable<O, S> {
+ 
+-    private final Int2ObjectOpenHashMap<Indexer> propertyToIndexer;
++    private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<Indexer> propertyToIndexer; // DivineMC - Chunk System optimization
+     private S[] lookup;
+     private final Collection<Property<?>> properties;
+ 
+     public ZeroCollidingReferenceStateTable(final Collection<Property<?>> properties) {
+-        this.propertyToIndexer = new Int2ObjectOpenHashMap<>(properties.size());
+-        this.properties = new ReferenceArrayList<>(properties);
++        // DivineMC start - Chunk System optimization
++        this.propertyToIndexer = it.unimi.dsi.fastutil.ints.Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(properties.size()));
++        this.properties = it.unimi.dsi.fastutil.objects.ReferenceLists.synchronize(new ReferenceArrayList<>(properties));
++        // DivineMC end - Chunk System optimization
+ 
+         final List<Property<?>> sortedProperties = new ArrayList<>(properties);
+ 
+@@ -77,11 +79,11 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
+         return ret;
+     }
+ 
+-    public boolean isLoaded() {
++    public synchronized boolean isLoaded() { // DivineMC - Chunk System optimization
+         return this.lookup != null;
+     }
+ 
+-    public void loadInTable(final Map<Map<Property<?>, Comparable<?>>, S> universe) {
++    public synchronized void loadInTable(final Map<Map<Property<?>, Comparable<?>>, S> universe) { // DivineMC - Chunk System optimization
+         if (this.lookup != null) {
+             throw new IllegalStateException();
+         }
+@@ -117,7 +119,7 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
+         return ((PropertyAccess<T>)property).moonrise$getById((int)modded);
+     }
+ 
+-    public <T extends Comparable<T>> S set(final long index, final Property<T> property, final T with) {
++    public synchronized <T extends Comparable<T>> S set(final long index, final Property<T> property, final T with) { // DivineMC - Chunk System optimization
+         final int newValueId = ((PropertyAccess<T>)property).moonrise$getIdFor(with);
+         if (newValueId < 0) {
+             return null;
+@@ -139,7 +141,7 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
+         return this.lookup[(int)newIndex];
+     }
+ 
+-    public <T extends Comparable<T>> S trySet(final long index, final Property<T> property, final T with, final S dfl) {
++    public synchronized <T extends Comparable<T>> S trySet(final long index, final Property<T> property, final T with, final S dfl) { // DivineMC - Chunk System optimization
+         final Indexer indexer = this.propertyToIndexer.get(((PropertyAccess<T>)property).moonrise$getId());
+         if (indexer == null) {
+             return dfl;
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557da6b90ede 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+@@ -301,7 +301,7 @@ public final class RegionizedPlayerChunkLoader {
+         return false;
+     }
+ 
+-    public void tick() {
++    public synchronized void tick() { // DivineMC - Chunk System optimization - synchronized
+         TickThread.ensureTickThread("Cannot tick player chunk loader async");
+         long currTime = System.nanoTime();
+         for (final ServerPlayer player : new java.util.ArrayList<>(this.world.players())) {
+@@ -312,6 +312,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+             loader.update(); // can't invoke plugin logic
+             loader.updateQueues(currTime);
++            player.connection.resumeFlushing(); // DivineMC - Chunk System optimization
+         }
+     }
+ 
+@@ -362,7 +363,7 @@ public final class RegionizedPlayerChunkLoader {
+             GENERATED_TICKET_LEVEL,
+             TICK_TICKET_LEVEL
+         };
+-        private final Long2ByteOpenHashMap chunkTicketStage = new Long2ByteOpenHashMap();
++        private final it.unimi.dsi.fastutil.longs.Long2ByteMap chunkTicketStage = it.unimi.dsi.fastutil.longs.Long2ByteMaps.synchronize(new Long2ByteOpenHashMap()); // DivineMC - Chunk System optimization
+         {
+             this.chunkTicketStage.defaultReturnValue(CHUNK_TICKET_STAGE_NONE);
+         }
+@@ -384,10 +385,19 @@ public final class RegionizedPlayerChunkLoader {
+             final int centerX = PlayerChunkLoaderData.this.lastChunkX;
+             final int centerZ = PlayerChunkLoaderData.this.lastChunkZ;
+ 
+-            return Integer.compare(
+-                Math.abs(c1x - centerX) + Math.abs(c1z - centerZ),
+-                Math.abs(c2x - centerX) + Math.abs(c2z - centerZ)
+-            );
++            // DivineMC start - Chunk Loading Priority Optimization
++            if (org.bxteam.divinemc.DivineConfig.chunkTaskPriority == org.bxteam.divinemc.server.chunk.ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN) {
++                return Integer.compare(
++                    (c1x - centerX) * (c1x - centerX) + (c1z - centerZ) * (c1z - centerZ),
++                    (c2x - centerX) * (c2x - centerX) + (c2z - centerZ) * (c2z - centerZ)
++                );
++            } else {
++                return Integer.compare(
++                    Math.abs(c1x - centerX) + Math.abs(c1z - centerZ),
++                    Math.abs(c2x - centerX) + Math.abs(c2z - centerZ)
++                );
++            }
++            // DivineMC end - Chunk Loading Priority Optimization
+         };
+         private final LongHeapPriorityQueue sendQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
+         private final LongHeapPriorityQueue tickingQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
+@@ -490,7 +500,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             @Override
+-            protected void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) {
++            protected synchronized void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) { // DivineMC - Chunk System optimization - synchronized
+                 final long chunk = CoordinateUtils.getChunkKey(chunkX, chunkZ);
+                 // note: by the time this is called, the tick cleanup should have ran - so, if the chunk is at
+                 // the tick stage it was deemed in range for loading. Thus, we need to move it to generated
+@@ -624,7 +634,7 @@ public final class RegionizedPlayerChunkLoader {
+             return Math.max(Math.abs(dx), Math.abs(dz)) <= this.lastTickDistance;
+         }
+ 
+-        private boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) {
++        private synchronized boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) { // DivineMC - Chunk System optimization - synchronized
+             for (int dz = -radius; dz <= radius; ++dz) {
+                 for (int dx = -radius; dx <= radius; ++dx) {
+                     if ((dx | dz) == 0) {
+@@ -643,19 +653,11 @@ public final class RegionizedPlayerChunkLoader {
+             return true;
+         }
+ 
+-        void updateQueues(final long time) {
++        synchronized void updateQueues(final long time) { // DivineMC - Chunk System optimization - synchronized
+             TickThread.ensureTickThread(this.player, "Cannot tick player chunk loader async");
+             if (this.removed) {
+                 throw new IllegalStateException("Ticking removed player chunk loader");
+             }
+-            // update rate limits
+-            final double loadRate = this.getMaxChunkLoadRate();
+-            final double genRate = this.getMaxChunkGenRate();
+-            final double sendRate = this.getMaxChunkSendRate();
+-
+-            this.chunkLoadTicketLimiter.tickAllocation(time, loadRate, loadRate);
+-            this.chunkGenerateTicketLimiter.tickAllocation(time, genRate, genRate);
+-            this.chunkSendLimiter.tickAllocation(time, sendRate, sendRate);
+ 
+             // try to progress chunk loads
+             while (!this.loadingQueue.isEmpty()) {
+@@ -682,8 +684,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to push more chunk loads
+-            final long maxLoads = Math.max(0L, Math.min(MAX_RATE, Math.min(this.loadQueue.size(), this.getMaxChunkLoads())));
+-            final int maxLoadsThisTick = (int)this.chunkLoadTicketLimiter.takeAllocation(time, loadRate, maxLoads);
++            final int maxLoadsThisTick = this.loadQueue.size(); // DivineMC - Chunk System optimization
+             if (maxLoadsThisTick > 0) {
+                 final LongArrayList chunks = new LongArrayList(maxLoadsThisTick);
+                 for (int i = 0; i < maxLoadsThisTick; ++i) {
+@@ -758,9 +759,7 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to push more chunk generations
+-            final long maxGens = Math.max(0L, Math.min(MAX_RATE, Math.min(this.genQueue.size(), this.getMaxChunkGenerates())));
+-            // preview the allocations, as we may not actually utilise all of them
+-            final long maxGensThisTick = this.chunkGenerateTicketLimiter.previewAllocation(time, genRate, maxGens);
++            final long maxGensThisTick = this.genQueue.size(); // DivineMC - Chunk System optimization
+             long ratedGensThisTick = 0L;
+             while (!this.genQueue.isEmpty()) {
+                 final long chunkKey = this.genQueue.firstLong();
+@@ -790,8 +789,6 @@ public final class RegionizedPlayerChunkLoader {
+                 );
+                 this.generatingQueue.enqueue(chunkKey);
+             }
+-            // take the allocations we actually used
+-            this.chunkGenerateTicketLimiter.takeAllocation(time, genRate, ratedGensThisTick);
+ 
+             // try to pull ticking chunks
+             while (!this.tickingQueue.isEmpty()) {
+@@ -821,10 +818,10 @@ public final class RegionizedPlayerChunkLoader {
+             }
+ 
+             // try to pull sending chunks
+-            final long maxSends = Math.max(0L, Math.min(MAX_RATE, Integer.MAX_VALUE)); // note: no logic to track concurrent sends
+-            final int maxSendsThisTick = Math.min((int)this.chunkSendLimiter.takeAllocation(time, sendRate, maxSends), this.sendQueue.size());
++            final int maxSendsThisTick = this.sendQueue.size(); // DivineMC - Chunk System optimization
+             // we do not return sends that we took from the allocation back because we want to limit the max send rate, not target it
+             for (int i = 0; i < maxSendsThisTick; ++i) {
++                if (this.sendQueue.isEmpty()) break; // DivineMC - Chunk System optimization
+                 final long pendingSend = this.sendQueue.firstLong();
+                 final int pendingSendX = CoordinateUtils.getChunkX(pendingSend);
+                 final int pendingSendZ = CoordinateUtils.getChunkZ(pendingSend);
+@@ -889,9 +886,6 @@ public final class RegionizedPlayerChunkLoader {
+ 
+             // reset limiters, they will start at a zero allocation
+             final long time = System.nanoTime();
+-            this.chunkLoadTicketLimiter.reset(time);
+-            this.chunkGenerateTicketLimiter.reset(time);
+-            this.chunkSendLimiter.reset(time);
+ 
+             // now we can update
+             this.update();
+@@ -910,10 +904,10 @@ public final class RegionizedPlayerChunkLoader {
+             );
+         }
+ 
+-        void update() {
++        synchronized void update() { // DivineMC - Chunk System optimization - synchronized
+             TickThread.ensureTickThread(this.player, "Cannot update player asynchronously");
+             if (this.removed) {
+-                throw new IllegalStateException("Updating removed player chunk loader");
++                return; // DivineMC - Chunk System optimization
+             }
+             final ViewDistances playerDistances = ((ChunkSystemServerPlayer)this.player).moonrise$getViewDistanceHolder().getViewDistances();
+             final ViewDistances worldDistances = ((ChunkSystemServerLevel)this.world).moonrise$getViewDistanceHolder().getViewDistances();
+@@ -1062,7 +1056,7 @@ public final class RegionizedPlayerChunkLoader {
+             this.flushDelayedTicketOps();
+         }
+ 
+-        void remove() {
++        synchronized void remove() { // DivineMC - Chunk System optimization - synchronized
+             TickThread.ensureTickThread(this.player, "Cannot add player asynchronously");
+             if (this.removed) {
+                 throw new IllegalStateException("Removing removed player chunk loader");
+@@ -1090,7 +1084,7 @@ public final class RegionizedPlayerChunkLoader {
+         }
+ 
+         public LongOpenHashSet getSentChunksRaw() {
+-            return this.sentChunks;
++            return new LongOpenHashSet(this.sentChunks); // DivineMC - Chunk System optimization
+         }
+     }
+ }
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
+index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18a0cdfe99 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
+@@ -71,36 +71,49 @@ public final class ChunkHolderManager {
+     private static final long PROBE_MARKER = Long.MIN_VALUE + 1;
+     public final ReentrantAreaLock ticketLockArea;
+ 
+-    private final ConcurrentLong2ReferenceChainedHashTable<SortedArraySet<Ticket<?>>> tickets = new ConcurrentLong2ReferenceChainedHashTable<>();
+-    private final ConcurrentLong2ReferenceChainedHashTable<Long2IntOpenHashMap> sectionToChunkToExpireCount = new ConcurrentLong2ReferenceChainedHashTable<>();
++    // DivineMC start - Chunk System optimization
++    private final ConcurrentLong2ReferenceChainedHashTable<SortedArraySet<Ticket<?>>> tickets = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(20, 0.9F);
++    private final ConcurrentLong2ReferenceChainedHashTable<Long2IntOpenHashMap> sectionToChunkToExpireCount = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(20, 0.9F);
++    // DivineMC end - Chunk System optimization
+     final ChunkUnloadQueue unloadQueue;
+ 
+-    private final ConcurrentLong2ReferenceChainedHashTable<NewChunkHolder> chunkHolders = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(16384, 0.25f);
++    private final ConcurrentLong2ReferenceChainedHashTable<NewChunkHolder> chunkHolders = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(20, 0.9F); // DivineMC - Chunk System optimization
+     private final ServerLevel world;
+     private final ChunkTaskScheduler taskScheduler;
+     private long currentTick;
+ 
+-    private final ArrayDeque<NewChunkHolder> pendingFullLoadUpdate = new ArrayDeque<>();
+-    private final ObjectRBTreeSet<NewChunkHolder> autoSaveQueue = new ObjectRBTreeSet<>((final NewChunkHolder c1, final NewChunkHolder c2) -> {
+-        if (c1 == c2) {
+-            return 0;
+-        }
++    // DivineMC start - Chunk System optimization
++    public static class LevelHolderData {
++        private final java.util.concurrent.ConcurrentLinkedDeque<NewChunkHolder> pendingFullLoadUpdate = new java.util.concurrent.ConcurrentLinkedDeque<>();
++        private final ObjectRBTreeSet<NewChunkHolder> autoSaveQueue = new ObjectRBTreeSet<>((final NewChunkHolder c1, final NewChunkHolder c2) -> {
++            if (c1 == c2) {
++                return 0;
++            }
+ 
+-        final int saveTickCompare = Long.compare(c1.lastAutoSave, c2.lastAutoSave);
++            final int saveTickCompare = Long.compare(c1.lastAutoSave, c2.lastAutoSave);
+ 
+-        if (saveTickCompare != 0) {
+-            return saveTickCompare;
+-        }
++            if (saveTickCompare != 0) {
++                return saveTickCompare;
++            }
+ 
+-        final long coord1 = CoordinateUtils.getChunkKey(c1.chunkX, c1.chunkZ);
+-        final long coord2 = CoordinateUtils.getChunkKey(c2.chunkX, c2.chunkZ);
++            final long coord1 = CoordinateUtils.getChunkKey(c1.chunkX, c1.chunkZ);
++            final long coord2 = CoordinateUtils.getChunkKey(c2.chunkX, c2.chunkZ);
+ 
+-        if (coord1 == coord2) {
+-            throw new IllegalStateException("Duplicate chunkholder in auto save queue");
+-        }
++            if (coord1 == coord2) {
++                throw new IllegalStateException("Duplicate chunkholder in auto save queue");
++            }
+ 
+-        return Long.compare(coord1, coord2);
+-    });
++            return Long.compare(coord1, coord2);
++        });
++    }
++
++    public LevelHolderData getData() {
++        if (this.world == null) {
++            throw new RuntimeException("World was null!");
++        }
++        return world.chunkHolderData;
++    }
++    // DivineMC end - Chunk System optimization
+ 
+     public ChunkHolderManager(final ServerLevel world, final ChunkTaskScheduler taskScheduler) {
+         this.world = world;
+@@ -222,26 +235,29 @@ public final class ChunkHolderManager {
+         this.taskScheduler.setShutdown(true);
+     }
+ 
+-    void ensureInAutosave(final NewChunkHolder holder) {
+-        if (!this.autoSaveQueue.contains(holder)) {
++    // DivineMC start - Chunk System optimization
++    synchronized void ensureInAutosave(final NewChunkHolder holder) {
++        final LevelHolderData data = getData();
++        if (!data.autoSaveQueue.contains(holder)) {
+             holder.lastAutoSave = this.currentTick;
+-            this.autoSaveQueue.add(holder);
++            data.autoSaveQueue.add(holder);
+         }
+     }
+ 
+-    public void autoSave() {
++    public synchronized void autoSave() {
++        final LevelHolderData data = getData();
+         final List<NewChunkHolder> reschedule = new ArrayList<>();
+         final long currentTick = this.currentTick;
+         final long maxSaveTime = currentTick - Math.max(1L, PlatformHooks.get().configAutoSaveInterval(this.world));
+         final int maxToSave = PlatformHooks.get().configMaxAutoSavePerTick(this.world);
+-        for (int autoSaved = 0; autoSaved < maxToSave && !this.autoSaveQueue.isEmpty();) {
+-            final NewChunkHolder holder = this.autoSaveQueue.first();
++        for (int autoSaved = 0; autoSaved < maxToSave && !data.autoSaveQueue.isEmpty();) {
++            final NewChunkHolder holder = data.autoSaveQueue.first();
+ 
+             if (holder.lastAutoSave > maxSaveTime) {
+                 break;
+             }
+ 
+-            this.autoSaveQueue.remove(holder);
++            data.autoSaveQueue.remove(holder);
+ 
+             holder.lastAutoSave = currentTick;
+             if (holder.save(false) != null) {
+@@ -255,10 +271,11 @@ public final class ChunkHolderManager {
+ 
+         for (final NewChunkHolder holder : reschedule) {
+             if (holder.getChunkStatus().isOrAfter(FullChunkStatus.FULL)) {
+-                this.autoSaveQueue.add(holder);
++                data.autoSaveQueue.add(holder);
+             }
+         }
+     }
++    // DivineMC end - Chunk System optimization
+ 
+     public void saveAllChunks(final boolean flush, final boolean shutdown, final boolean logProgress) {
+         final List<NewChunkHolder> holders = this.getChunkHolders();
+@@ -317,13 +334,9 @@ public final class ChunkHolderManager {
+             }
+             if (logProgress) {
+                 final long currTime = System.nanoTime();
+-                if ((currTime - lastLog) > TimeUnit.SECONDS.toNanos(10L)) {
++                if ((currTime - lastLog) > TimeUnit.SECONDS.toNanos(5L)) { // DivineMC - Log a bit more frequently
+                     lastLog = currTime;
+-                    LOGGER.info(
+-                            "Saved " + savedChunk + " block chunks, " + savedEntity + " entity chunks, " + savedPoi
+-                                    + " poi chunks in world '" + WorldUtil.getWorldName(this.world) + "', progress: "
+-                                    + format.format((double)(i+1)/(double)len * 100.0)
+-                    );
++                    LOGGER.info("Saved {} block chunks, {} entity chunks, {} poi chunks in world '{}', progress: {}", savedChunk, savedEntity, savedPoi, ca.spottedleaf.moonrise.common.util.WorldUtil.getWorldName(this.world), format.format((double) (i + 1) / (double) len * 100.0)); // DivineMC - Beautify log
+                 }
+             }
+         }
+@@ -425,8 +438,8 @@ public final class ChunkHolderManager {
+         final Long2ObjectOpenHashMap<SortedArraySet<Ticket<?>>> ret = new Long2ObjectOpenHashMap<>();
+         final Long2ObjectOpenHashMap<LongArrayList> sections = new Long2ObjectOpenHashMap<>();
+         final int sectionShift = this.taskScheduler.getChunkSystemLockShift();
+-        for (final PrimitiveIterator.OfLong iterator = this.tickets.keyIterator(); iterator.hasNext();) {
+-            final long coord = iterator.nextLong();
++        for (final Iterator<Long> iterator = this.tickets.keyIterator(); iterator.hasNext();) { // DivineMC - Chunk System optimization
++            final long coord = iterator.next(); // DivineMC - Chunk System optimization
+             sections.computeIfAbsent(
+                 CoordinateUtils.getChunkKey(
+                     CoordinateUtils.getChunkX(coord) >> sectionShift,
+@@ -523,7 +536,7 @@ public final class ChunkHolderManager {
+             chunkZ >> sectionShift
+         );
+ 
+-        this.sectionToChunkToExpireCount.computeIfAbsent(sectionKey, (final long keyInMap) -> {
++        this.sectionToChunkToExpireCount.computeIfAbsent(sectionKey, (keyInMap) -> { // DivineMC - Chunk System optimization
+             return new Long2IntOpenHashMap();
+         }).addTo(chunkKey, 1);
+     }
+@@ -567,7 +580,7 @@ public final class ChunkHolderManager {
+ 
+         final ReentrantAreaLock.Node ticketLock = lock ? this.ticketLockArea.lock(chunkX, chunkZ) : null;
+         try {
+-            final SortedArraySet<Ticket<?>> ticketsAtChunk = this.tickets.computeIfAbsent(chunk, (final long keyInMap) -> {
++            final SortedArraySet<Ticket<?>> ticketsAtChunk = this.tickets.computeIfAbsent(chunk, (keyInMap) -> { // DivineMC - Chunk System optimization
+                 return SortedArraySet.create(4);
+             });
+ 
+@@ -697,8 +710,8 @@ public final class ChunkHolderManager {
+ 
+         final Long2ObjectOpenHashMap<LongArrayList> sections = new Long2ObjectOpenHashMap<>();
+         final int sectionShift = this.taskScheduler.getChunkSystemLockShift();
+-        for (final PrimitiveIterator.OfLong iterator = this.tickets.keyIterator(); iterator.hasNext();) {
+-            final long coord = iterator.nextLong();
++        for (final Iterator<Long> iterator = this.tickets.keyIterator(); iterator.hasNext();) { // DivineMC - Chunk System optimization
++            final long coord = iterator.next(); // DivineMC - Chunk System optimization
+             sections.computeIfAbsent(
+                     CoordinateUtils.getChunkKey(
+                             CoordinateUtils.getChunkX(coord) >> sectionShift,
+@@ -746,8 +759,8 @@ public final class ChunkHolderManager {
+             return removeDelay <= 0L;
+         };
+ 
+-        for (final PrimitiveIterator.OfLong iterator = this.sectionToChunkToExpireCount.keyIterator(); iterator.hasNext();) {
+-            final long sectionKey = iterator.nextLong();
++        for (final Iterator<Long> iterator = this.sectionToChunkToExpireCount.keyIterator(); iterator.hasNext();) { // DivineMC - Chunk System optimization
++            final long sectionKey = iterator.next(); // DivineMC - Chunk System optimization
+ 
+             if (!this.sectionToChunkToExpireCount.containsKey(sectionKey)) {
+                 // removed concurrently
+@@ -1033,7 +1046,7 @@ public final class ChunkHolderManager {
+         }
+         if (!TickThread.isTickThreadFor(world)) { // DivineMC - parallel world ticking
+             this.taskScheduler.scheduleChunkTask(() -> {
+-                final ArrayDeque<NewChunkHolder> pendingFullLoadUpdate = ChunkHolderManager.this.pendingFullLoadUpdate;
++                final java.util.Deque<NewChunkHolder> pendingFullLoadUpdate = ChunkHolderManager.this.getData().pendingFullLoadUpdate; // DivineMC - Chunk System optimization
+                 for (int i = 0, len = changedFullStatus.size(); i < len; ++i) {
+                     pendingFullLoadUpdate.add(changedFullStatus.get(i));
+                 }
+@@ -1041,16 +1054,16 @@ public final class ChunkHolderManager {
+                 ChunkHolderManager.this.processPendingFullUpdate();
+             }, Priority.HIGHEST);
+         } else {
+-            final ArrayDeque<NewChunkHolder> pendingFullLoadUpdate = this.pendingFullLoadUpdate;
++            final java.util.Deque<NewChunkHolder> pendingFullLoadUpdate = this.getData().pendingFullLoadUpdate; // DivineMC - Chunk System optimization
+             for (int i = 0, len = changedFullStatus.size(); i < len; ++i) {
+                 pendingFullLoadUpdate.add(changedFullStatus.get(i));
+             }
+         }
+     }
+ 
+-    private void removeChunkHolder(final NewChunkHolder holder) {
++    private synchronized void removeChunkHolder(final NewChunkHolder holder) { // DivineMC - Chunk System optimization
+         holder.onUnload();
+-        this.autoSaveQueue.remove(holder);
++        this.getData().autoSaveQueue.remove(holder); // DivineMC - Chunk System optimization
+         PlatformHooks.get().onChunkHolderDelete(this.world, holder.vanillaChunkHolder);
+         this.chunkHolders.remove(CoordinateUtils.getChunkKey(holder.chunkX, holder.chunkZ));
+     }
+@@ -1208,6 +1221,27 @@ public final class ChunkHolderManager {
+         }
+     }
+ 
++    // DivineMC start - Chunk System optimization
++    public final java.util.Set<Long> blockTickingChunkHolders = java.util.Collections.synchronizedSet(new org.agrona.collections.ObjectHashSet<>(10, 0.88f, true));
++    public final java.util.Set<Long> entityTickingChunkHolders = java.util.Collections.synchronizedSet(new org.agrona.collections.ObjectHashSet<>(10, 0.88f, true));
++
++    public void markBlockTicking(@org.jetbrains.annotations.NotNull NewChunkHolder newChunkHolder) {
++        this.blockTickingChunkHolders.add(newChunkHolder.getCachedLongPos());
++    }
++
++    public void markNonBlockTickingIfPossible(@org.jetbrains.annotations.NotNull NewChunkHolder newChunkHolder) {
++        this.blockTickingChunkHolders.remove(newChunkHolder.getCachedLongPos());
++    }
++
++    public void markEntityTicking(@org.jetbrains.annotations.NotNull NewChunkHolder newChunkHolder) {
++        this.entityTickingChunkHolders.add(newChunkHolder.getCachedLongPos());
++    }
++
++    public void markNonEntityTickingIfPossible(@org.jetbrains.annotations.NotNull NewChunkHolder newChunkHolder) {
++        this.entityTickingChunkHolders.remove(newChunkHolder.getCachedLongPos());
++    }
++    // DivineMC end - Chunk System optimization
++
+     public enum TicketOperationType {
+         ADD, REMOVE, ADD_IF_REMOVED, ADD_AND_REMOVE
+     }
+@@ -1381,7 +1415,7 @@ public final class ChunkHolderManager {
+ 
+     // only call on tick thread
+     private boolean processPendingFullUpdate() {
+-        final ArrayDeque<NewChunkHolder> pendingFullLoadUpdate = this.pendingFullLoadUpdate;
++        final java.util.Deque<NewChunkHolder> pendingFullLoadUpdate = this.getData().pendingFullLoadUpdate; // DivineMC - Chunk System optimization
+ 
+         boolean ret = false;
+ 
+@@ -1417,8 +1451,7 @@ public final class ChunkHolderManager {
+         final JsonArray allTicketsJson = new JsonArray();
+         ret.add("tickets", allTicketsJson);
+ 
+-        for (final Iterator<ConcurrentLong2ReferenceChainedHashTable.TableEntry<SortedArraySet<Ticket<?>>>> iterator = this.tickets.entryIterator();
+-            iterator.hasNext();) {
++        for (final Iterator<ConcurrentLong2ReferenceChainedHashTable.TableEntry<SortedArraySet<Ticket<?>>>> iterator = this.tickets.entryIterator(); iterator.hasNext();) { // DivineMC - Chunk System optimization
+             final ConcurrentLong2ReferenceChainedHashTable.TableEntry<SortedArraySet<Ticket<?>>> coordinateTickets = iterator.next();
+             final long coordinate = coordinateTickets.getKey();
+             final SortedArraySet<Ticket<?>> tickets = coordinateTickets.getValue();
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+index e4a5fa25ed368fc4662c30934da2963ef446d782..6da0ea5cd83a00578223e0a19f952c917bcbcdae 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+@@ -644,11 +644,19 @@ public final class NewChunkHolder {
+     }
+ 
+     public final ChunkHolder vanillaChunkHolder;
++    // DivineMC start - Chunk System optimization
++    private final long cachedLongPos;
++
++    public long getCachedLongPos() {
++        return cachedLongPos;
++    }
++    // DivineMC end - Chunk System optimization
+ 
+     public NewChunkHolder(final ServerLevel world, final int chunkX, final int chunkZ, final ChunkTaskScheduler scheduler) {
+         this.world = world;
+         this.chunkX = chunkX;
+         this.chunkZ = chunkZ;
++        this.cachedLongPos = ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(this.chunkX, this.chunkZ); // DivineMC - Chunk System optimization
+         this.scheduler = scheduler;
+         this.vanillaChunkHolder = new ChunkHolder(
+                 new ChunkPos(chunkX, chunkZ), ChunkHolderManager.MAX_TICKET_LEVEL, world,
+@@ -790,9 +798,11 @@ public final class NewChunkHolder {
+ 
+     // note: these are completed with null to indicate that no write occurred
+     // they are also completed with null to indicate a null write occurred
+-    private UnloadTask chunkDataUnload;
+-    private UnloadTask entityDataUnload;
+-    private UnloadTask poiDataUnload;
++    // DivineMC start - Chunk System optimization
++    private volatile UnloadTask chunkDataUnload;
++    private volatile UnloadTask entityDataUnload;
++    private volatile UnloadTask poiDataUnload;
++    // DivineMC end - Chunk System optimization
+ 
+     public static final record UnloadTask(CallbackCompletable<CompoundTag> completable, PrioritisedExecutor.PrioritisedTask task,
+                                           LazyRunnable toRun) {}
+@@ -1190,6 +1200,7 @@ public final class NewChunkHolder {
+             for (int dz = -NEIGHBOUR_RADIUS; dz <= NEIGHBOUR_RADIUS; ++dz) {
+                 for (int dx = -NEIGHBOUR_RADIUS; dx <= NEIGHBOUR_RADIUS; ++dx) {
+                     final NewChunkHolder holder = (dx | dz) == 0 ? this : this.scheduler.chunkHolderManager.getChunkHolder(dx + this.chunkX, dz + this.chunkZ);
++                    if (holder == null) continue; // DivineMC - Chunk System optimization
+                     if (loaded) {
+                         if (holder.setNeighbourFullLoaded(-dx, -dz)) {
+                             changedFullStatus.add(holder);
+@@ -1214,6 +1225,19 @@ public final class NewChunkHolder {
+ 
+     private void updateCurrentState(final FullChunkStatus to) {
+         this.currentFullChunkStatus = to;
++        // DivineMC start - Chunk System optimization
++        if (to.isOrAfter(FullChunkStatus.BLOCK_TICKING)) {
++            this.world.moonrise$getChunkTaskScheduler().chunkHolderManager.markBlockTicking(this);
++        } else {
++            this.world.moonrise$getChunkTaskScheduler().chunkHolderManager.markNonBlockTickingIfPossible(this);
++        }
++
++        if (to.isOrAfter(FullChunkStatus.ENTITY_TICKING)) {
++            this.world.moonrise$getChunkTaskScheduler().chunkHolderManager.markEntityTicking(this);
++        } else {
++            this.world.moonrise$getChunkTaskScheduler().chunkHolderManager.markNonEntityTickingIfPossible(this);
++        }
++        // DivineMC end - Chunk System optimization
+     }
+ 
+     // only to be called on the main thread, no locks need to be held
+@@ -1348,11 +1372,11 @@ public final class NewChunkHolder {
+         return this.requestedGenStatus;
+     }
+ 
+-    private final Reference2ObjectOpenHashMap<ChunkStatus, List<Consumer<ChunkAccess>>> statusWaiters = new Reference2ObjectOpenHashMap<>();
++    private final Map<ChunkStatus, List<Consumer<ChunkAccess>>> statusWaiters = new java.util.concurrent.ConcurrentHashMap<>(); // DivineMC - Chunk System optimization
+ 
+     void addStatusConsumer(final ChunkStatus status, final Consumer<ChunkAccess> consumer) {
+         this.statusWaiters.computeIfAbsent(status, (final ChunkStatus keyInMap) -> {
+-            return new ArrayList<>(4);
++            return new java.util.concurrent.CopyOnWriteArrayList<>(); // DivineMC - Chunk System optimization
+         }).add(consumer);
+     }
+ 
+@@ -1394,11 +1418,11 @@ public final class NewChunkHolder {
+         }, Priority.HIGHEST);
+     }
+ 
+-    private final Reference2ObjectOpenHashMap<FullChunkStatus, List<Consumer<LevelChunk>>> fullStatusWaiters = new Reference2ObjectOpenHashMap<>();
++    private final Map<FullChunkStatus, List<Consumer<LevelChunk>>> fullStatusWaiters = new java.util.concurrent.ConcurrentHashMap<>();
+ 
+     void addFullStatusConsumer(final FullChunkStatus status, final Consumer<LevelChunk> consumer) {
+         this.fullStatusWaiters.computeIfAbsent(status, (final FullChunkStatus keyInMap) -> {
+-            return new ArrayList<>(4);
++            return new java.util.concurrent.CopyOnWriteArrayList<>(); // DivineMC - Chunk System optimization
+         }).add(consumer);
+     }
+ 
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java b/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
+index e97e7d276faf055c89207385d3820debffb06463..4aeb75a2cdcfb4206bab3eee5ad674dd9890e720 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
+@@ -2,6 +2,6 @@ package ca.spottedleaf.moonrise.patches.chunk_tick_iteration;
+ 
+ public final class ChunkTickConstants {
+ 
+-    public static final int PLAYER_SPAWN_TRACK_RANGE = 8;
++    public static final int PLAYER_SPAWN_TRACK_RANGE = (int) Math.round(org.bxteam.divinemc.DivineConfig.playerNearChunkDetectionRange / 16.0); // DivineMC - Chunk System optimization
+ 
+ }
+diff --git a/ca/spottedleaf/moonrise/patches/starlight/light/SWMRNibbleArray.java b/ca/spottedleaf/moonrise/patches/starlight/light/SWMRNibbleArray.java
+index 4ca68a903e67606fc4ef0bfa9862a73797121c8b..f94f443f862611f039454d1dc8ff2a4ba5f081d3 100644
+--- a/ca/spottedleaf/moonrise/patches/starlight/light/SWMRNibbleArray.java
++++ b/ca/spottedleaf/moonrise/patches/starlight/light/SWMRNibbleArray.java
+@@ -325,7 +325,7 @@ public final class SWMRNibbleArray {
+     }
+ 
+     // operation type: updating
+-    public boolean updateVisible() {
++    public synchronized boolean updateVisible() { // DivineMC - Chunk System optimization
+         if (!this.isDirty()) {
+             return false;
+         }
+diff --git a/net/minecraft/server/level/DistanceManager.java b/net/minecraft/server/level/DistanceManager.java
+index 5eab6179ce3913cb4e4d424f910ba423faf21c85..4b1efd53e423bdfe90d5efd472823869fc87e73b 100644
+--- a/net/minecraft/server/level/DistanceManager.java
++++ b/net/minecraft/server/level/DistanceManager.java
+@@ -178,15 +178,13 @@ public abstract class DistanceManager implements ca.spottedleaf.moonrise.patches
+ 
+     public boolean inEntityTickingRange(long chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkHolderManager().getChunkHolder(chunkPos);
+-        return chunkHolder != null && chunkHolder.isEntityTickingReady();
++        return this.moonrise$getChunkHolderManager().entityTickingChunkHolders.contains(chunkPos); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+     public boolean inBlockTickingRange(long chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkHolderManager().getChunkHolder(chunkPos);
+-        return chunkHolder != null && chunkHolder.isTickingReady();
++        return this.moonrise$getChunkHolderManager().blockTickingChunkHolders.contains(chunkPos); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
+index ab30af9cd58ff7310e05be87b08f42bacf69e11e..ae0e36d198ad8243920c8e8a55c0be4945542763 100644
+--- a/net/minecraft/server/level/ServerChunkCache.java
++++ b/net/minecraft/server/level/ServerChunkCache.java
+@@ -439,8 +439,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+ 
+     public boolean isPositionTicking(long chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder newChunkHolder = ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel)this.level).moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunkPos);
+-        return newChunkHolder != null && newChunkHolder.isTickingReady();
++        return ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel)this.level).moonrise$getChunkTaskScheduler().chunkHolderManager.blockTickingChunkHolders.contains(chunkPos); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba28fa5871 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -181,6 +181,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     public final ServerChunkCache chunkSource;
+     private final MinecraftServer server;
+     public final net.minecraft.world.level.storage.PrimaryLevelData serverLevelData; // CraftBukkit - type
++    public final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.LevelHolderData chunkHolderData; // DivineMC - Chunk System optimization
+     private int lastSpawnChunkRadius;
+     final EntityTickList entityTickList = new EntityTickList(this); // DivineMC - parallel world ticking
+     // Paper - rewrite chunk system
+@@ -689,6 +690,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // Paper start - rewrite chunk system
+         this.moonrise$setEntityLookup(new ca.spottedleaf.moonrise.patches.chunk_system.level.entity.server.ServerEntityLookup((ServerLevel)(Object)this, ((ServerLevel)(Object)this).new EntityCallbacks()));
+         this.chunkTaskScheduler = new ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler((ServerLevel)(Object)this);
++        this.chunkHolderData = new ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.LevelHolderData(); // DivineMC - Chunk System optimization
+         this.entityDataController = new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController(
+             new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
+                 new RegionStorageInfo(levelStorageAccess.getLevelId(), dimension, "entities"),
+@@ -832,8 +834,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     @Override
+     public boolean shouldTickBlocksAt(long chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder holder = this.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunkPos);
+-        return holder != null && holder.isTickingReady();
++        return this.moonrise$getChunkTaskScheduler().chunkHolderManager.blockTickingChunkHolders.contains(chunkPos); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+@@ -889,7 +890,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+     private void optimiseRandomTick(final LevelChunk chunk, final int tickSpeed) {
+         final LevelChunkSection[] sections = chunk.getSections();
+-        final int minSection = ca.spottedleaf.moonrise.common.util.WorldUtil.getMinSection((ServerLevel)(Object)this);
++        final int minSection = ca.spottedleaf.moonrise.common.util.WorldUtil.getMinSection(this); // DivineMC - Chunk System optimization
+         final ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom simpleRandom = this.simpleRandom;
+         final boolean doubleTickFluids = !ca.spottedleaf.moonrise.common.PlatformHooks.get().configFixMC224294();
+ 
+@@ -897,42 +898,41 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         final int offsetX = cpos.x << 4;
+         final int offsetZ = cpos.z << 4;
+ 
++        // DivineMC start - Chunk System optimization
+         for (int sectionIndex = 0, sectionsLen = sections.length; sectionIndex < sectionsLen; sectionIndex++) {
+-            final int offsetY = (sectionIndex + minSection) << 4;
+             final LevelChunkSection section = sections[sectionIndex];
+-            final net.minecraft.world.level.chunk.PalettedContainer<net.minecraft.world.level.block.state.BlockState> states = section.states;
+             if (!section.isRandomlyTickingBlocks()) {
+                 continue;
+             }
++            final int offsetY = (sectionIndex + minSection) << 4;
++            final net.minecraft.world.level.chunk.PalettedContainer<net.minecraft.world.level.block.state.BlockState> states = section.states;
+ 
+-            final ca.spottedleaf.moonrise.common.list.ShortList tickList = ((ca.spottedleaf.moonrise.patches.block_counting.BlockCountingChunkSection)section).moonrise$getTickingBlockList();
++            final ca.spottedleaf.moonrise.common.list.ShortList tickList = section.moonrise$getTickingBlockList();
+ 
+             for (int i = 0; i < tickSpeed; ++i) {
+-                final int tickingBlocks = tickList.size();
+                 final int index = simpleRandom.nextInt() & ((16 * 16 * 16) - 1);
+ 
+-                if (index >= tickingBlocks) {
++                if (index >= tickList.size()) {
+                     // most of the time we fall here
+                     continue;
+                 }
+ 
+-                final int location = (int)tickList.getRaw(index) & 0xFFFF;
++                final int location = tickList.getRaw(index);
+                 final BlockState state = states.get(location);
+ 
+                 // do not use a mutable pos, as some random tick implementations store the input without calling immutable()!
+-                final BlockPos pos = new BlockPos((location & 15) | offsetX, ((location >>> (4 + 4)) & 15) | offsetY, ((location >>> 4) & 15) | offsetZ);
++                final BlockPos pos = new BlockPos((location & 15) | offsetX, (location >>> (4 + 4)) | offsetY, ((location >>> 4) & 15) | offsetZ);
+ 
+-                state.randomTick((ServerLevel)(Object)this, pos, simpleRandom);
++                state.randomTick(this, pos, simpleRandom);
+                 if (doubleTickFluids) {
+                     final FluidState fluidState = state.getFluidState();
+                     if (fluidState.isRandomlyTicking()) {
+-                        fluidState.randomTick((ServerLevel)(Object)this, pos, simpleRandom);
++                        fluidState.randomTick(this, pos, simpleRandom);
+                     }
+                 }
+             }
+         }
+-
+-        return;
++        // DivineMC end - Chunk System optimization
+     }
+     // Paper end - optimise random ticking
+ 
+@@ -2525,30 +2525,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+     private boolean isPositionTickingWithEntitiesLoaded(long chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunkPos);
+-        // isTicking implies the chunk is loaded, and the chunk is loaded now implies the entities are loaded
+-        return chunkHolder != null && chunkHolder.isTickingReady();
++        return this.moonrise$getChunkTaskScheduler().chunkHolderManager.blockTickingChunkHolders.contains(chunkPos); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+     public boolean isPositionEntityTicking(BlockPos pos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(pos));
+-        return chunkHolder != null && chunkHolder.isEntityTickingReady();
++        return this.moonrise$getChunkTaskScheduler().chunkHolderManager.entityTickingChunkHolders.contains(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(pos)); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+     public boolean isNaturalSpawningAllowed(BlockPos pos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(pos));
+-        return chunkHolder != null && chunkHolder.isEntityTickingReady();
++        return this.moonrise$getChunkTaskScheduler().chunkHolderManager.entityTickingChunkHolders.contains(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(pos)); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+     public boolean isNaturalSpawningAllowed(ChunkPos chunkPos) {
+         // Paper start - rewrite chunk system
+-        final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder chunkHolder = this.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(chunkPos));
+-        return chunkHolder != null && chunkHolder.isEntityTickingReady();
++        return this.moonrise$getChunkTaskScheduler().chunkHolderManager.entityTickingChunkHolders.contains(ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkKey(chunkPos)); // DivineMC - Chunk System optimization
+         // Paper end - rewrite chunk system
+     }
+ 
+diff --git a/net/minecraft/world/level/LevelReader.java b/net/minecraft/world/level/LevelReader.java
+index 26c8c1e5598daf3550aef05b12218c47bda6618b..94c824ab1457939c425e1f99929d3222ee2c18a0 100644
+--- a/net/minecraft/world/level/LevelReader.java
++++ b/net/minecraft/world/level/LevelReader.java
+@@ -70,10 +70,27 @@ public interface LevelReader extends ca.spottedleaf.moonrise.patches.chunk_syste
+ 
+     @Override
+     default Holder<Biome> getNoiseBiome(int x, int y, int z) {
+-        ChunkAccess chunk = this.getChunk(QuartPos.toSection(x), QuartPos.toSection(z), ChunkStatus.BIOMES, false);
++        ChunkAccess chunk = this.fasterChunkAccess(this, QuartPos.toSection(x), QuartPos.toSection(z), ChunkStatus.BIOMES, false); // DivineMC - Chunk System optimization
+         return chunk != null ? chunk.getNoiseBiome(x, y, z) : this.getUncachedNoiseBiome(x, y, z);
+     }
+ 
++    // DivineMC start - Chunk System optimization
++    private @Nullable ChunkAccess fasterChunkAccess(LevelReader instance, int x, int z, ChunkStatus chunkStatus, boolean create) {
++        if (!create && instance instanceof net.minecraft.server.level.ServerLevel world) {
++            final net.minecraft.server.level.ChunkHolder holder = (world.getChunkSource().chunkMap).getVisibleChunkIfPresent(ChunkPos.asLong(x, z));
++            if (holder != null) {
++                final java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.LevelChunk>> future = holder.getFullChunkFuture();
++                final net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.LevelChunk> either = future.getNow(null);
++                if (either != null) {
++                    final net.minecraft.world.level.chunk.LevelChunk chunk = either.orElse(null);
++                    if (chunk != null) return chunk;
++                }
++            }
++        }
++        return instance.getChunk(x, z, chunkStatus, create);
++    }
++    // DivineMC end - Chunk System optimization
++
+     Holder<Biome> getUncachedNoiseBiome(int x, int y, int z);
+ 
+     boolean isClientSide();
+diff --git a/net/minecraft/world/level/biome/BiomeManager.java b/net/minecraft/world/level/biome/BiomeManager.java
+index 73962e79a0f3d892e3155443a1b84508b0f4042e..90a1c301172851566e6e16f39e3dbb5fd322bdc3 100644
+--- a/net/minecraft/world/level/biome/BiomeManager.java
++++ b/net/minecraft/world/level/biome/BiomeManager.java
+@@ -14,6 +14,7 @@ public class BiomeManager {
+     private static final int ZOOM_MASK = 3;
+     private final BiomeManager.NoiseBiomeSource noiseBiomeSource;
+     private final long biomeZoomSeed;
++    private static final double maxOffset = 0.4500000001D; // DivineMC - World and Noise gen optimizations
+ 
+     public BiomeManager(BiomeManager.NoiseBiomeSource noiseBiomeSource, long biomeZoomSeed) {
+         this.noiseBiomeSource = noiseBiomeSource;
+@@ -29,39 +30,65 @@ public class BiomeManager {
+     }
+ 
+     public Holder<Biome> getBiome(BlockPos pos) {
+-        int i = pos.getX() - 2;
+-        int i1 = pos.getY() - 2;
+-        int i2 = pos.getZ() - 2;
+-        int i3 = i >> 2;
+-        int i4 = i1 >> 2;
+-        int i5 = i2 >> 2;
+-        double d = (i & 3) / 4.0;
+-        double d1 = (i1 & 3) / 4.0;
+-        double d2 = (i2 & 3) / 4.0;
+-        int i6 = 0;
+-        double d3 = Double.POSITIVE_INFINITY;
++        // DivineMC start - World and Noise gen optimizations
++        int xMinus2 = pos.getX() - 2;
++        int yMinus2 = pos.getY() - 2;
++        int zMinus2 = pos.getZ() - 2;
++        int x = xMinus2 >> 2;
++        int y = yMinus2 >> 2;
++        int z = zMinus2 >> 2;
++        double quartX = (double) (xMinus2 & 3) / 4.0;
++        double quartY = (double) (yMinus2 & 3) / 4.0;
++        double quartZ = (double) (zMinus2 & 3) / 4.0;
++        int smallestX = 0;
++        double smallestDist = Double.POSITIVE_INFINITY;
++        for (int biomeX = 0; biomeX < 8; ++biomeX) {
++            boolean everyOtherQuad = (biomeX & 4) == 0;
++            boolean everyOtherPair = (biomeX & 2) == 0;
++            boolean everyOther = (biomeX & 1) == 0;
++            double quartXX = everyOtherQuad ? quartX : quartX - 1.0;
++            double quartYY = everyOtherPair ? quartY : quartY - 1.0;
++            double quartZZ = everyOther ? quartZ : quartZ - 1.0;
+ 
+-        for (int i7 = 0; i7 < 8; i7++) {
+-            boolean flag = (i7 & 4) == 0;
+-            boolean flag1 = (i7 & 2) == 0;
+-            boolean flag2 = (i7 & 1) == 0;
+-            int i8 = flag ? i3 : i3 + 1;
+-            int i9 = flag1 ? i4 : i4 + 1;
+-            int i10 = flag2 ? i5 : i5 + 1;
+-            double d4 = flag ? d : d - 1.0;
+-            double d5 = flag1 ? d1 : d1 - 1.0;
+-            double d6 = flag2 ? d2 : d2 - 1.0;
+-            double fiddledDistance = getFiddledDistance(this.biomeZoomSeed, i8, i9, i10, d4, d5, d6);
+-            if (d3 > fiddledDistance) {
+-                i6 = i7;
+-                d3 = fiddledDistance;
++            double maxQuartYY = 0.0, maxQuartZZ = 0.0;
++            if (biomeX != 0) {
++                maxQuartYY = Mth.square(Math.max(quartYY + maxOffset, Math.abs(quartYY - maxOffset)));
++                maxQuartZZ = Mth.square(Math.max(quartZZ + maxOffset, Math.abs(quartZZ - maxOffset)));
++                double maxQuartXX = Mth.square(Math.max(quartXX + maxOffset, Math.abs(quartXX - maxOffset)));
++                if (smallestDist < maxQuartXX + maxQuartYY + maxQuartZZ) continue;
+             }
+-        }
++            int xx = everyOtherQuad ? x : x + 1;
++            int yy = everyOtherPair ? y : y + 1;
++            int zz = everyOther ? z : z + 1;
++
++            long seed = LinearCongruentialGenerator.next(this.biomeZoomSeed, xx);
++            seed = LinearCongruentialGenerator.next(seed, yy);
++            seed = LinearCongruentialGenerator.next(seed, zz);
++            seed = LinearCongruentialGenerator.next(seed, xx);
++            seed = LinearCongruentialGenerator.next(seed, yy);
++            seed = LinearCongruentialGenerator.next(seed, zz);
++            double offsetX = getFiddle(seed);
++            double sqrX = Mth.square(quartXX + offsetX);
++            if (biomeX != 0 && smallestDist < sqrX + maxQuartYY + maxQuartZZ) continue;
++            seed = LinearCongruentialGenerator.next(seed, this.biomeZoomSeed);
++            double offsetY = getFiddle(seed);
++            double sqrY = Mth.square(quartYY + offsetY);
++            if (biomeX != 0 && smallestDist < sqrX + sqrY + maxQuartZZ) continue;
++            seed = LinearCongruentialGenerator.next(seed, this.biomeZoomSeed);
++            double offsetZ = getFiddle(seed);
++            double biomeDist = sqrX + sqrY + Mth.square(quartZZ + offsetZ);
+ 
+-        int i7x = (i6 & 4) == 0 ? i3 : i3 + 1;
+-        int i11 = (i6 & 2) == 0 ? i4 : i4 + 1;
+-        int i12 = (i6 & 1) == 0 ? i5 : i5 + 1;
+-        return this.noiseBiomeSource.getNoiseBiome(i7x, i11, i12);
++            if (smallestDist > biomeDist) {
++                smallestX = biomeX;
++                smallestDist = biomeDist;
++            }
++        }
++        return this.noiseBiomeSource.getNoiseBiome(
++            (smallestX & 4) == 0 ? x : x + 1,
++            (smallestX & 2) == 0 ? y : y + 1,
++            (smallestX & 1) == 0 ? z : z + 1
++        );
++        // DivineMC end - World and Noise gen optimizations
+     }
+ 
+     public Holder<Biome> getNoiseBiomeAtPosition(double x, double y, double z) {
+diff --git a/net/minecraft/world/level/biome/TheEndBiomeSource.java b/net/minecraft/world/level/biome/TheEndBiomeSource.java
+index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e0260e83b98 100644
+--- a/net/minecraft/world/level/biome/TheEndBiomeSource.java
++++ b/net/minecraft/world/level/biome/TheEndBiomeSource.java
+@@ -27,6 +27,33 @@ public class TheEndBiomeSource extends BiomeSource {
+     private final Holder<Biome> islands;
+     private final Holder<Biome> barrens;
+ 
++    // DivineMC start - World gen optimizations
++    private Holder<Biome> getBiomeForNoiseGenVanilla(int x, int y, int z, Climate.Sampler noise) {
++        int i = QuartPos.toBlock(x);
++        int j = QuartPos.toBlock(y);
++        int k = QuartPos.toBlock(z);
++        int l = SectionPos.blockToSectionCoord(i);
++        int m = SectionPos.blockToSectionCoord(k);
++        if ((long)l * (long)l + (long)m * (long)m <= 4096L) {
++            return this.end;
++        } else {
++            int n = (SectionPos.blockToSectionCoord(i) * 2 + 1) * 8;
++            int o = (SectionPos.blockToSectionCoord(k) * 2 + 1) * 8;
++            double d = noise.erosion().compute(new DensityFunction.SinglePointContext(n, j, o));
++            if (d > 0.25D) {
++                return this.highlands;
++            } else if (d >= -0.0625D) {
++                return this.midlands;
++            } else {
++                return d < -0.21875D ? this.islands : this.barrens;
++            }
++        }
++    }
++
++    private final ThreadLocal<it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<Holder<Biome>>> cache = ThreadLocal.withInitial(it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap::new);
++    private final int cacheCapacity = 1024;
++    // DivineMC end - World gen optimizations
++
+     public static TheEndBiomeSource create(HolderGetter<Biome> biomeGetter) {
+         return new TheEndBiomeSource(
+             biomeGetter.getOrThrow(Biomes.THE_END),
+@@ -55,26 +82,24 @@ public class TheEndBiomeSource extends BiomeSource {
+         return CODEC;
+     }
+ 
++    // DivineMC start - World gen optimizations
+     @Override
+-    public Holder<Biome> getNoiseBiome(int x, int y, int z, Climate.Sampler sampler) {
+-        int blockPosX = QuartPos.toBlock(x);
+-        int blockPosY = QuartPos.toBlock(y);
+-        int blockPosZ = QuartPos.toBlock(z);
+-        int sectionPosX = SectionPos.blockToSectionCoord(blockPosX);
+-        int sectionPosZ = SectionPos.blockToSectionCoord(blockPosZ);
+-        if ((long)sectionPosX * sectionPosX + (long)sectionPosZ * sectionPosZ <= 4096L) {
+-            return this.end;
++    public Holder<Biome> getNoiseBiome(int biomeX, int biomeY, int biomeZ, Climate.Sampler multiNoiseSampler) {
++        final long key = net.minecraft.world.level.ChunkPos.asLong(biomeX, biomeZ);
++        final it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<Holder<Biome>> cacheThreadLocal = cache.get();
++        final Holder<Biome> biome = cacheThreadLocal.get(key);
++        if (biome != null) {
++            return biome;
+         } else {
+-            int i = (SectionPos.blockToSectionCoord(blockPosX) * 2 + 1) * 8;
+-            int i1 = (SectionPos.blockToSectionCoord(blockPosZ) * 2 + 1) * 8;
+-            double d = sampler.erosion().compute(new DensityFunction.SinglePointContext(i, blockPosY, i1));
+-            if (d > 0.25) {
+-                return this.highlands;
+-            } else if (d >= -0.0625) {
+-                return this.midlands;
+-            } else {
+-                return d < -0.21875 ? this.islands : this.barrens;
++            final Holder<Biome> gennedBiome = getBiomeForNoiseGenVanilla(biomeX, biomeY, biomeZ, multiNoiseSampler);
++            cacheThreadLocal.put(key, gennedBiome);
++            if (cacheThreadLocal.size() > cacheCapacity) {
++                for (int i = 0; i < cacheCapacity / 16; i ++) {
++                    cacheThreadLocal.removeFirst();
++                }
+             }
++            return gennedBiome;
+         }
+     }
++    // DivineMC end - World gen optimizations
+ }
+diff --git a/net/minecraft/world/level/chunk/LevelChunkSection.java b/net/minecraft/world/level/chunk/LevelChunkSection.java
+index c83d0667b19830304f22319a46a23422a8766790..e85d65340fd9707ec1d32cc8aed496366c61e7bf 100644
+--- a/net/minecraft/world/level/chunk/LevelChunkSection.java
++++ b/net/minecraft/world/level/chunk/LevelChunkSection.java
+@@ -23,6 +23,7 @@ public class LevelChunkSection implements ca.spottedleaf.moonrise.patches.block_
+     public short tickingFluidCount;
+     public final PalettedContainer<BlockState> states;
+     private PalettedContainer<Holder<Biome>> biomes; // CraftBukkit - read/write
++    private static final int sliceSize = 4; // DivineMC - World and Noise gen optimizations
+ 
+     // Paper start - block counting
+     private static final it.unimi.dsi.fastutil.shorts.ShortArrayList FULL_LIST = new it.unimi.dsi.fastutil.shorts.ShortArrayList(16*16*16);
+@@ -296,7 +297,7 @@ public class LevelChunkSection implements ca.spottedleaf.moonrise.patches.block_
+     }
+ 
+     public boolean maybeHas(Predicate<BlockState> predicate) {
+-        return this.states.maybeHas(predicate);
++        return this.states.maybeHasOrCatch(predicate, Blocks.AIR.defaultBlockState()); // DivineMC - World gen optimizations
+     }
+ 
+     public Holder<Biome> getNoiseBiome(int x, int y, int z) {
+@@ -312,13 +313,15 @@ public class LevelChunkSection implements ca.spottedleaf.moonrise.patches.block_
+         PalettedContainer<Holder<Biome>> palettedContainer = this.biomes.recreate();
+         int i = 4;
+ 
+-        for (int i1 = 0; i1 < 4; i1++) {
+-            for (int i2 = 0; i2 < 4; i2++) {
+-                for (int i3 = 0; i3 < 4; i3++) {
+-                    palettedContainer.getAndSetUnchecked(i1, i2, i3, biomeResolver.getNoiseBiome(x + i1, y + i2, z + i3, climateSampler));
++        // DivineMC start - World and Noise gen optimizations
++        for (int posY = 0; posY < sliceSize; ++posY) {
++            for (int posZ = 0; posZ < sliceSize; ++posZ) {
++                for (int posX = 0; posX < sliceSize; ++posX) {
++                    palettedContainer.getAndSetUnchecked(posX, posY, posZ, biomeResolver.getNoiseBiome(x + posX, y + posY, z + posZ, climateSampler));
+                 }
+             }
+         }
++        // DivineMC end - World and Noise gen optimizations
+ 
+         this.biomes = palettedContainer;
+     }
+diff --git a/net/minecraft/world/level/chunk/LinearPalette.java b/net/minecraft/world/level/chunk/LinearPalette.java
+index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c734e28414 100644
+--- a/net/minecraft/world/level/chunk/LinearPalette.java
++++ b/net/minecraft/world/level/chunk/LinearPalette.java
+@@ -12,7 +12,7 @@ public class LinearPalette<T> implements Palette<T>, ca.spottedleaf.moonrise.pat
+     private final T[] values;
+     private final PaletteResize<T> resizeHandler;
+     private final int bits;
+-    private int size;
++    private volatile int size; // DivineMC - World gen optimizations
+ 
+     // Paper start - optimise palette reads
+     @Override
+@@ -49,11 +49,14 @@ public class LinearPalette<T> implements Palette<T>, ca.spottedleaf.moonrise.pat
+ 
+     @Override
+     public int idFor(T state) {
+-        for (int i = 0; i < this.size; i++) {
+-            if (this.values[i] == state) {
++        // DivineMC start - World gen optimizations
++        final T[] values = this.values;
++        for (int i = 0; i < values.length; i++) {
++            if (values[i] == state) {
+                 return i;
+             }
+         }
++        // DivineMC end - World gen optimizations
+ 
+         int ix = this.size;
+         if (ix < this.values.length) {
+@@ -67,17 +70,23 @@ public class LinearPalette<T> implements Palette<T>, ca.spottedleaf.moonrise.pat
+ 
+     @Override
+     public boolean maybeHas(Predicate<T> filter) {
+-        for (int i = 0; i < this.size; i++) {
+-            if (filter.test(this.values[i])) {
++        // DivineMC start - World gen optimizations
++        final T[] values = this.values;
++        final int currentSize = this.size;
++
++        for (int i = 0; i < currentSize; i++) {
++            T value = values[i];
++            if (value != null && filter.test(value)) {
+                 return true;
+             }
+         }
++        // DivineMC end - World gen optimizations
+ 
+         return false;
+     }
+ 
+     @Override
+-    public T valueFor(int id) {
++    public synchronized T valueFor(int id) { // DivineMC - World gen optimizations
+         if (id >= 0 && id < this.size) {
+             return this.values[id];
+         } else {
+diff --git a/net/minecraft/world/level/chunk/Palette.java b/net/minecraft/world/level/chunk/Palette.java
+index a80b2e9dceea423180a9c390d1970317dff4f1b0..7f5c7e251b56d3a82176538bbb432b43b1534756 100644
+--- a/net/minecraft/world/level/chunk/Palette.java
++++ b/net/minecraft/world/level/chunk/Palette.java
+@@ -10,6 +10,12 @@ public interface Palette<T> extends ca.spottedleaf.moonrise.patches.fast_palette
+ 
+     boolean maybeHas(Predicate<T> filter);
+ 
++    // DivineMC start - World gen optimizations
++    public default boolean maybeHasOrCatch(Predicate<T> filter, T defaultValue) {
++        return this.maybeHas(filter);
++    }
++    // DivineMC end - World gen optimizations
++
+     T valueFor(int id);
+ 
+     void read(FriendlyByteBuf buffer);
+diff --git a/net/minecraft/world/level/chunk/PalettedContainer.java b/net/minecraft/world/level/chunk/PalettedContainer.java
+index 230cb433c38f9b6ffb1adeaa8b6040490f13e826..ea870afe24eb33a1333a32a42df5277155501ebc 100644
+--- a/net/minecraft/world/level/chunk/PalettedContainer.java
++++ b/net/minecraft/world/level/chunk/PalettedContainer.java
+@@ -393,6 +393,12 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         return this.data.palette.maybeHas(predicate);
+     }
+ 
++    // DivineMC start - World gen optimizations
++    public boolean maybeHasOrCatch(Predicate<T> predicate, @org.jetbrains.annotations.NotNull T defaultValue) {
++        return this.data.palette.maybeHasOrCatch(predicate, defaultValue);
++    }
++    // DivineMC end - World gen optimizations
++
+     @Override
+     public PalettedContainer<T> copy() {
+         return new PalettedContainer<>(this, this.presetValues); // Paper - Anti-Xray - Add preset values
+diff --git a/net/minecraft/world/level/chunk/ProtoChunk.java b/net/minecraft/world/level/chunk/ProtoChunk.java
+index e66239e2da91bd3ddf358d239be796719c0da327..35e9d8cfe12252d3419626f1cefb64d30e20069e 100644
+--- a/net/minecraft/world/level/chunk/ProtoChunk.java
++++ b/net/minecraft/world/level/chunk/ProtoChunk.java
+@@ -41,7 +41,7 @@ public class ProtoChunk extends ChunkAccess {
+     @Nullable
+     private volatile LevelLightEngine lightEngine;
+     private volatile ChunkStatus status = ChunkStatus.EMPTY;
+-    private final List<CompoundTag> entities = Lists.newArrayList();
++    private final List<CompoundTag> entities = Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System optimization
+     @Nullable
+     private CarvingMask carvingMask;
+     @Nullable
+diff --git a/net/minecraft/world/level/chunk/SingleValuePalette.java b/net/minecraft/world/level/chunk/SingleValuePalette.java
+index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0ba71ad82f 100644
+--- a/net/minecraft/world/level/chunk/SingleValuePalette.java
++++ b/net/minecraft/world/level/chunk/SingleValuePalette.java
+@@ -11,7 +11,7 @@ import org.apache.commons.lang3.Validate;
+ public class SingleValuePalette<T> implements Palette<T>, ca.spottedleaf.moonrise.patches.fast_palette.FastPalette<T> { // Paper - optimise palette reads
+     private final IdMap<T> registry;
+     @Nullable
+-    private T value;
++    private volatile T value; // DivineMC - World gen optimizations
+     private final PaletteResize<T> resizeHandler;
+ 
+     // Paper start - optimise palette reads
+@@ -44,6 +44,7 @@ public class SingleValuePalette<T> implements Palette<T>, ca.spottedleaf.moonris
+         if (this.value != null && this.value != state) {
+             return this.resizeHandler.onResize(1, state);
+         } else {
++            if (state == null) throw new IllegalArgumentException("Null state not allowed"); // DivineMC - World gen optimizations
+             this.value = state;
+             // Paper start - optimise palette reads
+             if (this.rawPalette != null) {
+@@ -63,6 +64,19 @@ public class SingleValuePalette<T> implements Palette<T>, ca.spottedleaf.moonris
+         }
+     }
+ 
++    // DivineMC start - World gen optimizations
++    @Override
++    public boolean maybeHasOrCatch(final Predicate<T> filter, final T defaultValue) {
++        if (this.value == null) {
++            if (defaultValue == null) throw new IllegalArgumentException("Default value for 'maybeHasOrCatch' cannot be null!");
++            this.value = defaultValue;
++            return maybeHas(filter);
++        } else {
++            return filter.test(this.value);
++        }
++    }
++    // DivineMC end - World gen optimizations
++
+     @Override
+     public T valueFor(int id) {
+         if (this.value != null && id == 0) {
+diff --git a/net/minecraft/world/level/chunk/storage/IOWorker.java b/net/minecraft/world/level/chunk/storage/IOWorker.java
+index 2199a9e2a0141c646d108f2687a27f1d165453c5..c28c2583b257f92207b822a1fdde8f5b7e480992 100644
+--- a/net/minecraft/world/level/chunk/storage/IOWorker.java
++++ b/net/minecraft/world/level/chunk/storage/IOWorker.java
+@@ -212,7 +212,38 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
+         });
+     }
+ 
++    // DivineMC start - Chunk System optimization
++    private void checkHardLimit() {
++        if (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheLimit) {
++            LOGGER.warn("Chunk data cache size exceeded hard limit ({} >= {}), forcing writes to disk (you can increase chunkDataCacheLimit in c2me.toml)", this.pendingWrites.size(), org.bxteam.divinemc.DivineConfig.chunkDataCacheLimit);
++            while (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit * 0.75) {
++                writeResult0();
++            }
++        }
++    }
++
++    private void writeResult0() {
++        java.util.Iterator<java.util.Map.Entry<net.minecraft.world.level.ChunkPos, net.minecraft.world.level.chunk.storage.IOWorker.PendingStore>> iterator = this.pendingWrites.entrySet().iterator();
++        if (iterator.hasNext()) {
++            java.util.Map.Entry<ChunkPos, IOWorker.PendingStore> entry = iterator.next();
++            iterator.remove();
++            this.runStore(entry.getKey(), entry.getValue());
++        }
++    }
++    // DivineMC end - Chunk System optimization
++
+     private void storePendingChunk() {
++        // DivineMC start - Chunk System optimization
++        if (!this.pendingWrites.isEmpty()) {
++            checkHardLimit();
++            if (this.pendingWrites.size() >= org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit) {
++                int writeFrequency = Math.min(1, (this.pendingWrites.size() - (int) org.bxteam.divinemc.DivineConfig.chunkDataCacheSoftLimit) / 16);
++                for (int i = 0; i < writeFrequency; i++) {
++                    writeResult0();
++                }
++            }
++        }
++        // DivineMC end - Chunk System optimization
+         Entry<ChunkPos, IOWorker.PendingStore> entry = this.pendingWrites.pollFirstEntry();
+         if (entry != null) {
+             this.runStore(entry.getKey(), entry.getValue());
+diff --git a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+index 6ebd1300c2561116b83cb2472ac7939ead36d576..16cd10ab8de69ca3d29c84cf93715645322fd72a 100644
+--- a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
++++ b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+@@ -244,7 +244,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
+ 
+     protected RegionFileStorage(RegionStorageInfo info, Path folder, boolean sync) { // Paper - protected
+         this.folder = folder;
+-        this.sync = sync;
++        this.sync = Boolean.parseBoolean(System.getProperty("com.ishland.c2me.chunkio.syncDiskWrites", String.valueOf(sync))); // DivineMC - C2ME: sync disk writes
+         this.info = info;
+         this.isChunkData = isChunkDataFolder(this.folder); // Paper - recalculate region file headers
+     }
+diff --git a/net/minecraft/world/level/levelgen/Aquifer.java b/net/minecraft/world/level/levelgen/Aquifer.java
+index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb738d88ba6 100644
+--- a/net/minecraft/world/level/levelgen/Aquifer.java
++++ b/net/minecraft/world/level/levelgen/Aquifer.java
+@@ -85,6 +85,15 @@ public interface Aquifer {
+         private final int minGridZ;
+         private final int gridSizeX;
+         private final int gridSizeZ;
++        // DivineMC start - World gen optimizations
++        private int c2me$dist1;
++        private int c2me$dist2;
++        private int c2me$dist3;
++        private long c2me$pos1;
++        private long c2me$pos2;
++        private long c2me$pos3;
++        private double c2me$mutableDoubleThingy;
++        // DivineMC end - World gen optimizations
+         private static final int[][] SURFACE_SAMPLING_OFFSETS_IN_CHUNKS = new int[][]{
+             {0, 0}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {1, 0}, {-2, 1}, {-1, 1}, {0, 1}, {1, 1}
+         };
+@@ -120,6 +129,36 @@ public interface Aquifer {
+             this.aquiferCache = new Aquifer.FluidStatus[i4];
+             this.aquiferLocationCache = new long[i4];
+             Arrays.fill(this.aquiferLocationCache, Long.MAX_VALUE);
++            // DivineMC start - World gen optimizations
++            if (this.aquiferLocationCache.length % (this.gridSizeX * this.gridSizeZ) != 0) {
++                throw new AssertionError("Array length");
++            }
++
++            int sizeY = this.aquiferLocationCache.length / (this.gridSizeX * this.gridSizeZ);
++
++            final RandomSource random = org.bxteam.divinemc.util.RandomUtil.getRandom(this.positionalRandomFactory);
++            // index: y, z, x
++            for (int y = 0; y < sizeY; y++) {
++                for (int z = 0; z < this.gridSizeZ; z++) {
++                    for (int x = 0; x < this.gridSizeX; x++) {
++                        final int x1 = x + this.minGridX;
++                        final int y1 = y + this.minGridY;
++                        final int z1 = z + this.minGridZ;
++                        org.bxteam.divinemc.util.RandomUtil.derive(this.positionalRandomFactory, random, x1, y1, z1);
++                        int x2 = x1 * 16 + random.nextInt(10);
++                        int y2 = y1 * 12 + random.nextInt(9);
++                        int z2 = z1 * 16 + random.nextInt(10);
++                        int index = this.getIndex(x1, y1, z1);
++                        this.aquiferLocationCache[index] = BlockPos.asLong(x2, y2, z2);
++                    }
++                }
++            }
++            for (long blockPosition : this.aquiferLocationCache) {
++                if (blockPosition == Long.MAX_VALUE) {
++                    throw new AssertionError("Array initialization");
++                }
++            }
++            // DivineMC end - World gen optimizations
+         }
+ 
+         private int getIndex(int gridX, int gridY, int gridZ) {
+@@ -132,140 +171,24 @@ public interface Aquifer {
+         @Nullable
+         @Override
+         public BlockState computeSubstance(DensityFunction.FunctionContext context, double substance) {
++            // DivineMC start - World gen optimizations
+             int i = context.blockX();
+-            int i1 = context.blockY();
+-            int i2 = context.blockZ();
++            int j = context.blockY();
++            int k = context.blockZ();
+             if (substance > 0.0) {
+                 this.shouldScheduleFluidUpdate = false;
+                 return null;
+             } else {
+-                Aquifer.FluidStatus fluidStatus = this.globalFluidPicker.computeFluid(i, i1, i2);
+-                if (fluidStatus.at(i1).is(Blocks.LAVA)) {
++                Aquifer.FluidStatus fluidLevel = this.globalFluidPicker.computeFluid(i, j, k);
++                if (fluidLevel.at(j).is(Blocks.LAVA)) {
+                     this.shouldScheduleFluidUpdate = false;
+                     return Blocks.LAVA.defaultBlockState();
+                 } else {
+-                    int i3 = Math.floorDiv(i - 5, 16);
+-                    int i4 = Math.floorDiv(i1 + 1, 12);
+-                    int i5 = Math.floorDiv(i2 - 5, 16);
+-                    int i6 = Integer.MAX_VALUE;
+-                    int i7 = Integer.MAX_VALUE;
+-                    int i8 = Integer.MAX_VALUE;
+-                    int i9 = Integer.MAX_VALUE;
+-                    long l = 0L;
+-                    long l1 = 0L;
+-                    long l2 = 0L;
+-                    long l3 = 0L;
+-
+-                    for (int i10 = 0; i10 <= 1; i10++) {
+-                        for (int i11 = -1; i11 <= 1; i11++) {
+-                            for (int i12 = 0; i12 <= 1; i12++) {
+-                                int i13 = i3 + i10;
+-                                int i14 = i4 + i11;
+-                                int i15 = i5 + i12;
+-                                int index = this.getIndex(i13, i14, i15);
+-                                long l4 = this.aquiferLocationCache[index];
+-                                long l5;
+-                                if (l4 != Long.MAX_VALUE) {
+-                                    l5 = l4;
+-                                } else {
+-                                    RandomSource randomSource = this.positionalRandomFactory.at(i13, i14, i15);
+-                                    l5 = BlockPos.asLong(
+-                                        i13 * 16 + randomSource.nextInt(10), i14 * 12 + randomSource.nextInt(9), i15 * 16 + randomSource.nextInt(10)
+-                                    );
+-                                    this.aquiferLocationCache[index] = l5;
+-                                }
+-
+-                                int i16 = BlockPos.getX(l5) - i;
+-                                int i17 = BlockPos.getY(l5) - i1;
+-                                int i18 = BlockPos.getZ(l5) - i2;
+-                                int i19 = i16 * i16 + i17 * i17 + i18 * i18;
+-                                if (i6 >= i19) {
+-                                    l3 = l2;
+-                                    l2 = l1;
+-                                    l1 = l;
+-                                    l = l5;
+-                                    i9 = i8;
+-                                    i8 = i7;
+-                                    i7 = i6;
+-                                    i6 = i19;
+-                                } else if (i7 >= i19) {
+-                                    l3 = l2;
+-                                    l2 = l1;
+-                                    l1 = l5;
+-                                    i9 = i8;
+-                                    i8 = i7;
+-                                    i7 = i19;
+-                                } else if (i8 >= i19) {
+-                                    l3 = l2;
+-                                    l2 = l5;
+-                                    i9 = i8;
+-                                    i8 = i19;
+-                                } else if (i9 >= i19) {
+-                                    l3 = l5;
+-                                    i9 = i19;
+-                                }
+-                            }
+-                        }
+-                    }
+-
+-                    Aquifer.FluidStatus aquiferStatus = this.getAquiferStatus(l);
+-                    double d = similarity(i6, i7);
+-                    BlockState blockState = aquiferStatus.at(i1);
+-                    if (d <= 0.0) {
+-                        if (d >= FLOWING_UPDATE_SIMULARITY) {
+-                            Aquifer.FluidStatus aquiferStatus1 = this.getAquiferStatus(l1);
+-                            this.shouldScheduleFluidUpdate = !aquiferStatus.equals(aquiferStatus1);
+-                        } else {
+-                            this.shouldScheduleFluidUpdate = false;
+-                        }
+-
+-                        return blockState;
+-                    } else if (blockState.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(i, i1 - 1, i2).at(i1 - 1).is(Blocks.LAVA)) {
+-                        this.shouldScheduleFluidUpdate = true;
+-                        return blockState;
+-                    } else {
+-                        MutableDouble mutableDouble = new MutableDouble(Double.NaN);
+-                        Aquifer.FluidStatus aquiferStatus2 = this.getAquiferStatus(l1);
+-                        double d1 = d * this.calculatePressure(context, mutableDouble, aquiferStatus, aquiferStatus2);
+-                        if (substance + d1 > 0.0) {
+-                            this.shouldScheduleFluidUpdate = false;
+-                            return null;
+-                        } else {
+-                            Aquifer.FluidStatus aquiferStatus3 = this.getAquiferStatus(l2);
+-                            double d2 = similarity(i6, i8);
+-                            if (d2 > 0.0) {
+-                                double d3 = d * d2 * this.calculatePressure(context, mutableDouble, aquiferStatus, aquiferStatus3);
+-                                if (substance + d3 > 0.0) {
+-                                    this.shouldScheduleFluidUpdate = false;
+-                                    return null;
+-                                }
+-                            }
+-
+-                            double d3 = similarity(i7, i8);
+-                            if (d3 > 0.0) {
+-                                double d4 = d * d3 * this.calculatePressure(context, mutableDouble, aquiferStatus2, aquiferStatus3);
+-                                if (substance + d4 > 0.0) {
+-                                    this.shouldScheduleFluidUpdate = false;
+-                                    return null;
+-                                }
+-                            }
+-
+-                            boolean flag = !aquiferStatus.equals(aquiferStatus2);
+-                            boolean flag1 = d3 >= FLOWING_UPDATE_SIMULARITY && !aquiferStatus2.equals(aquiferStatus3);
+-                            boolean flag2 = d2 >= FLOWING_UPDATE_SIMULARITY && !aquiferStatus.equals(aquiferStatus3);
+-                            if (!flag && !flag1 && !flag2) {
+-                                this.shouldScheduleFluidUpdate = d2 >= FLOWING_UPDATE_SIMULARITY
+-                                    && similarity(i6, i9) >= FLOWING_UPDATE_SIMULARITY
+-                                    && !aquiferStatus.equals(this.getAquiferStatus(l3));
+-                            } else {
+-                                this.shouldScheduleFluidUpdate = true;
+-                            }
+-
+-                            return blockState;
+-                        }
+-                    }
++                    aquiferExtracted$refreshDistPosIdx(i, j, k);
++                    return aquiferExtracted$applyPost(context, substance, j, i, k);
+                 }
+             }
++            // DivineMC end - World gen optimizations
+         }
+ 
+         @Override
+@@ -278,65 +201,28 @@ public interface Aquifer {
+             return 1.0 - Math.abs(secondDistance - firstDistance) / 25.0;
+         }
+ 
++        // DivineMC start - World gen optimizations
+         private double calculatePressure(
+-            DensityFunction.FunctionContext context, MutableDouble substance, Aquifer.FluidStatus firstFluid, Aquifer.FluidStatus secondFluid
++            DensityFunction.FunctionContext context, MutableDouble substance, Aquifer.FluidStatus fluidLevel, Aquifer.FluidStatus fluidLevel2 // DivineMC - rename args
+         ) {
+             int i = context.blockY();
+-            BlockState blockState = firstFluid.at(i);
+-            BlockState blockState1 = secondFluid.at(i);
+-            if ((!blockState.is(Blocks.LAVA) || !blockState1.is(Blocks.WATER)) && (!blockState.is(Blocks.WATER) || !blockState1.is(Blocks.LAVA))) {
+-                int abs = Math.abs(firstFluid.fluidLevel - secondFluid.fluidLevel);
++            BlockState blockState = fluidLevel.at(i);
++            BlockState blockState2 = fluidLevel2.at(i);
++            if ((!blockState.is(Blocks.LAVA) || !blockState2.is(Blocks.WATER)) && (!blockState.is(Blocks.WATER) || !blockState2.is(Blocks.LAVA))) {
++                int abs = Math.abs(fluidLevel.fluidLevel - fluidLevel2.fluidLevel);
+                 if (abs == 0) {
+                     return 0.0;
+                 } else {
+-                    double d = 0.5 * (firstFluid.fluidLevel + secondFluid.fluidLevel);
+-                    double d1 = i + 0.5 - d;
+-                    double d2 = abs / 2.0;
+-                    double d3 = 0.0;
+-                    double d4 = 2.5;
+-                    double d5 = 1.5;
+-                    double d6 = 3.0;
+-                    double d7 = 10.0;
+-                    double d8 = 3.0;
+-                    double d9 = d2 - Math.abs(d1);
+-                    double d11;
+-                    if (d1 > 0.0) {
+-                        double d10 = 0.0 + d9;
+-                        if (d10 > 0.0) {
+-                            d11 = d10 / 1.5;
+-                        } else {
+-                            d11 = d10 / 2.5;
+-                        }
+-                    } else {
+-                        double d10 = 3.0 + d9;
+-                        if (d10 > 0.0) {
+-                            d11 = d10 / 3.0;
+-                        } else {
+-                            d11 = d10 / 10.0;
+-                        }
+-                    }
+-
+-                    double d10x = 2.0;
+-                    double d12;
+-                    if (!(d11 < -2.0) && !(d11 > 2.0)) {
+-                        double value = substance.getValue();
+-                        if (Double.isNaN(value)) {
+-                            double d13 = this.barrierNoise.compute(context);
+-                            substance.setValue(d13);
+-                            d12 = d13;
+-                        } else {
+-                            d12 = value;
+-                        }
+-                    } else {
+-                        d12 = 0.0;
+-                    }
++                    double d = 0.5 * (double)(fluidLevel.fluidLevel + fluidLevel2.fluidLevel);
++                    final double q = aquiferExtracted$getQ(i, d, abs);
+ 
+-                    return 2.0 * (d12 + d11);
++                    return aquiferExtracted$postCalculateDensity(context, substance, q);
+                 }
+             } else {
+                 return 2.0;
+             }
+         }
++        // DivineMC end - World gen optimizations
+ 
+         private int gridX(int x) {
+             return Math.floorDiv(x, 16);
+@@ -350,23 +236,25 @@ public interface Aquifer {
+             return Math.floorDiv(z, 16);
+         }
+ 
+-        private Aquifer.FluidStatus getAquiferStatus(long packedPos) {
+-            int x = BlockPos.getX(packedPos);
+-            int y = BlockPos.getY(packedPos);
+-            int z = BlockPos.getZ(packedPos);
+-            int i = this.gridX(x);
+-            int i1 = this.gridY(y);
+-            int i2 = this.gridZ(z);
+-            int index = this.getIndex(i, i1, i2);
+-            Aquifer.FluidStatus fluidStatus = this.aquiferCache[index];
+-            if (fluidStatus != null) {
+-                return fluidStatus;
++        // DivineMC start - World gen optimizations
++        private Aquifer.FluidStatus getAquiferStatus(long pos) {
++            int i = BlockPos.getX(pos);
++            int j = BlockPos.getY(pos);
++            int k = BlockPos.getZ(pos);
++            int l = i >> 4; // C2ME - inline: floorDiv(i, 16)
++            int m = Math.floorDiv(j, 12); // C2ME - inline
++            int n = k >> 4; // C2ME - inline: floorDiv(k, 16)
++            int o = this.getIndex(l, m, n);
++            Aquifer.FluidStatus fluidLevel = this.aquiferCache[o];
++            if (fluidLevel != null) {
++                return fluidLevel;
+             } else {
+-                Aquifer.FluidStatus fluidStatus1 = this.computeFluid(x, y, z);
+-                this.aquiferCache[index] = fluidStatus1;
+-                return fluidStatus1;
++                Aquifer.FluidStatus fluidLevel2 = this.computeFluid(i, j, k);
++                this.aquiferCache[o] = fluidLevel2;
++                return fluidLevel2;
+             }
+         }
++        // DivineMC end - World gen optimizations
+ 
+         private Aquifer.FluidStatus computeFluid(int x, int y, int z) {
+             Aquifer.FluidStatus fluidStatus = this.globalFluidPicker.computeFluid(x, y, z);
+@@ -406,23 +294,22 @@ public interface Aquifer {
+             return new Aquifer.FluidStatus(i7, this.computeFluidType(x, y, z, fluidStatus, i7));
+         }
+ 
++        // DivineMC start - World gen optimizations
+         private int computeSurfaceLevel(int x, int y, int z, Aquifer.FluidStatus fluidStatus, int maxSurfaceLevel, boolean fluidPresent) {
+-            DensityFunction.SinglePointContext singlePointContext = new DensityFunction.SinglePointContext(x, y, z);
++            DensityFunction.SinglePointContext unblendedNoisePos = new DensityFunction.SinglePointContext(x, y, z);
+             double d;
+             double d1;
+-            if (OverworldBiomeBuilder.isDeepDarkRegion(this.erosion, this.depth, singlePointContext)) {
++            if (OverworldBiomeBuilder.isDeepDarkRegion(this.erosion, this.depth, unblendedNoisePos)) {
+                 d = -1.0;
+                 d1 = -1.0;
+             } else {
+                 int i = maxSurfaceLevel + 8 - y;
+-                int i1 = 64;
+-                double d2 = fluidPresent ? Mth.clampedMap((double)i, 0.0, 64.0, 1.0, 0.0) : 0.0;
+-                double d3 = Mth.clamp(this.fluidLevelFloodednessNoise.compute(singlePointContext), -1.0, 1.0);
+-                double d4 = Mth.map(d2, 1.0, 0.0, -0.3, 0.8);
+-                double d5 = Mth.map(d2, 1.0, 0.0, -0.8, 0.4);
+-                d = d3 - d5;
+-                d1 = d3 - d4;
++                double f = fluidPresent ? Mth.clampedLerp(1.0, 0.0, ((double) i) / 64.0) : 0.0; // inline
++                double g = Mth.clamp(this.fluidLevelFloodednessNoise.compute(unblendedNoisePos), -1.0, 1.0);
++                d = g + 0.8 + (f - 1.0) * 1.2; // inline
++                d1 = g + 0.3 + (f - 1.0) * 1.1; // inline
+             }
++        // DivineMC end - World gen optimizations
+ 
+             int i;
+             if (d1 > 0.0) {
+@@ -466,5 +353,183 @@ public interface Aquifer {
+ 
+             return blockState;
+         }
++
++        // DivineMC start - World gen optimizations
++        private @org.jetbrains.annotations.Nullable BlockState aquiferExtracted$applyPost(DensityFunction.FunctionContext pos, double density, int j, int i, int k) {
++            Aquifer.FluidStatus fluidLevel2 = this.getAquiferStatus(this.c2me$pos1);
++            double d = similarity(this.c2me$dist1, this.c2me$dist2);
++            BlockState blockState = fluidLevel2.at(j);
++            if (d <= 0.0) {
++                this.shouldScheduleFluidUpdate = d >= FLOWING_UPDATE_SIMULARITY;
++                return blockState;
++            } else if (blockState.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(i, j - 1, k).at(j - 1).is(Blocks.LAVA)) {
++                this.shouldScheduleFluidUpdate = true;
++                return blockState;
++            } else {
++                this.c2me$mutableDoubleThingy = Double.NaN;
++                Aquifer.FluidStatus fluidLevel3 = this.getAquiferStatus(this.c2me$pos2);
++                double e = d * this.c2me$calculateDensityModified(pos, fluidLevel2, fluidLevel3);
++                if (density + e > 0.0) {
++                    this.shouldScheduleFluidUpdate = false;
++                    return null;
++                } else {
++                    return aquiferExtracted$getFinalBlockState(pos, density, d, fluidLevel2, fluidLevel3, blockState);
++                }
++            }
++        }
++
++        private BlockState aquiferExtracted$getFinalBlockState(DensityFunction.FunctionContext pos, double density, double d, Aquifer.FluidStatus fluidLevel2, Aquifer.FluidStatus fluidLevel3, BlockState blockState) {
++            Aquifer.FluidStatus fluidLevel4 = this.getAquiferStatus(this.c2me$pos3);
++            double f = similarity(this.c2me$dist1, this.c2me$dist3);
++            if (aquiferExtracted$extractedCheckFG(pos, density, d, fluidLevel2, f, fluidLevel4)) return null;
++
++            double g = similarity(this.c2me$dist2, this.c2me$dist3);
++            if (aquiferExtracted$extractedCheckFG(pos, density, d, fluidLevel3, g, fluidLevel4)) return null;
++
++            this.shouldScheduleFluidUpdate = true;
++            return blockState;
++        }
++
++        private boolean aquiferExtracted$extractedCheckFG(DensityFunction.FunctionContext pos, double density, double d, Aquifer.FluidStatus fluidLevel2, double f, Aquifer.FluidStatus fluidLevel4) {
++            if (f > 0.0) {
++                double g = d * f * this.c2me$calculateDensityModified(pos, fluidLevel2, fluidLevel4);
++                if (density + g > 0.0) {
++                    this.shouldScheduleFluidUpdate = false;
++                    return true;
++                }
++            }
++            return false;
++        }
++
++        private void aquiferExtracted$refreshDistPosIdx(int x, int y, int z) {
++            int gx = (x - 5) >> 4;
++            int gy = Math.floorDiv(y + 1, 12);
++            int gz = (z - 5) >> 4;
++            int dist1 = Integer.MAX_VALUE;
++            int dist2 = Integer.MAX_VALUE;
++            int dist3 = Integer.MAX_VALUE;
++            long pos1 = 0;
++            long pos2 = 0;
++            long pos3 = 0;
++
++            for (int offY = -1; offY <= 1; ++offY) {
++                for (int offZ = 0; offZ <= 1; ++offZ) {
++                    for (int offX = 0; offX <= 1; ++offX) {
++                        int posIdx = this.getIndex(gx + offX, gy + offY, gz + offZ);
++
++                        long position = this.aquiferLocationCache[posIdx];
++
++                        int dx = BlockPos.getX(position) - x;
++                        int dy = BlockPos.getY(position) - y;
++                        int dz = BlockPos.getZ(position) - z;
++                        int dist = dx * dx + dy * dy + dz * dz;
++
++                        if (dist3 >= dist) {
++                            pos3 = position;
++                            dist3 = dist;
++                        }
++                        if (dist2 >= dist) {
++                            pos3 = pos2;
++                            dist3 = dist2;
++                            pos2 = position;
++                            dist2 = dist;
++                        }
++                        if (dist1 >= dist) {
++                            pos2 = pos1;
++                            dist2 = dist1;
++                            pos1 = position;
++                            dist1 = dist;
++                        }
++                    }
++                }
++            }
++
++            this.c2me$dist1 = dist1;
++            this.c2me$dist2 = dist2;
++            this.c2me$dist3 = dist3;
++            this.c2me$pos1 = pos1;
++            this.c2me$pos2 = pos2;
++            this.c2me$pos3 = pos3;
++        }
++
++        private double c2me$calculateDensityModified(
++            DensityFunction.FunctionContext pos, Aquifer.FluidStatus fluidLevel, Aquifer.FluidStatus fluidLevel2
++        ) {
++            int i = pos.blockY();
++            BlockState blockState = fluidLevel.at(i);
++            BlockState blockState2 = fluidLevel2.at(i);
++            if ((!blockState.is(Blocks.LAVA) || !blockState2.is(Blocks.WATER)) && (!blockState.is(Blocks.WATER) || !blockState2.is(Blocks.LAVA))) {
++                int j = Math.abs(fluidLevel.fluidLevel - fluidLevel2.fluidLevel);
++                if (j == 0) {
++                    return 0.0;
++                } else {
++                    double d = 0.5 * (double)(fluidLevel.fluidLevel + fluidLevel2.fluidLevel);
++                    final double q = aquiferExtracted$getQ(i, d, j);
++
++                    return aquiferExtracted$postCalculateDensityModified(pos, q);
++                }
++            } else {
++                return 2.0;
++            }
++        }
++
++        private double aquiferExtracted$postCalculateDensity(DensityFunction.FunctionContext pos, MutableDouble mutableDouble, double q) {
++            double r;
++            if (!(q < -2.0) && !(q > 2.0)) {
++                double s = mutableDouble.getValue();
++                if (Double.isNaN(s)) {
++                    double t = this.barrierNoise.compute(pos);
++                    mutableDouble.setValue(t);
++                    r = t;
++                } else {
++                    r = s;
++                }
++            } else {
++                r = 0.0;
++            }
++
++            return 2.0 * (r + q);
++        }
++
++        private double aquiferExtracted$postCalculateDensityModified(DensityFunction.FunctionContext pos, double q) {
++            double r;
++            if (!(q < -2.0) && !(q > 2.0)) {
++                double s = this.c2me$mutableDoubleThingy;
++                if (Double.isNaN(s)) {
++                    double t = this.barrierNoise.compute(pos);
++                    this.c2me$mutableDoubleThingy = t;
++                    r = t;
++                } else {
++                    r = s;
++                }
++            } else {
++                r = 0.0;
++            }
++
++            return 2.0 * (r + q);
++        }
++
++        private static double aquiferExtracted$getQ(double i, double d, double j) {
++            double e = i + 0.5 - d;
++            double f = j / 2.0;
++            double o = f - Math.abs(e);
++            double q;
++            if (e > 0.0) {
++                if (o > 0.0) {
++                    q = o / 1.5;
++                } else {
++                    q = o / 2.5;
++                }
++            } else {
++                double p = 3.0 + o;
++                if (p > 0.0) {
++                    q = p / 3.0;
++                } else {
++                    q = p / 10.0;
++                }
++            }
++            return q;
++        }
++        // DivineMC end - World gen optimizations
+     }
+ }
+diff --git a/net/minecraft/world/level/levelgen/Beardifier.java b/net/minecraft/world/level/levelgen/Beardifier.java
+index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be09975797 100644
+--- a/net/minecraft/world/level/levelgen/Beardifier.java
++++ b/net/minecraft/world/level/levelgen/Beardifier.java
+@@ -29,6 +29,17 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
+     });
+     private final ObjectListIterator<Beardifier.Rigid> pieceIterator;
+     private final ObjectListIterator<JigsawJunction> junctionIterator;
++    // DivineMC start - World gen optimizations
++    private Beardifier.Rigid[] c2me$pieceArray;
++    private JigsawJunction[] c2me$junctionArray;
++
++    private void c2me$initArrays() {
++        this.c2me$pieceArray = com.google.common.collect.Iterators.toArray(this.pieceIterator, Beardifier.Rigid.class);
++        this.pieceIterator.back(Integer.MAX_VALUE);
++        this.c2me$junctionArray = com.google.common.collect.Iterators.toArray(this.junctionIterator, JigsawJunction.class);
++        this.junctionIterator.back(Integer.MAX_VALUE);
++    }
++    // DivineMC end - World gen optimizations
+ 
+     public static Beardifier forStructuresInChunk(StructureManager structureManager, ChunkPos chunkPos) {
+         int minBlockX = chunkPos.getMinBlockX();
+@@ -76,50 +87,44 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
+         this.junctionIterator = junctionIterator;
+     }
+ 
++    // DivineMC start - World gen optimizations
+     @Override
+     public double compute(DensityFunction.FunctionContext context) {
++        if (this.c2me$pieceArray == null || this.c2me$junctionArray == null) {
++            this.c2me$initArrays();
++        }
+         int i = context.blockX();
+-        int i1 = context.blockY();
+-        int i2 = context.blockZ();
++        int j = context.blockY();
++        int k = context.blockZ();
+         double d = 0.0;
+ 
+-        while (this.pieceIterator.hasNext()) {
+-            Beardifier.Rigid rigid = this.pieceIterator.next();
+-            BoundingBox boundingBox = rigid.box();
+-            int groundLevelDelta = rigid.groundLevelDelta();
+-            int max = Math.max(0, Math.max(boundingBox.minX() - i, i - boundingBox.maxX()));
+-            int max1 = Math.max(0, Math.max(boundingBox.minZ() - i2, i2 - boundingBox.maxZ()));
+-            int i3 = boundingBox.minY() + groundLevelDelta;
+-            int i4 = i1 - i3;
+-
+-            int i5 = switch (rigid.terrainAdjustment()) {
+-                case NONE -> 0;
+-                case BURY, BEARD_THIN -> i4;
+-                case BEARD_BOX -> Math.max(0, Math.max(i3 - i1, i1 - boundingBox.maxY()));
+-                case ENCAPSULATE -> Math.max(0, Math.max(boundingBox.minY() - i1, i1 - boundingBox.maxY()));
+-            };
++        for (Beardifier.Rigid piece : this.c2me$pieceArray) {
++            BoundingBox blockBox = piece.box();
++            int l = piece.groundLevelDelta();
++            int m = Math.max(0, Math.max(blockBox.minX() - i, i - blockBox.maxX()));
++            int n = Math.max(0, Math.max(blockBox.minZ() - k, k - blockBox.maxZ()));
++            int o = blockBox.minY() + l;
++            int p = j - o;
+ 
+-            d += switch (rigid.terrainAdjustment()) {
++            d += switch (piece.terrainAdjustment()) { // 2 switch statement merged
+                 case NONE -> 0.0;
+-                case BURY -> getBuryContribution(max, i5 / 2.0, max1);
+-                case BEARD_THIN, BEARD_BOX -> getBeardContribution(max, i5, max1, i4) * 0.8;
+-                case ENCAPSULATE -> getBuryContribution(max / 2.0, i5 / 2.0, max1 / 2.0) * 0.8;
++                case BURY -> getBuryContribution(m, (double)p / 2.0, n);
++                case BEARD_THIN -> getBeardContribution(m, p, n, p) * 0.8;
++                case BEARD_BOX -> getBeardContribution(m, Math.max(0, Math.max(o - j, j - blockBox.maxY())), n, p) * 0.8;
++                case ENCAPSULATE -> getBuryContribution((double)m / 2.0, (double)Math.max(0, Math.max(blockBox.minY() - j, j - blockBox.maxY())) / 2.0, (double)n / 2.0) * 0.8;
+             };
+         }
+ 
+-        this.pieceIterator.back(Integer.MAX_VALUE);
+-
+-        while (this.junctionIterator.hasNext()) {
+-            JigsawJunction jigsawJunction = this.junctionIterator.next();
+-            int i6 = i - jigsawJunction.getSourceX();
+-            int groundLevelDelta = i1 - jigsawJunction.getSourceGroundY();
+-            int max = i2 - jigsawJunction.getSourceZ();
+-            d += getBeardContribution(i6, groundLevelDelta, max, groundLevelDelta) * 0.4;
++        for (JigsawJunction jigsawJunction : this.c2me$junctionArray) {
++            int r = i - jigsawJunction.getSourceX();
++            int l = j - jigsawJunction.getSourceGroundY();
++            int m = k - jigsawJunction.getSourceZ();
++            d += getBeardContribution(r, l, m, l) * 0.4;
+         }
+ 
+-        this.junctionIterator.back(Integer.MAX_VALUE);
+         return d;
+     }
++    // DivineMC end - World gen optimizations
+ 
+     @Override
+     public double minValue() {
+@@ -132,8 +137,14 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
+     }
+ 
+     private static double getBuryContribution(double x, double y, double z) {
+-        double len = Mth.length(x, y, z);
+-        return Mth.clampedMap(len, 0.0, 6.0, 1.0, 0.0);
++        // DivineMC start - World gen optimizations
++        double d = Math.sqrt(x * x + y * y + z * z);
++        if (d > 6.0) {
++            return 0.0;
++        } else {
++            return 1.0 - d / 6.0;
++        }
++        // DivineMC end - World gen optimizations
+     }
+ 
+     private static double getBeardContribution(int x, int y, int z, int height) {
+diff --git a/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java b/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
+index 4993ace2b3d615570de3d4b6621aeba3a3e7fe99..1be79332446559c95ae3048a71a6634fd01cf2e2 100644
+--- a/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
++++ b/net/minecraft/world/level/levelgen/BelowZeroRetrogen.java
+@@ -82,6 +82,7 @@ public final class BelowZeroRetrogen {
+     }
+ 
+     public void applyBedrockMask(ProtoChunk chunk) {
++        if (org.bxteam.divinemc.DivineConfig.smoothBedrockLayer) return; // DivineMC - Smooth bedrock layer
+         LevelHeightAccessor heightAccessorForGeneration = chunk.getHeightAccessorForGeneration();
+         int minY = heightAccessorForGeneration.getMinY();
+         int maxY = heightAccessorForGeneration.getMaxY();
+diff --git a/net/minecraft/world/level/levelgen/Column.java b/net/minecraft/world/level/levelgen/Column.java
+index 4a1df0f8578c9ee5538ed8c94d3c7911f36f83b8..716c2c69843234cdef34339d859babc95ffe318c 100644
+--- a/net/minecraft/world/level/levelgen/Column.java
++++ b/net/minecraft/world/level/levelgen/Column.java
+@@ -156,7 +156,7 @@ public abstract class Column {
+         }
+ 
+         public int height() {
+-            return this.ceiling - this.floor - 1;
++            return net.minecraft.util.Mth.abs(this.ceiling - this.floor - 1); // DivineMC - Chunk System optimization
+         }
+ 
+         @Override
+diff --git a/net/minecraft/world/level/levelgen/LegacyRandomSource.java b/net/minecraft/world/level/levelgen/LegacyRandomSource.java
+index c67168517774a0ad9ca43422a79ef14a8ea0c2e8..026dfbbb6c3fd5cd274dcbf721e5cf3af889e3d9 100644
+--- a/net/minecraft/world/level/levelgen/LegacyRandomSource.java
++++ b/net/minecraft/world/level/levelgen/LegacyRandomSource.java
+@@ -53,13 +53,7 @@ public class LegacyRandomSource implements BitRandomSource {
+         return this.gaussianSource.nextGaussian();
+     }
+ 
+-    public static class LegacyPositionalRandomFactory implements PositionalRandomFactory {
+-        private final long seed;
+-
+-        public LegacyPositionalRandomFactory(long seed) {
+-            this.seed = seed;
+-        }
+-
++    public record LegacyPositionalRandomFactory(long seed) implements PositionalRandomFactory { // DivineMC - make record
+         @Override
+         public RandomSource at(int x, int y, int z) {
+             long seed = Mth.getSeed(x, y, z);
+diff --git a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
+index 65728ef17e63d71833677fdcbd5bb90794b4822b..536a285141caea49a316abcff39cb1ed7fd04238 100644
+--- a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
++++ b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
+@@ -65,11 +65,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+     }
+ 
+     private static Aquifer.FluidPicker createFluidPicker(NoiseGeneratorSettings settings) {
+-        Aquifer.FluidStatus fluidStatus = new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState());
+-        int seaLevel = settings.seaLevel();
+-        Aquifer.FluidStatus fluidStatus1 = new Aquifer.FluidStatus(seaLevel, settings.defaultFluid());
+-        Aquifer.FluidStatus fluidStatus2 = new Aquifer.FluidStatus(DimensionType.MIN_Y * 2, Blocks.AIR.defaultBlockState());
+-        return (x, y, z) -> y < Math.min(-54, seaLevel) ? fluidStatus : fluidStatus1;
++        // DivineMC start - World gen optimizations
++        Aquifer.FluidStatus fluidLevel = new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState());
++        int i = settings.seaLevel();
++        Aquifer.FluidStatus fluidLevel2 = new Aquifer.FluidStatus(i, settings.defaultFluid());
++        final int min = Math.min(-54, i);
++        return (j, k, lx) -> k < min ? fluidLevel : fluidLevel2;
++        // DivineMC end - World gen optimizations
+     }
+ 
+     @Override
+@@ -294,30 +296,32 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+     public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
+         NoiseSettings noiseSettings = this.settings.value().noiseSettings().clampToHeightAccessor(chunk.getHeightAccessorForGeneration());
+         int minY = noiseSettings.minY();
+-        int i = Mth.floorDiv(minY, noiseSettings.getCellHeight());
+-        int i1 = Mth.floorDiv(noiseSettings.height(), noiseSettings.getCellHeight());
+-        return i1 <= 0 ? CompletableFuture.completedFuture(chunk) : CompletableFuture.supplyAsync(() -> {
+-            int sectionIndex = chunk.getSectionIndex(i1 * noiseSettings.getCellHeight() - 1 + minY);
+-            int sectionIndex1 = chunk.getSectionIndex(minY);
+-            Set<LevelChunkSection> set = Sets.newHashSet();
+-
+-            for (int i2 = sectionIndex; i2 >= sectionIndex1; i2--) {
+-                LevelChunkSection section = chunk.getSection(i2);
+-                section.acquire();
+-                set.add(section);
+-            }
++        // DivineMC start - Optimize noise fill
++        int minYDiv = Mth.floorDiv(minY, noiseSettings.getCellHeight());
++        int cellHeightDiv = Mth.floorDiv(noiseSettings.height(), noiseSettings.getCellHeight());
+ 
+-            ChunkAccess var20;
+-            try {
+-                var20 = this.doFill(blender, structureManager, randomState, chunk, i, i1);
+-            } finally {
+-                for (LevelChunkSection levelChunkSection1 : set) {
+-                    levelChunkSection1.release();
+-                }
++        if (cellHeightDiv <= 0) {
++            return CompletableFuture.completedFuture(chunk);
++        }
++
++        try {
++            int startIndex = chunk.getSectionIndex(cellHeightDiv * noiseSettings.getCellHeight() - 1 + minY);
++            int minYIndex = chunk.getSectionIndex(minY);
++            LevelChunkSection[] sections = chunk.getSections();
++
++            for (int i = startIndex; i >= minYIndex; --i) {
++                sections[i].acquire();
+             }
+ 
+-            return var20;
+-        }, Runnable::run); // Paper - rewrite chunk system
++            ChunkAccess access = this.doFill(blender, structureManager, randomState, chunk, minYDiv, cellHeightDiv);
++            for (int i = startIndex; i >= minYIndex; --i) {
++                sections[i].release();
++            }
++            return CompletableFuture.completedFuture(access);
++        } catch (Throwable throwable) {
++            throw new RuntimeException("Unexpected error when running noise fill", throwable);
++        }
++        // DivineMC end - Optimize noise fill
+     }
+ 
+     private ChunkAccess doFill(Blender blender, StructureManager structureManager, RandomState random, ChunkAccess chunk, int minCellY, int cellCountY) {
+@@ -375,7 +379,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+ 
+                                 interpolatedState = this.debugPreliminarySurfaceLevel(noiseChunk, i10, i7, i13, interpolatedState);
+                                 if (interpolatedState != AIR && !SharedConstants.debugVoidTerrain(chunk.getPos())) {
+-                                    section.setBlockState(i11, i8, i14, interpolatedState, false);
++                                    optimizedBlockSetOp(section, i11, i8, i14, interpolatedState, false); // DivineMC - Optimize noise fill
+                                     heightmapUnprimed.update(i11, i7, i14, interpolatedState);
+                                     heightmapUnprimed1.update(i11, i7, i14, interpolatedState);
+                                     if (aquifer.shouldScheduleFluidUpdate() && !interpolatedState.getFluidState().isEmpty()) {
+@@ -396,6 +400,26 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+         return chunk;
+     }
+ 
++    // DivineMC start - Optimize noise fill
++    private void optimizedBlockSetOp(@org.jetbrains.annotations.NotNull LevelChunkSection chunkSection, int chunkSectionBlockPosX, int chunkSectionBlockPosY, int chunkSectionBlockPosZ, @org.jetbrains.annotations.NotNull BlockState blockState, boolean lock) {
++        chunkSection.nonEmptyBlockCount += 1;
++
++        if (!blockState.getFluidState().isEmpty()) {
++            chunkSection.tickingFluidCount += 1;
++        }
++
++        if (blockState.isRandomlyTicking()) {
++            chunkSection.tickingBlockCount += 1;
++        }
++
++        var blockStateId = chunkSection.states.data.palette.idFor(blockState);
++        chunkSection.states.data.storage().set(
++            chunkSection.states.strategy.getIndex(chunkSectionBlockPosX, chunkSectionBlockPosY,
++                chunkSectionBlockPosZ
++            ), blockStateId);
++    }
++    // DivineMC end - Optimize noise fill
++
+     private BlockState debugPreliminarySurfaceLevel(NoiseChunk chunk, int x, int y, int z, BlockState state) {
+         return state;
+     }
+diff --git a/net/minecraft/world/level/levelgen/NoiseSettings.java b/net/minecraft/world/level/levelgen/NoiseSettings.java
+index 4cf3a364595ba5f81f741295695cb9a449bdf672..44df2ac0bd972c4d97fc89cd0c2d2d83480ca3e1 100644
+--- a/net/minecraft/world/level/levelgen/NoiseSettings.java
++++ b/net/minecraft/world/level/levelgen/NoiseSettings.java
+@@ -8,7 +8,7 @@ import net.minecraft.core.QuartPos;
+ import net.minecraft.world.level.LevelHeightAccessor;
+ import net.minecraft.world.level.dimension.DimensionType;
+ 
+-public record NoiseSettings(int minY, int height, int noiseSizeHorizontal, int noiseSizeVertical) {
++public record NoiseSettings(int minY, int height, int noiseSizeHorizontal, int noiseSizeVertical, int horizontalCellBlockCount, int verticalCellBlockCount) { // DivineMC - NoiseSettings optimizations
+     public static final Codec<NoiseSettings> CODEC = RecordCodecBuilder.<NoiseSettings>create(
+             instance -> instance.group(
+                     Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).fieldOf("min_y").forGetter(NoiseSettings::minY),
+@@ -16,7 +16,10 @@ public record NoiseSettings(int minY, int height, int noiseSizeHorizontal, int n
+                     Codec.intRange(1, 4).fieldOf("size_horizontal").forGetter(NoiseSettings::noiseSizeHorizontal),
+                     Codec.intRange(1, 4).fieldOf("size_vertical").forGetter(NoiseSettings::noiseSizeVertical)
+                 )
+-                .apply(instance, NoiseSettings::new)
++                // DivineMC start - NoiseSettings optimizations
++                .apply(instance, (Integer minY1, Integer height1, Integer noiseSizeHorizontal1, Integer noiseSizeVertical1) -> new NoiseSettings(minY1, height1, noiseSizeHorizontal1, noiseSizeVertical1,
++                    QuartPos.toBlock(noiseSizeHorizontal1), QuartPos.toBlock(noiseSizeVertical1)))
++                // DivineMC end - NoiseSettings optimizations
+         )
+         .comapFlatMap(NoiseSettings::guardY, Function.identity());
+     protected static final NoiseSettings OVERWORLD_NOISE_SETTINGS = create(-64, 384, 1, 2);
+@@ -36,7 +39,7 @@ public record NoiseSettings(int minY, int height, int noiseSizeHorizontal, int n
+     }
+ 
+     public static NoiseSettings create(int minY, int height, int noiseSizeHorizontal, int noiseSizeVertical) {
+-        NoiseSettings noiseSettings = new NoiseSettings(minY, height, noiseSizeHorizontal, noiseSizeVertical);
++        NoiseSettings noiseSettings = new NoiseSettings(minY, height, noiseSizeHorizontal, noiseSizeVertical, QuartPos.toBlock(noiseSizeHorizontal), QuartPos.toBlock(noiseSizeVertical)); // DivineMC - NoiseSettings optimizations
+         guardY(noiseSettings).error().ifPresent(error -> {
+             throw new IllegalStateException(error.message());
+         });
+@@ -44,16 +47,16 @@ public record NoiseSettings(int minY, int height, int noiseSizeHorizontal, int n
+     }
+ 
+     public int getCellHeight() {
+-        return QuartPos.toBlock(this.noiseSizeVertical());
++        return verticalCellBlockCount(); // DivineMC - NoiseSettings optimizations
+     }
+ 
+     public int getCellWidth() {
+-        return QuartPos.toBlock(this.noiseSizeHorizontal());
++        return horizontalCellBlockCount(); // DivineMC - NoiseSettings optimizations
+     }
+ 
+     public NoiseSettings clampToHeightAccessor(LevelHeightAccessor heightAccessor) {
+         int max = Math.max(this.minY, heightAccessor.getMinY());
+         int i = Math.min(this.minY + this.height, heightAccessor.getMaxY() + 1) - max;
+-        return new NoiseSettings(max, i, this.noiseSizeHorizontal, this.noiseSizeVertical);
++        return new NoiseSettings(max, i, this.noiseSizeHorizontal, this.noiseSizeVertical, QuartPos.toBlock(this.noiseSizeHorizontal), QuartPos.toBlock(this.noiseSizeVertical)); // DivineMC - NoiseSettings optimizations
+     }
+ }
+diff --git a/net/minecraft/world/level/levelgen/SurfaceRules.java b/net/minecraft/world/level/levelgen/SurfaceRules.java
+index bbf2995d352c22b3f6fb0de40f2932af1771c504..3ee13ba6c528c95313c68393915fca8467e55b70 100644
+--- a/net/minecraft/world/level/levelgen/SurfaceRules.java
++++ b/net/minecraft/world/level/levelgen/SurfaceRules.java
+@@ -185,7 +185,7 @@ public class SurfaceRules {
+ 
+                 @Override
+                 protected boolean compute() {
+-                    return this.context.biome.get().is(BiomeConditionSource.this.biomeNameTest);
++                    return this.context.biome.is(BiomeConditionSource.this.biomeNameTest); // DivineMC - World gen optimizations
+                 }
+             }
+ 
+@@ -281,7 +281,7 @@ public class SurfaceRules {
+         private int minSurfaceLevel;
+         long lastUpdateY = -9223372036854775807L;
+         final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+-        Supplier<Holder<Biome>> biome;
++        Holder<Biome> biome; // DivineMC - World gen optimizations
+         public int blockY;
+         int waterHeight;
+         int stoneDepthBelow;
+@@ -314,7 +314,10 @@ public class SurfaceRules {
+ 
+         protected void updateY(int stoneDepthAbove, int stoneDepthBelow, int waterHeight, int blockX, int blockY, int blockZ) {
+             this.lastUpdateY++;
+-            this.biome = Suppliers.memoize(() -> this.biomeGetter.apply(this.pos.set(blockX, blockY, blockZ)));
++            // DivineMC start - World gen optimizations
++            this.pos.set(blockX, blockY, blockZ);
++            this.biome = this.biomeGetter.apply(this.pos);
++            // DivineMC end - World gen optimizations
+             this.blockY = blockY;
+             this.waterHeight = waterHeight;
+             this.stoneDepthBelow = stoneDepthBelow;
+@@ -441,7 +444,6 @@ public class SurfaceRules {
+             protected boolean compute() {
+                 return this.context
+                     .biome
+-                    .get()
+                     .value()
+                     .coldEnoughToSnow(this.context.pos.set(this.context.blockX, this.context.blockY, this.context.blockZ), this.context.getSeaLevel());
+             }
+diff --git a/net/minecraft/world/level/levelgen/WorldgenRandom.java b/net/minecraft/world/level/levelgen/WorldgenRandom.java
+index c2d7cd788071e25b8ba2503c30ae80c7a9f353ed..0a2e13c4a3db6517267e1f9e74b6152c73e8351f 100644
+--- a/net/minecraft/world/level/levelgen/WorldgenRandom.java
++++ b/net/minecraft/world/level/levelgen/WorldgenRandom.java
+@@ -73,7 +73,7 @@ public class WorldgenRandom extends LegacyRandomSource {
+     }
+ 
+     public static enum Algorithm {
+-        LEGACY(LegacyRandomSource::new),
++        LEGACY(ThreadSafeLegacyRandomSource::new), // DivineMC - Chunk System optimization
+         XOROSHIRO(XoroshiroRandomSource::new);
+ 
+         private final LongFunction<RandomSource> constructor;
+diff --git a/net/minecraft/world/level/levelgen/XoroshiroRandomSource.java b/net/minecraft/world/level/levelgen/XoroshiroRandomSource.java
+index 9d3a9ca1e13cd80f468f1352bbb74345f03903dd..d97b9b43686bda0a95fc02f6ca31b2d07d603a32 100644
+--- a/net/minecraft/world/level/levelgen/XoroshiroRandomSource.java
++++ b/net/minecraft/world/level/levelgen/XoroshiroRandomSource.java
+@@ -106,15 +106,7 @@ public class XoroshiroRandomSource implements RandomSource {
+         return this.randomNumberGenerator.nextLong() >>> 64 - bits;
+     }
+ 
+-    public static class XoroshiroPositionalRandomFactory implements PositionalRandomFactory {
+-        private final long seedLo;
+-        private final long seedHi;
+-
+-        public XoroshiroPositionalRandomFactory(long seedLo, long seedHi) {
+-            this.seedLo = seedLo;
+-            this.seedHi = seedHi;
+-        }
+-
++    public record XoroshiroPositionalRandomFactory(long seedLo, long seedHi) implements PositionalRandomFactory { // DivineMC - make record
+         @Override
+         public RandomSource at(int x, int y, int z) {
+             long seed = Mth.getSeed(x, y, z);
+diff --git a/net/minecraft/world/level/levelgen/feature/stateproviders/RandomizedIntStateProvider.java b/net/minecraft/world/level/levelgen/feature/stateproviders/RandomizedIntStateProvider.java
+index f4009671880b00ecec98fe604215e2824e453cdf..7b00301da0b3fb6429d04e4d10cafa30e168aa62 100644
+--- a/net/minecraft/world/level/levelgen/feature/stateproviders/RandomizedIntStateProvider.java
++++ b/net/minecraft/world/level/levelgen/feature/stateproviders/RandomizedIntStateProvider.java
+@@ -54,18 +54,21 @@ public class RandomizedIntStateProvider extends BlockStateProvider {
+     }
+ 
+     @Override
++    @SuppressWarnings("DataFlowIssue")
+     public BlockState getState(RandomSource random, BlockPos pos) {
+-        BlockState state = this.source.getState(random, pos);
+-        if (this.property == null || !state.hasProperty(this.property)) {
+-            IntegerProperty integerProperty = findProperty(state, this.propertyName);
+-            if (integerProperty == null) {
+-                return state;
++        BlockState blockState = this.source.getState(random, pos);
++        IntegerProperty propertyLocal = this.property;
++        if (propertyLocal == null || !blockState.hasProperty(propertyLocal)) {
++            IntegerProperty intProperty = findProperty(blockState, this.propertyName);
++            if (intProperty == null) {
++                return blockState;
+             }
+ 
+-            this.property = integerProperty;
++            propertyLocal = intProperty;
++            this.property = intProperty;
+         }
+ 
+-        return state.setValue(this.property, Integer.valueOf(this.values.sample(random)));
++        return (BlockState)blockState.setValue(propertyLocal, this.values.sample(random));
+     }
+ 
+     @Nullable
+diff --git a/net/minecraft/world/level/levelgen/structure/ScatteredFeaturePiece.java b/net/minecraft/world/level/levelgen/structure/ScatteredFeaturePiece.java
+index d122221deefb218db962e97ba2d958c33d903b8a..56311b439ac22700593d2d31da3a4efe3a519d53 100644
+--- a/net/minecraft/world/level/levelgen/structure/ScatteredFeaturePiece.java
++++ b/net/minecraft/world/level/levelgen/structure/ScatteredFeaturePiece.java
+@@ -12,7 +12,7 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
+     protected final int width;
+     protected final int height;
+     protected final int depth;
+-    protected int heightPosition = -1;
++    protected volatile int heightPosition = -1; // DivineMC - Chunk System optimization - make volatile
+ 
+     protected ScatteredFeaturePiece(StructurePieceType type, int x, int y, int z, int width, int height, int depth, Direction orientation) {
+         super(type, 0, StructurePiece.makeBoundingBox(x, y, z, orientation, width, height, depth));
+diff --git a/net/minecraft/world/level/levelgen/structure/StructureCheck.java b/net/minecraft/world/level/levelgen/structure/StructureCheck.java
+index f7dc4957b38878ddd3bfc7546be8a4e0af65c807..4023115e8120a6ccbc2a5bf7f2d17ffb2f808eb7 100644
+--- a/net/minecraft/world/level/levelgen/structure/StructureCheck.java
++++ b/net/minecraft/world/level/levelgen/structure/StructureCheck.java
+@@ -46,6 +46,7 @@ public class StructureCheck {
+     private final LevelHeightAccessor heightAccessor;
+     private final BiomeSource biomeSource;
+     private final long seed;
++    private Object mapMutex = new Object(); // DivineMC - Chunk System Optimizations
+     private final DataFixer fixerUpper;
+     // Paper start - rewrite chunk system
+     // make sure to purge entries from the maps to prevent memory leaks
+@@ -235,15 +236,13 @@ public class StructureCheck {
+     }
+ 
+     private void storeFullResults(long chunkPos, Object2IntMap<Structure> structureChunks) {
+-        // Paper start - rewrite chunk system
++        // DivineMC start - Chunk System Optimizations
+         this.loadedChunksSafe.put(chunkPos, deduplicateEmptyMap(structureChunks));
+-        // once we insert into loadedChunks, we don't really need to be very careful about removing everything
+-        // from this map, as everything that checks this map uses loadedChunks first
+-        // so, one way or another it's a race condition that doesn't matter
+-        for (ca.spottedleaf.moonrise.common.map.SynchronisedLong2BooleanMap value : this.featureChecksSafe.values()) {
+-            value.remove(chunkPos);
++
++        synchronized (this.mapMutex) {
++            this.featureChecksSafe.values().forEach((long2BooleanMap) -> long2BooleanMap.remove(chunkPos));
+         }
+-        // Paper end - rewrite chunk system
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     public void incrementReference(ChunkPos pos, Structure structure) {
+diff --git a/net/minecraft/world/level/levelgen/structure/StructureStart.java b/net/minecraft/world/level/levelgen/structure/StructureStart.java
+index 4dafa79dd4ec55a443ba3731a79e7cd6e8052f48..8aeab4d773473ad20b1c64295c93d6fcb4ea02a1 100644
+--- a/net/minecraft/world/level/levelgen/structure/StructureStart.java
++++ b/net/minecraft/world/level/levelgen/structure/StructureStart.java
+@@ -26,7 +26,7 @@ public final class StructureStart {
+     private final Structure structure;
+     private final PiecesContainer pieceContainer;
+     private final ChunkPos chunkPos;
+-    private int references;
++    private final java.util.concurrent.atomic.AtomicInteger references = new java.util.concurrent.atomic.AtomicInteger(); // DivineMC - Chunk System optimization
+     @Nullable
+     private volatile BoundingBox cachedBoundingBox;
+ 
+@@ -39,7 +39,7 @@ public final class StructureStart {
+     public StructureStart(Structure structure, ChunkPos chunkPos, int references, PiecesContainer pieceContainer) {
+         this.structure = structure;
+         this.chunkPos = chunkPos;
+-        this.references = references;
++        this.references.set(references); // DivineMC - Chunk System optimization
+         this.pieceContainer = pieceContainer;
+     }
+ 
+@@ -126,7 +126,7 @@ public final class StructureStart {
+             compoundTag.putString("id", context.registryAccess().lookupOrThrow(Registries.STRUCTURE).getKey(this.structure).toString());
+             compoundTag.putInt("ChunkX", chunkPos.x);
+             compoundTag.putInt("ChunkZ", chunkPos.z);
+-            compoundTag.putInt("references", this.references);
++            compoundTag.putInt("references", this.references.get()); // DivineMC - Chunk System optimization
+             compoundTag.put("Children", this.pieceContainer.save(context));
+             return compoundTag;
+         } else {
+@@ -144,15 +144,15 @@ public final class StructureStart {
+     }
+ 
+     public boolean canBeReferenced() {
+-        return this.references < this.getMaxReferences();
++        return this.references.get() < this.getMaxReferences(); // DivineMC - Chunk System optimization
+     }
+ 
+     public void addReference() {
+-        this.references++;
++        this.references.getAndIncrement(); // DivineMC - Chunk System optimization
+     }
+ 
+     public int getReferences() {
+-        return this.references;
++        return this.references.get(); // DivineMC - Chunk System optimization
+     }
+ 
+     protected int getMaxReferences() {
+diff --git a/net/minecraft/world/level/levelgen/structure/pools/StructurePoolElement.java b/net/minecraft/world/level/levelgen/structure/pools/StructurePoolElement.java
+index c84d865837e0f009fcde19e14a44fa43aefe660a..64d7adbd4aa398044a1d68d51e463b672ee81edf 100644
+--- a/net/minecraft/world/level/levelgen/structure/pools/StructurePoolElement.java
++++ b/net/minecraft/world/level/levelgen/structure/pools/StructurePoolElement.java
+@@ -27,9 +27,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
+ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+ 
+ public abstract class StructurePoolElement {
+-    public static final Codec<StructurePoolElement> CODEC = BuiltInRegistries.STRUCTURE_POOL_ELEMENT
++    public static final Codec<StructurePoolElement> CODEC = new org.bxteam.divinemc.util.SynchronizedCodec<>(BuiltInRegistries.STRUCTURE_POOL_ELEMENT // DivineMC - Chunk System Optimizations
+         .byNameCodec()
+-        .dispatch("element_type", StructurePoolElement::getType, StructurePoolElementType::codec);
++        .dispatch("element_type", StructurePoolElement::getType, StructurePoolElementType::codec)); // DivineMC - Chunk System Optimizations
+     private static final Holder<StructureProcessorList> EMPTY = Holder.direct(new StructureProcessorList(List.of()));
+     @Nullable
+     private volatile StructureTemplatePool.Projection projection;
+diff --git a/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java b/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java
+index 05027cc20d174d78bef118cd2ba545ac56e1559c..32bbfe48dee44b0b491aa369dec59cbf0772c4b5 100644
+--- a/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java
++++ b/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java
+@@ -22,7 +22,7 @@ public class StructurePlaceSettings {
+     @Nullable
+     private RandomSource random;
+     public int palette = -1; // CraftBukkit - Set initial value so we know if the palette has been set forcefully
+-    private final List<StructureProcessor> processors = Lists.newArrayList();
++    private final List<StructureProcessor> processors = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
+     private boolean knownShape;
+     private boolean finalizeEntities;
+ 
+diff --git a/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java b/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
+index ab1dcbe416e2c3c94cfddf04b7ed053425a71806..a37eb2e29b4577ebc711e8ef7b47fbbc3bc66897 100644
+--- a/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
++++ b/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
+@@ -71,8 +71,8 @@ public class StructureTemplate {
+     public static final String ENTITY_TAG_BLOCKPOS = "blockPos";
+     public static final String ENTITY_TAG_NBT = "nbt";
+     public static final String SIZE_TAG = "size";
+-    public final List<StructureTemplate.Palette> palettes = Lists.newArrayList();
+-    public final List<StructureTemplate.StructureEntityInfo> entityInfoList = Lists.newArrayList();
++    public final List<StructureTemplate.Palette> palettes = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
++    public final List<StructureTemplate.StructureEntityInfo> entityInfoList = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
+     private Vec3i size = Vec3i.ZERO;
+     private String author = "?";
+     // CraftBukkit start - data containers
+diff --git a/net/minecraft/world/level/levelgen/synth/PerlinNoise.java b/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
+index ffac5b7b1eb1364ab8442d7145a7b4ebde68ee10..ef28df96ed569113a9d61f6ac4b4d84d578c02da 100644
+--- a/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
++++ b/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
+@@ -187,7 +187,7 @@ public class PerlinNoise {
+     }
+ 
+     public static double wrap(double value) {
+-        return value - Mth.lfloor(value / 3.3554432E7 + 0.5) * 3.3554432E7;
++        return value - Math.floor(value / 3.3554432E7 + 0.5) * 3.3554432E7; // DivineMC - avoid casting
+     }
+ 
+     protected int firstOctave() {

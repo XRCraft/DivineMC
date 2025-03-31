@@ -218,10 +218,10 @@ index 9fcdff2be139296f4e14b54c33cc795efdff0c7f..64c3bbe540599e5195f0cc89635bff2c
          // Paper start - Add setting for proxy online mode status
          return properties.enforceSecureProfile
 diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index 0c499eca39371993c46d510fa45298efdd67d20c..2eccb615dfebf64ca76d2cce1876d6ec2afe518d 100644
+index 801dd76a2c7f76fc6fdb7167cbf3ab1310be36c9..4fa55fac5dab26a505cba2c1876e9459a582da12 100644
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-@@ -308,10 +308,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -312,10 +312,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
      }
  
      public void send(Packet<?> packet) {

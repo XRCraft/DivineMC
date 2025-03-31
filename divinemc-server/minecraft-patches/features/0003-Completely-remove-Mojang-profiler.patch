@@ -1510,7 +1510,7 @@ index a9f723528dd05cb9583319edcb14143b784a2fd7..21d41b477cc0e8d2476d1e3141bdf23d
                  this.stopUsingItem();
                  this.connection.send(new ClientboundPlayerAbilitiesPacket(this.getAbilities()));
 diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index 398c1733824b689520170de0be94006731afa5cd..0c499eca39371993c46d510fa45298efdd67d20c 100644
+index c089a01765945277aafc62cb3566d81162c40c1d..801dd76a2c7f76fc6fdb7167cbf3ab1310be36c9 100644
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 @@ -24,7 +24,6 @@ import net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket;
@@ -1521,7 +1521,7 @@ index 398c1733824b689520170de0be94006731afa5cd..0c499eca39371993c46d510fa45298ef
  import org.slf4j.Logger;
  
  public abstract class ServerCommonPacketListenerImpl implements ServerCommonPacketListener, org.bukkit.craftbukkit.entity.CraftPlayer.TransferCookieConnection { // CraftBukkit
-@@ -252,7 +251,6 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -256,7 +255,6 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
      }
  
      protected void keepConnectionAlive() {
@@ -1529,7 +1529,7 @@ index 398c1733824b689520170de0be94006731afa5cd..0c499eca39371993c46d510fa45298ef
          long millis = Util.getMillis();
          // Paper start - give clients a longer time to respond to pings as per pre 1.12.2 timings
          // This should effectively place the keepalive handling back to "as it was" before 1.12.2
-@@ -286,8 +284,6 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -290,8 +288,6 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
                  this.send(new ClientboundKeepAlivePacket(this.keepAliveChallenge));
              }
          }

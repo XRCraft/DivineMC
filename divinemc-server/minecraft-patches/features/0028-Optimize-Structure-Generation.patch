@@ -231,7 +231,7 @@ index 4a6da3648c513a6cce16cf71246937d2d0ad014d..6af4c9026e814dee1ed4c7593ad00b5f
 +    // Quiil end - Optimize Structure Generation
  }
 diff --git a/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java b/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
-index ab1dcbe416e2c3c94cfddf04b7ed053425a71806..985d11f0b72858d66ad011d83106730b07e25242 100644
+index a37eb2e29b4577ebc711e8ef7b47fbbc3bc66897..45d6fbeeaac577bb35adb69fd344b9486953ea03 100644
 --- a/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
 +++ b/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
 @@ -249,6 +249,12 @@ public class StructureTemplate {

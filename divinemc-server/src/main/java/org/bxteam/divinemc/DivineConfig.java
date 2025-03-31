@@ -185,7 +185,6 @@ public class DivineConfig {
     public static ChunkSystemAlgorithms chunkWorkerAlgorithm = ChunkSystemAlgorithms.C2ME;
     public static ChunkTaskPriority chunkTaskPriority = ChunkTaskPriority.EUCLIDEAN_CIRCLE_PATTERN;
     public static int threadPoolPriority = Thread.NORM_PRIORITY + 1;
-    public static boolean enableAsyncNoiseFill = false;
     public static boolean asyncChunkSendingEnabled = true;
     public static boolean enableSecureSeed = false;
     public static boolean smoothBedrockLayer = false;
@@ -223,8 +222,6 @@ public class DivineConfig {
             " - DEFAULT_DIAMOND_PATTERN: Default one, chunk priorities will be ordered in a diamond pattern"));
         threadPoolPriority = getInt("settings.chunks.thread-pool-priority", threadPoolPriority,
             "Sets the priority of the thread pool used for chunk generation");
-        enableAsyncNoiseFill = getBoolean("settings.chunks.enable-async-noise-fill", enableAsyncNoiseFill,
-            "Runs noise filling and biome populating in a virtual thread executor. If disabled, it will run sync.");
 
         enableSecureSeed = getBoolean("settings.chunks.enable-secure-seed", enableSecureSeed,
             "This feature is based on Secure Seed mod by Earthcomputer.",
