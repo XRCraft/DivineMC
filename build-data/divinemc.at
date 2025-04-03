@@ -55,6 +55,7 @@ public net.minecraft.world.level.levelgen.Xoroshiro128PlusPlus seedHi
 public net.minecraft.world.level.levelgen.Xoroshiro128PlusPlus seedLo
 public net.minecraft.world.level.levelgen.XoroshiroRandomSource randomNumberGenerator
 public net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool rawTemplates
+public net.minecraft.world.level.levelgen.structure.structures.WoodlandMansionPieces$SimpleGrid
 public net.minecraft.world.level.levelgen.synth.BlendedNoise mainNoise
 public net.minecraft.world.level.levelgen.synth.BlendedNoise maxLimitNoise
 public net.minecraft.world.level.levelgen.synth.BlendedNoise minLimitNoise

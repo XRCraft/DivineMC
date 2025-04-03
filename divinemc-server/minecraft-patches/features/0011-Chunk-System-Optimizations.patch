@@ -855,14 +855,14 @@ index 26c8c1e5598daf3550aef05b12218c47bda6618b..94c824ab1457939c425e1f99929d3222
  
      boolean isClientSide();
 diff --git a/net/minecraft/world/level/biome/BiomeManager.java b/net/minecraft/world/level/biome/BiomeManager.java
-index 73962e79a0f3d892e3155443a1b84508b0f4042e..90a1c301172851566e6e16f39e3dbb5fd322bdc3 100644
+index 73962e79a0f3d892e3155443a1b84508b0f4042e..5622345280267792861c8d508d0366cfdfb2c17a 100644
 --- a/net/minecraft/world/level/biome/BiomeManager.java
 +++ b/net/minecraft/world/level/biome/BiomeManager.java
 @@ -14,6 +14,7 @@ public class BiomeManager {
      private static final int ZOOM_MASK = 3;
      private final BiomeManager.NoiseBiomeSource noiseBiomeSource;
      private final long biomeZoomSeed;
-+    private static final double maxOffset = 0.4500000001D; // DivineMC - World and Noise gen optimizations
++    private static final double maxOffset = 0.4500000001D; // DivineMC - Chunk System Optimizations
  
      public BiomeManager(BiomeManager.NoiseBiomeSource noiseBiomeSource, long biomeZoomSeed) {
          this.noiseBiomeSource = noiseBiomeSource;
@@ -881,7 +881,7 @@ index 73962e79a0f3d892e3155443a1b84508b0f4042e..90a1c301172851566e6e16f39e3dbb5f
 -        double d2 = (i2 & 3) / 4.0;
 -        int i6 = 0;
 -        double d3 = Double.POSITIVE_INFINITY;
-+        // DivineMC start - World and Noise gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        int xMinus2 = pos.getX() - 2;
 +        int yMinus2 = pos.getY() - 2;
 +        int zMinus2 = pos.getZ() - 2;
@@ -958,19 +958,19 @@ index 73962e79a0f3d892e3155443a1b84508b0f4042e..90a1c301172851566e6e16f39e3dbb5f
 +            (smallestX & 2) == 0 ? y : y + 1,
 +            (smallestX & 1) == 0 ? z : z + 1
 +        );
-+        // DivineMC end - World and Noise gen optimizations
++        // DivineMC end - Chunk System Optimizations
      }
  
      public Holder<Biome> getNoiseBiomeAtPosition(double x, double y, double z) {
 diff --git a/net/minecraft/world/level/biome/TheEndBiomeSource.java b/net/minecraft/world/level/biome/TheEndBiomeSource.java
-index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e0260e83b98 100644
+index cf3172be76fa4c7987ed569138439ff42f92fa7f..ed3c470056855a520a110ac7014f7839bcc85b88 100644
 --- a/net/minecraft/world/level/biome/TheEndBiomeSource.java
 +++ b/net/minecraft/world/level/biome/TheEndBiomeSource.java
 @@ -27,6 +27,33 @@ public class TheEndBiomeSource extends BiomeSource {
      private final Holder<Biome> islands;
      private final Holder<Biome> barrens;
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
 +    private Holder<Biome> getBiomeForNoiseGenVanilla(int x, int y, int z, Climate.Sampler noise) {
 +        int i = QuartPos.toBlock(x);
 +        int j = QuartPos.toBlock(y);
@@ -995,7 +995,7 @@ index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e02
 +
 +    private final ThreadLocal<it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<Holder<Biome>>> cache = ThreadLocal.withInitial(it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap::new);
 +    private final int cacheCapacity = 1024;
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
 +
      public static TheEndBiomeSource create(HolderGetter<Biome> biomeGetter) {
          return new TheEndBiomeSource(
@@ -1004,7 +1004,7 @@ index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e02
          return CODEC;
      }
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
      @Override
 -    public Holder<Biome> getNoiseBiome(int x, int y, int z, Climate.Sampler sampler) {
 -        int blockPosX = QuartPos.toBlock(x);
@@ -1040,17 +1040,17 @@ index cf3172be76fa4c7987ed569138439ff42f92fa7f..bfc65a4d8d1e64f42ff13508020e5e02
 +            return gennedBiome;
          }
      }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
  }
 diff --git a/net/minecraft/world/level/chunk/LevelChunkSection.java b/net/minecraft/world/level/chunk/LevelChunkSection.java
-index c83d0667b19830304f22319a46a23422a8766790..e85d65340fd9707ec1d32cc8aed496366c61e7bf 100644
+index c83d0667b19830304f22319a46a23422a8766790..aa10c5087a0fc9306b734f20ccbad73045a1b6d0 100644
 --- a/net/minecraft/world/level/chunk/LevelChunkSection.java
 +++ b/net/minecraft/world/level/chunk/LevelChunkSection.java
 @@ -23,6 +23,7 @@ public class LevelChunkSection implements ca.spottedleaf.moonrise.patches.block_
      public short tickingFluidCount;
      public final PalettedContainer<BlockState> states;
      private PalettedContainer<Holder<Biome>> biomes; // CraftBukkit - read/write
-+    private static final int sliceSize = 4; // DivineMC - World and Noise gen optimizations
++    private static final int sliceSize = 4; // DivineMC - Chunk System Optimizations
  
      // Paper start - block counting
      private static final it.unimi.dsi.fastutil.shorts.ShortArrayList FULL_LIST = new it.unimi.dsi.fastutil.shorts.ShortArrayList(16*16*16);
@@ -1059,7 +1059,7 @@ index c83d0667b19830304f22319a46a23422a8766790..e85d65340fd9707ec1d32cc8aed49636
  
      public boolean maybeHas(Predicate<BlockState> predicate) {
 -        return this.states.maybeHas(predicate);
-+        return this.states.maybeHasOrCatch(predicate, Blocks.AIR.defaultBlockState()); // DivineMC - World gen optimizations
++        return this.states.maybeHasOrCatch(predicate, Blocks.AIR.defaultBlockState()); // DivineMC - Chunk System Optimizations
      }
  
      public Holder<Biome> getNoiseBiome(int x, int y, int z) {
@@ -1071,7 +1071,7 @@ index c83d0667b19830304f22319a46a23422a8766790..e85d65340fd9707ec1d32cc8aed49636
 -            for (int i2 = 0; i2 < 4; i2++) {
 -                for (int i3 = 0; i3 < 4; i3++) {
 -                    palettedContainer.getAndSetUnchecked(i1, i2, i3, biomeResolver.getNoiseBiome(x + i1, y + i2, z + i3, climateSampler));
-+        // DivineMC start - World and Noise gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        for (int posY = 0; posY < sliceSize; ++posY) {
 +            for (int posZ = 0; posZ < sliceSize; ++posZ) {
 +                for (int posX = 0; posX < sliceSize; ++posX) {
@@ -1079,12 +1079,12 @@ index c83d0667b19830304f22319a46a23422a8766790..e85d65340fd9707ec1d32cc8aed49636
                  }
              }
          }
-+        // DivineMC end - World and Noise gen optimizations
++        // DivineMC end - Chunk System Optimizations
  
          this.biomes = palettedContainer;
      }
 diff --git a/net/minecraft/world/level/chunk/LinearPalette.java b/net/minecraft/world/level/chunk/LinearPalette.java
-index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c734e28414 100644
+index 2073f6ff41aa570102621d183ee890b076267d54..25d46d1dff23a9bffd135d6954b551991e175cd4 100644
 --- a/net/minecraft/world/level/chunk/LinearPalette.java
 +++ b/net/minecraft/world/level/chunk/LinearPalette.java
 @@ -12,7 +12,7 @@ public class LinearPalette<T> implements Palette<T>, ca.spottedleaf.moonrise.pat
@@ -1092,7 +1092,7 @@ index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c7
      private final PaletteResize<T> resizeHandler;
      private final int bits;
 -    private int size;
-+    private volatile int size; // DivineMC - World gen optimizations
++    private volatile int size; // DivineMC - Chunk System Optimizations
  
      // Paper start - optimise palette reads
      @Override
@@ -1102,14 +1102,14 @@ index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c7
      public int idFor(T state) {
 -        for (int i = 0; i < this.size; i++) {
 -            if (this.values[i] == state) {
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        final T[] values = this.values;
 +        for (int i = 0; i < values.length; i++) {
 +            if (values[i] == state) {
                  return i;
              }
          }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
  
          int ix = this.size;
          if (ix < this.values.length) {
@@ -1119,7 +1119,7 @@ index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c7
      public boolean maybeHas(Predicate<T> filter) {
 -        for (int i = 0; i < this.size; i++) {
 -            if (filter.test(this.values[i])) {
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        final T[] values = this.values;
 +        final int currentSize = this.size;
 +
@@ -1129,47 +1129,47 @@ index 2073f6ff41aa570102621d183ee890b076267d54..3a82e00138538cd34c184b69976d97c7
                  return true;
              }
          }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
  
          return false;
      }
  
      @Override
 -    public T valueFor(int id) {
-+    public synchronized T valueFor(int id) { // DivineMC - World gen optimizations
++    public synchronized T valueFor(int id) { // DivineMC - Chunk System Optimizations
          if (id >= 0 && id < this.size) {
              return this.values[id];
          } else {
 diff --git a/net/minecraft/world/level/chunk/Palette.java b/net/minecraft/world/level/chunk/Palette.java
-index a80b2e9dceea423180a9c390d1970317dff4f1b0..7f5c7e251b56d3a82176538bbb432b43b1534756 100644
+index a80b2e9dceea423180a9c390d1970317dff4f1b0..6d9dfc1837dccef2073da180aaaf68b07b04a8e3 100644
 --- a/net/minecraft/world/level/chunk/Palette.java
 +++ b/net/minecraft/world/level/chunk/Palette.java
 @@ -10,6 +10,12 @@ public interface Palette<T> extends ca.spottedleaf.moonrise.patches.fast_palette
  
      boolean maybeHas(Predicate<T> filter);
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
 +    public default boolean maybeHasOrCatch(Predicate<T> filter, T defaultValue) {
 +        return this.maybeHas(filter);
 +    }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
 +
      T valueFor(int id);
  
      void read(FriendlyByteBuf buffer);
 diff --git a/net/minecraft/world/level/chunk/PalettedContainer.java b/net/minecraft/world/level/chunk/PalettedContainer.java
-index 230cb433c38f9b6ffb1adeaa8b6040490f13e826..ea870afe24eb33a1333a32a42df5277155501ebc 100644
+index 230cb433c38f9b6ffb1adeaa8b6040490f13e826..712d3d1669aecd38934957c81835e1f38289539a 100644
 --- a/net/minecraft/world/level/chunk/PalettedContainer.java
 +++ b/net/minecraft/world/level/chunk/PalettedContainer.java
 @@ -393,6 +393,12 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
          return this.data.palette.maybeHas(predicate);
      }
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
 +    public boolean maybeHasOrCatch(Predicate<T> predicate, @org.jetbrains.annotations.NotNull T defaultValue) {
 +        return this.data.palette.maybeHasOrCatch(predicate, defaultValue);
 +    }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
 +
      @Override
      public PalettedContainer<T> copy() {
@@ -1188,7 +1188,7 @@ index e66239e2da91bd3ddf358d239be796719c0da327..35e9d8cfe12252d3419626f1cefb64d3
      private CarvingMask carvingMask;
      @Nullable
 diff --git a/net/minecraft/world/level/chunk/SingleValuePalette.java b/net/minecraft/world/level/chunk/SingleValuePalette.java
-index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0ba71ad82f 100644
+index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..c3ec5e5645f680a915c95d833b589b680c82c35d 100644
 --- a/net/minecraft/world/level/chunk/SingleValuePalette.java
 +++ b/net/minecraft/world/level/chunk/SingleValuePalette.java
 @@ -11,7 +11,7 @@ import org.apache.commons.lang3.Validate;
@@ -1196,7 +1196,7 @@ index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0b
      private final IdMap<T> registry;
      @Nullable
 -    private T value;
-+    private volatile T value; // DivineMC - World gen optimizations
++    private volatile T value; // DivineMC - Chunk System Optimizations
      private final PaletteResize<T> resizeHandler;
  
      // Paper start - optimise palette reads
@@ -1204,7 +1204,7 @@ index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0b
          if (this.value != null && this.value != state) {
              return this.resizeHandler.onResize(1, state);
          } else {
-+            if (state == null) throw new IllegalArgumentException("Null state not allowed"); // DivineMC - World gen optimizations
++            if (state == null) throw new IllegalArgumentException("Null state not allowed"); // DivineMC - Chunk System Optimizations
              this.value = state;
              // Paper start - optimise palette reads
              if (this.rawPalette != null) {
@@ -1212,7 +1212,7 @@ index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0b
          }
      }
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
 +    @Override
 +    public boolean maybeHasOrCatch(final Predicate<T> filter, final T defaultValue) {
 +        if (this.value == null) {
@@ -1223,7 +1223,7 @@ index 2ffae24b0cb1a20c7d5a8520f1b5197c2cedea11..fa08186de1e053858c9aedd8551f2c0b
 +            return filter.test(this.value);
 +        }
 +    }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
 +
      @Override
      public T valueFor(int id) {
@@ -1285,14 +1285,14 @@ index 6ebd1300c2561116b83cb2472ac7939ead36d576..16cd10ab8de69ca3d29c84cf93715645
          this.isChunkData = isChunkDataFolder(this.folder); // Paper - recalculate region file headers
      }
 diff --git a/net/minecraft/world/level/levelgen/Aquifer.java b/net/minecraft/world/level/levelgen/Aquifer.java
-index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb738d88ba6 100644
+index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..bc67039f8374ae4e471ca14e0c623e6bf334020f 100644
 --- a/net/minecraft/world/level/levelgen/Aquifer.java
 +++ b/net/minecraft/world/level/levelgen/Aquifer.java
 @@ -85,6 +85,15 @@ public interface Aquifer {
          private final int minGridZ;
          private final int gridSizeX;
          private final int gridSizeZ;
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        private int c2me$dist1;
 +        private int c2me$dist2;
 +        private int c2me$dist3;
@@ -1300,7 +1300,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +        private long c2me$pos2;
 +        private long c2me$pos3;
 +        private double c2me$mutableDoubleThingy;
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
          private static final int[][] SURFACE_SAMPLING_OFFSETS_IN_CHUNKS = new int[][]{
              {0, 0}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {1, 0}, {-2, 1}, {-1, 1}, {0, 1}, {1, 1}
          };
@@ -1308,7 +1308,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
              this.aquiferCache = new Aquifer.FluidStatus[i4];
              this.aquiferLocationCache = new long[i4];
              Arrays.fill(this.aquiferLocationCache, Long.MAX_VALUE);
-+            // DivineMC start - World gen optimizations
++            // DivineMC start - Chunk System Optimizations
 +            if (this.aquiferLocationCache.length % (this.gridSizeX * this.gridSizeZ) != 0) {
 +                throw new AssertionError("Array length");
 +            }
@@ -1337,7 +1337,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +                    throw new AssertionError("Array initialization");
 +                }
 +            }
-+            // DivineMC end - World gen optimizations
++            // DivineMC end - Chunk System Optimizations
          }
  
          private int getIndex(int gridX, int gridY, int gridZ) {
@@ -1345,7 +1345,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
          @Nullable
          @Override
          public BlockState computeSubstance(DensityFunction.FunctionContext context, double substance) {
-+            // DivineMC start - World gen optimizations
++            // DivineMC start - Chunk System Optimizations
              int i = context.blockX();
 -            int i1 = context.blockY();
 -            int i2 = context.blockZ();
@@ -1486,7 +1486,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +                    return aquiferExtracted$applyPost(context, substance, j, i, k);
                  }
              }
-+            // DivineMC end - World gen optimizations
++            // DivineMC end - Chunk System Optimizations
          }
  
          @Override
@@ -1494,7 +1494,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
              return 1.0 - Math.abs(secondDistance - firstDistance) / 25.0;
          }
  
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
          private double calculatePressure(
 -            DensityFunction.FunctionContext context, MutableDouble substance, Aquifer.FluidStatus firstFluid, Aquifer.FluidStatus secondFluid
 +            DensityFunction.FunctionContext context, MutableDouble substance, Aquifer.FluidStatus fluidLevel, Aquifer.FluidStatus fluidLevel2 // DivineMC - rename args
@@ -1562,7 +1562,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
                  return 2.0;
              }
          }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
  
          private int gridX(int x) {
              return Math.floorDiv(x, 16);
@@ -1581,7 +1581,7 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 -            Aquifer.FluidStatus fluidStatus = this.aquiferCache[index];
 -            if (fluidStatus != null) {
 -                return fluidStatus;
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        private Aquifer.FluidStatus getAquiferStatus(long pos) {
 +            int i = BlockPos.getX(pos);
 +            int j = BlockPos.getY(pos);
@@ -1602,17 +1602,16 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +                return fluidLevel2;
              }
          }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
  
          private Aquifer.FluidStatus computeFluid(int x, int y, int z) {
              Aquifer.FluidStatus fluidStatus = this.globalFluidPicker.computeFluid(x, y, z);
-@@ -406,23 +294,22 @@ public interface Aquifer {
-             return new Aquifer.FluidStatus(i7, this.computeFluidType(x, y, z, fluidStatus, i7));
+@@ -407,22 +295,21 @@ public interface Aquifer {
          }
  
-+        // DivineMC start - World gen optimizations
          private int computeSurfaceLevel(int x, int y, int z, Aquifer.FluidStatus fluidStatus, int maxSurfaceLevel, boolean fluidPresent) {
 -            DensityFunction.SinglePointContext singlePointContext = new DensityFunction.SinglePointContext(x, y, z);
++            // DivineMC start - Chunk System Optimizations
 +            DensityFunction.SinglePointContext unblendedNoisePos = new DensityFunction.SinglePointContext(x, y, z);
              double d;
              double d1;
@@ -1634,16 +1633,35 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +                d = g + 0.8 + (f - 1.0) * 1.2; // inline
 +                d1 = g + 0.3 + (f - 1.0) * 1.1; // inline
              }
-+        // DivineMC end - World gen optimizations
++            // DivineMC end - Chunk System Optimizations
  
              int i;
              if (d1 > 0.0) {
+@@ -453,12 +340,12 @@ public interface Aquifer {
+         private BlockState computeFluidType(int x, int y, int z, Aquifer.FluidStatus fluidStatus, int surfaceLevel) {
+             BlockState blockState = fluidStatus.fluidType;
+             if (surfaceLevel <= -10 && surfaceLevel != DimensionType.WAY_BELOW_MIN_Y && fluidStatus.fluidType != Blocks.LAVA.defaultBlockState()) {
+-                int i = 64;
+-                int i1 = 40;
+-                int i2 = Math.floorDiv(x, 64);
+-                int i3 = Math.floorDiv(y, 40);
+-                int i4 = Math.floorDiv(z, 64);
+-                double d = this.lavaNoise.compute(new DensityFunction.SinglePointContext(i2, i3, i4));
++                // DivineMC start - Chunk System Optimizations
++                int k = x >> 6;
++                int l = Math.floorDiv(y, 40);
++                int m = z >> 6;
++                double d = this.lavaNoise.compute(new DensityFunction.SinglePointContext(k, l, m));
++                // DivineMC end - Chunk System Optimizations
+                 if (Math.abs(d) > 0.3) {
+                     blockState = Blocks.LAVA.defaultBlockState();
+                 }
 @@ -466,5 +353,183 @@ public interface Aquifer {
  
              return blockState;
          }
 +
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        private @org.jetbrains.annotations.Nullable BlockState aquiferExtracted$applyPost(DensityFunction.FunctionContext pos, double density, int j, int i, int k) {
 +            Aquifer.FluidStatus fluidLevel2 = this.getAquiferStatus(this.c2me$pos1);
 +            double d = similarity(this.c2me$dist1, this.c2me$dist2);
@@ -1819,18 +1837,18 @@ index c62a15ea4a1bb22e7bcc2fc544acf8a601892029..43dd5f63fe7834d41874ea30651f3fb7
 +            }
 +            return q;
 +        }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
      }
  }
 diff --git a/net/minecraft/world/level/levelgen/Beardifier.java b/net/minecraft/world/level/levelgen/Beardifier.java
-index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be09975797 100644
+index 131923282c9ecbcb1d7f45a826da907c02bd2716..1af75406ba69c5eec4a41fe7a8dce0d07c259099 100644
 --- a/net/minecraft/world/level/levelgen/Beardifier.java
 +++ b/net/minecraft/world/level/levelgen/Beardifier.java
 @@ -29,6 +29,17 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
      });
      private final ObjectListIterator<Beardifier.Rigid> pieceIterator;
      private final ObjectListIterator<JigsawJunction> junctionIterator;
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
 +    private Beardifier.Rigid[] c2me$pieceArray;
 +    private JigsawJunction[] c2me$junctionArray;
 +
@@ -1840,7 +1858,7 @@ index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be
 +        this.c2me$junctionArray = com.google.common.collect.Iterators.toArray(this.junctionIterator, JigsawJunction.class);
 +        this.junctionIterator.back(Integer.MAX_VALUE);
 +    }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
  
      public static Beardifier forStructuresInChunk(StructureManager structureManager, ChunkPos chunkPos) {
          int minBlockX = chunkPos.getMinBlockX();
@@ -1848,7 +1866,7 @@ index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be
          this.junctionIterator = junctionIterator;
      }
  
-+    // DivineMC start - World gen optimizations
++    // DivineMC start - Chunk System Optimizations
      @Override
      public double compute(DensityFunction.FunctionContext context) {
 +        if (this.c2me$pieceArray == null || this.c2me$junctionArray == null) {
@@ -1915,7 +1933,7 @@ index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be
 -        this.junctionIterator.back(Integer.MAX_VALUE);
          return d;
      }
-+    // DivineMC end - World gen optimizations
++    // DivineMC end - Chunk System Optimizations
  
      @Override
      public double minValue() {
@@ -1925,14 +1943,14 @@ index 131923282c9ecbcb1d7f45a826da907c02bd2716..36dd3eb0cb29d546531aec91a9c486be
      private static double getBuryContribution(double x, double y, double z) {
 -        double len = Mth.length(x, y, z);
 -        return Mth.clampedMap(len, 0.0, 6.0, 1.0, 0.0);
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        double d = Math.sqrt(x * x + y * y + z * z);
 +        if (d > 6.0) {
 +            return 0.0;
 +        } else {
 +            return 1.0 - d / 6.0;
 +        }
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
      }
  
      private static double getBeardContribution(int x, int y, int z, int height) {
@@ -1981,7 +1999,7 @@ index c67168517774a0ad9ca43422a79ef14a8ea0c2e8..026dfbbb6c3fd5cd274dcbf721e5cf3a
          public RandomSource at(int x, int y, int z) {
              long seed = Mth.getSeed(x, y, z);
 diff --git a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
-index 65728ef17e63d71833677fdcbd5bb90794b4822b..536a285141caea49a316abcff39cb1ed7fd04238 100644
+index 65728ef17e63d71833677fdcbd5bb90794b4822b..eb61a3c995afe5af1cd385826e882acf441e2785 100644
 --- a/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
 +++ b/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
 @@ -65,11 +65,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
@@ -1993,13 +2011,13 @@ index 65728ef17e63d71833677fdcbd5bb90794b4822b..536a285141caea49a316abcff39cb1ed
 -        Aquifer.FluidStatus fluidStatus1 = new Aquifer.FluidStatus(seaLevel, settings.defaultFluid());
 -        Aquifer.FluidStatus fluidStatus2 = new Aquifer.FluidStatus(DimensionType.MIN_Y * 2, Blocks.AIR.defaultBlockState());
 -        return (x, y, z) -> y < Math.min(-54, seaLevel) ? fluidStatus : fluidStatus1;
-+        // DivineMC start - World gen optimizations
++        // DivineMC start - Chunk System Optimizations
 +        Aquifer.FluidStatus fluidLevel = new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState());
 +        int i = settings.seaLevel();
 +        Aquifer.FluidStatus fluidLevel2 = new Aquifer.FluidStatus(i, settings.defaultFluid());
 +        final int min = Math.min(-54, i);
 +        return (j, k, lx) -> k < min ? fluidLevel : fluidLevel2;
-+        // DivineMC end - World gen optimizations
++        // DivineMC end - Chunk System Optimizations
      }
  
      @Override
@@ -2148,7 +2166,7 @@ index 4cf3a364595ba5f81f741295695cb9a449bdf672..44df2ac0bd972c4d97fc89cd0c2d2d83
      }
  }
 diff --git a/net/minecraft/world/level/levelgen/SurfaceRules.java b/net/minecraft/world/level/levelgen/SurfaceRules.java
-index bbf2995d352c22b3f6fb0de40f2932af1771c504..3ee13ba6c528c95313c68393915fca8467e55b70 100644
+index bbf2995d352c22b3f6fb0de40f2932af1771c504..af852376b61d127a5e251a7a6fcb35c25d1d4e1f 100644
 --- a/net/minecraft/world/level/levelgen/SurfaceRules.java
 +++ b/net/minecraft/world/level/levelgen/SurfaceRules.java
 @@ -185,7 +185,7 @@ public class SurfaceRules {
@@ -2156,7 +2174,7 @@ index bbf2995d352c22b3f6fb0de40f2932af1771c504..3ee13ba6c528c95313c68393915fca84
                  @Override
                  protected boolean compute() {
 -                    return this.context.biome.get().is(BiomeConditionSource.this.biomeNameTest);
-+                    return this.context.biome.is(BiomeConditionSource.this.biomeNameTest); // DivineMC - World gen optimizations
++                    return this.context.biome.is(BiomeConditionSource.this.biomeNameTest); // DivineMC - Chunk System Optimizations
                  }
              }
  
@@ -2165,7 +2183,7 @@ index bbf2995d352c22b3f6fb0de40f2932af1771c504..3ee13ba6c528c95313c68393915fca84
          long lastUpdateY = -9223372036854775807L;
          final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 -        Supplier<Holder<Biome>> biome;
-+        Holder<Biome> biome; // DivineMC - World gen optimizations
++        Holder<Biome> biome; // DivineMC - Chunk System Optimizations
          public int blockY;
          int waterHeight;
          int stoneDepthBelow;
@@ -2174,10 +2192,10 @@ index bbf2995d352c22b3f6fb0de40f2932af1771c504..3ee13ba6c528c95313c68393915fca84
          protected void updateY(int stoneDepthAbove, int stoneDepthBelow, int waterHeight, int blockX, int blockY, int blockZ) {
              this.lastUpdateY++;
 -            this.biome = Suppliers.memoize(() -> this.biomeGetter.apply(this.pos.set(blockX, blockY, blockZ)));
-+            // DivineMC start - World gen optimizations
++            // DivineMC start - Chunk System Optimizations
 +            this.pos.set(blockX, blockY, blockZ);
 +            this.biome = this.biomeGetter.apply(this.pos);
-+            // DivineMC end - World gen optimizations
++            // DivineMC end - Chunk System Optimizations
              this.blockY = blockY;
              this.waterHeight = waterHeight;
              this.stoneDepthBelow = stoneDepthBelow;
@@ -2368,6 +2386,486 @@ index c84d865837e0f009fcde19e14a44fa43aefe660a..64d7adbd4aa398044a1d68d51e463b67
      private static final Holder<StructureProcessorList> EMPTY = Holder.direct(new StructureProcessorList(List.of()));
      @Nullable
      private volatile StructureTemplatePool.Projection projection;
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/DesertPyramidPiece.java b/net/minecraft/world/level/levelgen/structure/structures/DesertPyramidPiece.java
+index e8c125ddb335bfe81b8f1dbb91f7f7ccec11d980..4b6b18b3d255f6a72e6be3b85260732b8eab533c 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/DesertPyramidPiece.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/DesertPyramidPiece.java
+@@ -23,29 +23,44 @@ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+ public class DesertPyramidPiece extends ScatteredFeaturePiece {
+     public static final int WIDTH = 21;
+     public static final int DEPTH = 21;
+-    private final boolean[] hasPlacedChest = new boolean[4];
+-    private final List<BlockPos> potentialSuspiciousSandWorldPositions = new ArrayList<>();
++    private final java.util.concurrent.atomic.AtomicReferenceArray<Boolean> hasPlacedChestAtomic = new java.util.concurrent.atomic.AtomicReferenceArray<>(new Boolean[4]); // DivineMC - Chunk System Optimizations
++    private final java.util.Set<BlockPos> potentialSuspiciousSandWorldPositions = com.google.common.collect.Sets.newConcurrentHashSet(); // DivineMC - Chunk System Optimizations
+     private BlockPos randomCollapsedRoofPos = BlockPos.ZERO;
+ 
++    // DivineMC start - Chunk System Optimizations
++    private void init() {
++        for (int i = 0; i < this.hasPlacedChestAtomic.length(); ++i) {
++            if (this.hasPlacedChestAtomic.get(i) == null) {
++                this.hasPlacedChestAtomic.set(i, false);
++            }
++        }
++    }
++    // DivineMC end - Chunk System Optimizations
++
+     public DesertPyramidPiece(RandomSource random, int x, int z) {
+         super(StructurePieceType.DESERT_PYRAMID_PIECE, x, 64, z, 21, 15, 21, getRandomHorizontalDirection(random));
++        init(); // DivineMC - Chunk System Optimizations
+     }
+ 
+     public DesertPyramidPiece(CompoundTag tag) {
+         super(StructurePieceType.DESERT_PYRAMID_PIECE, tag);
+-        this.hasPlacedChest[0] = tag.getBoolean("hasPlacedChest0");
+-        this.hasPlacedChest[1] = tag.getBoolean("hasPlacedChest1");
+-        this.hasPlacedChest[2] = tag.getBoolean("hasPlacedChest2");
+-        this.hasPlacedChest[3] = tag.getBoolean("hasPlacedChest3");
++        // DivineMC start - Chunk System Optimizations
++        this.hasPlacedChestAtomic.set(0, tag.getBoolean("hasPlacedChest0"));
++        this.hasPlacedChestAtomic.set(1, tag.getBoolean("hasPlacedChest1"));
++        this.hasPlacedChestAtomic.set(2, tag.getBoolean("hasPlacedChest2"));
++        this.hasPlacedChestAtomic.set(3, tag.getBoolean("hasPlacedChest3"));
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     @Override
+     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
+         super.addAdditionalSaveData(context, tag);
+-        tag.putBoolean("hasPlacedChest0", this.hasPlacedChest[0]);
+-        tag.putBoolean("hasPlacedChest1", this.hasPlacedChest[1]);
+-        tag.putBoolean("hasPlacedChest2", this.hasPlacedChest[2]);
+-        tag.putBoolean("hasPlacedChest3", this.hasPlacedChest[3]);
++        // DivineMC start - Chunk System Optimizations
++        tag.putBoolean("hasPlacedChest0", this.hasPlacedChestAtomic.get(0));
++        tag.putBoolean("hasPlacedChest1", this.hasPlacedChestAtomic.get(1));
++        tag.putBoolean("hasPlacedChest2", this.hasPlacedChestAtomic.get(2));
++        tag.putBoolean("hasPlacedChest3", this.hasPlacedChestAtomic.get(3));
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     @Override
+@@ -287,12 +302,12 @@ public class DesertPyramidPiece extends ScatteredFeaturePiece {
+             this.placeBlock(level, Blocks.CUT_SANDSTONE.defaultBlockState(), 10, -11, 13, box);
+ 
+             for (Direction direction : Direction.Plane.HORIZONTAL) {
+-                if (!this.hasPlacedChest[direction.get2DDataValue()]) {
++                if (!this.hasPlacedChestAtomic.get(direction.get2DDataValue())) { // DivineMC - Chunk System Optimizations
+                     int i4 = direction.getStepX() * 2;
+                     int i5 = direction.getStepZ() * 2;
+-                    this.hasPlacedChest[direction.get2DDataValue()] = this.createChest(
++                    this.hasPlacedChestAtomic.set(direction.get2DDataValue(), this.createChest( // DivineMC - Chunk System Optimizations
+                         level, box, random, 10 + i4, -11, 10 + i5, BuiltInLootTables.DESERT_PYRAMID
+-                    );
++                    )); // DivineMC - Chunk System Optimizations
+                 }
+             }
+ 
+@@ -419,7 +434,7 @@ public class DesertPyramidPiece extends ScatteredFeaturePiece {
+         this.randomCollapsedRoofPos = new BlockPos(this.getWorldX(i1, randomInt), this.getWorldY(y), this.getWorldZ(i1, randomInt));
+     }
+ 
+-    public List<BlockPos> getPotentialSuspiciousSandWorldPositions() {
++    public java.util.Set<BlockPos> getPotentialSuspiciousSandWorldPositions() { // DivineMC - Chunk System Optimizations
+         return this.potentialSuspiciousSandWorldPositions;
+     }
+ 
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/JungleTemplePiece.java b/net/minecraft/world/level/levelgen/structure/structures/JungleTemplePiece.java
+index 82600a247e13b82fc56273e1fd8483c8102a8d3d..cd9b24f017ebea5df55c7d15ee3d793ad612fbc6 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/JungleTemplePiece.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/JungleTemplePiece.java
+@@ -30,10 +30,12 @@ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+ public class JungleTemplePiece extends ScatteredFeaturePiece {
+     public static final int WIDTH = 12;
+     public static final int DEPTH = 15;
+-    private boolean placedMainChest;
+-    private boolean placedHiddenChest;
+-    private boolean placedTrap1;
+-    private boolean placedTrap2;
++    // DivineMC start - Chunk System Optimizations
++    private final java.util.concurrent.atomic.AtomicBoolean placedMainChest = new java.util.concurrent.atomic.AtomicBoolean(false);
++    private final java.util.concurrent.atomic.AtomicBoolean placedHiddenChest = new java.util.concurrent.atomic.AtomicBoolean(false);
++    private final java.util.concurrent.atomic.AtomicBoolean placedTrap1 = new java.util.concurrent.atomic.AtomicBoolean(false);
++    private final java.util.concurrent.atomic.AtomicBoolean placedTrap2 = new java.util.concurrent.atomic.AtomicBoolean(false);
++    // DivineMC end - Chunk System Optimizations
+     private static final JungleTemplePiece.MossStoneSelector STONE_SELECTOR = new JungleTemplePiece.MossStoneSelector();
+ 
+     public JungleTemplePiece(RandomSource random, int x, int z) {
+@@ -42,19 +44,23 @@ public class JungleTemplePiece extends ScatteredFeaturePiece {
+ 
+     public JungleTemplePiece(CompoundTag tag) {
+         super(StructurePieceType.JUNGLE_PYRAMID_PIECE, tag);
+-        this.placedMainChest = tag.getBoolean("placedMainChest");
+-        this.placedHiddenChest = tag.getBoolean("placedHiddenChest");
+-        this.placedTrap1 = tag.getBoolean("placedTrap1");
+-        this.placedTrap2 = tag.getBoolean("placedTrap2");
++        // DivineMC start - Chunk System Optimizations
++        this.placedMainChest.set(tag.getBoolean("placedMainChest"));
++        this.placedHiddenChest.set(tag.getBoolean("placedHiddenChest"));
++        this.placedTrap1.set(tag.getBoolean("placedTrap1"));
++        this.placedTrap2.set(tag.getBoolean("placedTrap2"));
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     @Override
+     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
+         super.addAdditionalSaveData(context, tag);
+-        tag.putBoolean("placedMainChest", this.placedMainChest);
+-        tag.putBoolean("placedHiddenChest", this.placedHiddenChest);
+-        tag.putBoolean("placedTrap1", this.placedTrap1);
+-        tag.putBoolean("placedTrap2", this.placedTrap2);
++        // DivineMC start - Chunk System Optimizations
++        tag.putBoolean("placedMainChest", this.placedMainChest.get());
++        tag.putBoolean("placedHiddenChest", this.placedHiddenChest.get());
++        tag.putBoolean("placedTrap1", this.placedTrap1.get());
++        tag.putBoolean("placedTrap2", this.placedTrap2.get());
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     @Override
+@@ -242,8 +248,8 @@ public class JungleTemplePiece extends ScatteredFeaturePiece {
+                 box
+             );
+             this.placeBlock(level, Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 3, -3, 1, box);
+-            if (!this.placedTrap1) {
+-                this.placedTrap1 = this.createDispenser(level, box, random, 3, -2, 1, Direction.NORTH, BuiltInLootTables.JUNGLE_TEMPLE_DISPENSER);
++            if (!this.placedTrap1.get()) { // DivineMC - Chunk System Optimizations
++                this.placedTrap1.set(this.createDispenser(level, box, random, 3, -2, 1, Direction.NORTH, BuiltInLootTables.JUNGLE_TEMPLE_DISPENSER)); // DivineMC - Chunk System Optimizations
+             }
+ 
+             this.placeBlock(level, Blocks.VINE.defaultBlockState().setValue(VineBlock.SOUTH, Boolean.valueOf(true)), 3, -2, 2, box);
+@@ -340,14 +346,14 @@ public class JungleTemplePiece extends ScatteredFeaturePiece {
+             );
+             this.placeBlock(level, Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 9, -3, 4, box);
+             this.placeBlock(level, blockState4, 9, -2, 4, box);
+-            if (!this.placedTrap2) {
+-                this.placedTrap2 = this.createDispenser(level, box, random, 9, -2, 3, Direction.WEST, BuiltInLootTables.JUNGLE_TEMPLE_DISPENSER);
++            if (!this.placedTrap2.get()) { // DivineMC - Chunk System Optimizations
++                this.placedTrap2.set(this.createDispenser(level, box, random, 9, -2, 3, Direction.WEST, BuiltInLootTables.JUNGLE_TEMPLE_DISPENSER)); // DivineMC - Chunk System Optimizations
+             }
+ 
+             this.placeBlock(level, Blocks.VINE.defaultBlockState().setValue(VineBlock.EAST, Boolean.valueOf(true)), 8, -1, 3, box);
+             this.placeBlock(level, Blocks.VINE.defaultBlockState().setValue(VineBlock.EAST, Boolean.valueOf(true)), 8, -2, 3, box);
+-            if (!this.placedMainChest) {
+-                this.placedMainChest = this.createChest(level, box, random, 8, -3, 3, BuiltInLootTables.JUNGLE_TEMPLE);
++            if (!this.placedMainChest.get()) { // DivineMC - Chunk System Optimizations
++                this.placedMainChest.set(this.createChest(level, box, random, 8, -3, 3, BuiltInLootTables.JUNGLE_TEMPLE)); // DivineMC - Chunk System Optimizations
+             }
+ 
+             this.placeBlock(level, Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 9, -3, 2, box);
+@@ -390,8 +396,8 @@ public class JungleTemplePiece extends ScatteredFeaturePiece {
+             this.placeBlock(level, Blocks.STICKY_PISTON.defaultBlockState().setValue(PistonBaseBlock.FACING, Direction.WEST), 10, -2, 8, box);
+             this.placeBlock(level, Blocks.STICKY_PISTON.defaultBlockState().setValue(PistonBaseBlock.FACING, Direction.WEST), 10, -1, 8, box);
+             this.placeBlock(level, Blocks.REPEATER.defaultBlockState().setValue(RepeaterBlock.FACING, Direction.NORTH), 10, -2, 10, box);
+-            if (!this.placedHiddenChest) {
+-                this.placedHiddenChest = this.createChest(level, box, random, 9, -3, 10, BuiltInLootTables.JUNGLE_TEMPLE);
++            if (!this.placedHiddenChest.get()) { // DivineMC - Chunk System Optimizations
++                this.placedHiddenChest.set(this.createChest(level, box, random, 9, -3, 10, BuiltInLootTables.JUNGLE_TEMPLE)); // DivineMC - Chunk System Optimizations
+             }
+         }
+     }
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/MineshaftPieces.java b/net/minecraft/world/level/levelgen/structure/structures/MineshaftPieces.java
+index 1acd506f7c0679fa9f69b6ab221002b28d00c3e5..52237559477e1965cb13a94ee4e6b4ff2ee99b03 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/MineshaftPieces.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/MineshaftPieces.java
+@@ -95,7 +95,7 @@ public class MineshaftPieces {
+     public static class MineShaftCorridor extends MineshaftPieces.MineShaftPiece {
+         private final boolean hasRails;
+         private final boolean spiderCorridor;
+-        private boolean hasPlacedSpider;
++        private volatile boolean hasPlacedSpider; // DivineMC - Chunk System Optimizations
+         private final int numSections;
+ 
+         public MineShaftCorridor(CompoundTag tag) {
+@@ -954,7 +954,7 @@ public class MineshaftPieces {
+     }
+ 
+     public static class MineShaftRoom extends MineshaftPieces.MineShaftPiece {
+-        private final List<BoundingBox> childEntranceBoxes = Lists.newLinkedList();
++        private final List<BoundingBox> childEntranceBoxes = java.util.Collections.synchronizedList(Lists.newLinkedList()); // DivineMC - Chunk System Optimizations
+ 
+         public MineShaftRoom(int genDepth, RandomSource random, int x, int z, MineshaftStructure.Type type) {
+             super(
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/NetherFortressPieces.java b/net/minecraft/world/level/levelgen/structure/structures/NetherFortressPieces.java
+index 20ddc6403823f72ef15d10e3d53b5f4d13e82724..081fbe004cac5bca67210a1abcca7fa44642f417 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/NetherFortressPieces.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/NetherFortressPieces.java
+@@ -1301,7 +1301,7 @@ public class NetherFortressPieces {
+             int i = 0;
+ 
+             for (NetherFortressPieces.PieceWeight pieceWeight : weights) {
+-                if (pieceWeight.maxPlaceCount > 0 && pieceWeight.placeCount < pieceWeight.maxPlaceCount) {
++                if (pieceWeight.maxPlaceCount > 0 && pieceWeight.placeCount.get() < pieceWeight.maxPlaceCount) { // DivineMC - Chunk System Optimizations
+                     flag = true;
+                 }
+ 
+@@ -1341,7 +1341,7 @@ public class NetherFortressPieces {
+                             pieceWeight, pieces, random, x, y, z, orientation, genDepth
+                         );
+                         if (netherBridgePiece != null) {
+-                            pieceWeight.placeCount++;
++                            pieceWeight.placeCount.set(pieceWeight.placeCount.get() + 1); // DivineMC - Chunk System Optimizations
+                             startPiece.previousPiece = pieceWeight;
+                             if (!pieceWeight.isValid()) {
+                                 weights.remove(pieceWeight);
+@@ -1576,7 +1576,7 @@ public class NetherFortressPieces {
+     static class PieceWeight {
+         public final Class<? extends NetherFortressPieces.NetherBridgePiece> pieceClass;
+         public final int weight;
+-        public int placeCount;
++        public final ThreadLocal<Integer> placeCount = ThreadLocal.withInitial(() -> 0); // DivineMC - Chunk System Optimizations
+         public final int maxPlaceCount;
+         public final boolean allowInRow;
+ 
+@@ -1592,11 +1592,11 @@ public class NetherFortressPieces {
+         }
+ 
+         public boolean doPlace(int genDepth) {
+-            return this.maxPlaceCount == 0 || this.placeCount < this.maxPlaceCount;
++            return this.maxPlaceCount == 0 || this.placeCount.get() < this.maxPlaceCount; // DivineMC - Chunk System Optimizations
+         }
+ 
+         public boolean isValid() {
+-            return this.maxPlaceCount == 0 || this.placeCount < this.maxPlaceCount;
++            return this.maxPlaceCount == 0 || this.placeCount.get() < this.maxPlaceCount; // DivineMC - Chunk System Optimizations
+         }
+     }
+ 
+@@ -1746,24 +1746,24 @@ public class NetherFortressPieces {
+     }
+ 
+     public static class StartPiece extends NetherFortressPieces.BridgeCrossing {
+-        public NetherFortressPieces.PieceWeight previousPiece;
++        public volatile NetherFortressPieces.PieceWeight previousPiece; // DivineMC - Chunk System Optimizations
+         public List<NetherFortressPieces.PieceWeight> availableBridgePieces;
+         public List<NetherFortressPieces.PieceWeight> availableCastlePieces;
+         public final List<StructurePiece> pendingChildren = Lists.newArrayList();
+ 
+         public StartPiece(RandomSource random, int x, int z) {
+             super(x, z, getRandomHorizontalDirection(random));
+-            this.availableBridgePieces = Lists.newArrayList();
++            this.availableBridgePieces = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
+ 
+             for (NetherFortressPieces.PieceWeight pieceWeight : NetherFortressPieces.BRIDGE_PIECE_WEIGHTS) {
+-                pieceWeight.placeCount = 0;
++                pieceWeight.placeCount.remove(); // DivineMC - Chunk System Optimizations
+                 this.availableBridgePieces.add(pieceWeight);
+             }
+ 
+-            this.availableCastlePieces = Lists.newArrayList();
++            this.availableCastlePieces = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
+ 
+             for (NetherFortressPieces.PieceWeight pieceWeight : NetherFortressPieces.CASTLE_PIECE_WEIGHTS) {
+-                pieceWeight.placeCount = 0;
++                pieceWeight.placeCount.remove(); // DivineMC - Chunk System Optimizations
+                 this.availableCastlePieces.add(pieceWeight);
+             }
+         }
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/StrongholdPieces.java b/net/minecraft/world/level/levelgen/structure/structures/StrongholdPieces.java
+index b28829043c558af04511108691a4e9042a5afc62..b9d9fe3affd1f991ea3a742bc48a518f19819dfd 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/StrongholdPieces.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/StrongholdPieces.java
+@@ -63,32 +63,36 @@ public class StrongholdPieces {
+             }
+         }
+     };
+-    private static List<StrongholdPieces.PieceWeight> currentPieces;
+-    static Class<? extends StrongholdPieces.StrongholdPiece> imposedPiece;
+-    private static int totalWeight;
++    // DivineMC start - Chunk System Optimizations
++    private static final ThreadLocal<List<PieceWeight>> currentPieces = new ThreadLocal<List<PieceWeight>>();
++    static final ThreadLocal<Class<? extends StrongholdPiece>> imposedPiece = new ThreadLocal<Class<? extends StrongholdPiece>>();
++    private static final ThreadLocal<Integer> totalWeight = ThreadLocal.withInitial(() -> 0);
++    // DivineMC end - Chunk System Optimizations
+     static final StrongholdPieces.SmoothStoneSelector SMOOTH_STONE_SELECTOR = new StrongholdPieces.SmoothStoneSelector();
+ 
+     public static void resetPieces() {
+-        currentPieces = Lists.newArrayList();
++        // DivineMC start - Chunk System Optimizations
++        currentPieces.set(Lists.newArrayList());
+ 
+         for (StrongholdPieces.PieceWeight pieceWeight : STRONGHOLD_PIECE_WEIGHTS) {
+-            pieceWeight.placeCount = 0;
+-            currentPieces.add(pieceWeight);
++            pieceWeight.placeCount.set(0);
++            currentPieces.get().add(pieceWeight);
+         }
+ 
+-        imposedPiece = null;
++        imposedPiece.set(null);
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     private static boolean updatePieceWeight() {
+         boolean flag = false;
+-        totalWeight = 0;
++        totalWeight.set(0); // DivineMC - Chunk System Optimizations
+ 
+-        for (StrongholdPieces.PieceWeight pieceWeight : currentPieces) {
+-            if (pieceWeight.maxPlaceCount > 0 && pieceWeight.placeCount < pieceWeight.maxPlaceCount) {
++        for (StrongholdPieces.PieceWeight pieceWeight : currentPieces.get()) { // DivineMC - Chunk System Optimizations
++            if (pieceWeight.maxPlaceCount > 0 && pieceWeight.placeCount.get() < pieceWeight.maxPlaceCount) { // DivineMC - Chunk System Optimizations
+                 flag = true;
+             }
+ 
+-            totalWeight = totalWeight + pieceWeight.weight;
++            totalWeight.set(totalWeight.get() + pieceWeight.weight); // DivineMC - Chunk System Optimizations
+         }
+ 
+         return flag;
+@@ -138,9 +142,11 @@ public class StrongholdPieces {
+         if (!updatePieceWeight()) {
+             return null;
+         } else {
+-            if (imposedPiece != null) {
+-                StrongholdPieces.StrongholdPiece strongholdPiece = findAndCreatePieceFactory(imposedPiece, pieces, random, x, y, z, direction, genDepth);
+-                imposedPiece = null;
++            // DivineMC start - Chunk System Optimizations
++            if (imposedPiece.get() != null) {
++                StrongholdPieces.StrongholdPiece strongholdPiece = findAndCreatePieceFactory(imposedPiece.get(), pieces, random, x, y, z, direction, genDepth);
++                imposedPiece.set(null);
++            // DivineMC end - Chunk System Optimizations
+                 if (strongholdPiece != null) {
+                     return strongholdPiece;
+                 }
+@@ -150,9 +156,9 @@ public class StrongholdPieces {
+ 
+             while (i < 5) {
+                 i++;
+-                int randomInt = random.nextInt(totalWeight);
++                int randomInt = random.nextInt(totalWeight.get()); // DivineMC - Chunk System Optimizations
+ 
+-                for (StrongholdPieces.PieceWeight pieceWeight : currentPieces) {
++                for (StrongholdPieces.PieceWeight pieceWeight : currentPieces.get()) { // DivineMC - Chunk System Optimizations
+                     randomInt -= pieceWeight.weight;
+                     if (randomInt < 0) {
+                         if (!pieceWeight.doPlace(genDepth) || pieceWeight == piece.previousPiece) {
+@@ -163,10 +169,10 @@ public class StrongholdPieces {
+                             pieceWeight.pieceClass, pieces, random, x, y, z, direction, genDepth
+                         );
+                         if (strongholdPiece1 != null) {
+-                            pieceWeight.placeCount++;
++                            pieceWeight.placeCount.set(pieceWeight.placeCount.get() + 1); // DivineMC - Chunk System Optimizations
+                             piece.previousPiece = pieceWeight;
+                             if (!pieceWeight.isValid()) {
+-                                currentPieces.remove(pieceWeight);
++                                currentPieces.get().remove(pieceWeight); // DivineMC - Chunk System Optimizations
+                             }
+ 
+                             return strongholdPiece1;
+@@ -202,7 +208,7 @@ public class StrongholdPieces {
+         private static final int WIDTH = 5;
+         private static final int HEIGHT = 5;
+         private static final int DEPTH = 7;
+-        private boolean hasPlacedChest;
++        private volatile boolean hasPlacedChest; // DivineMC - Chunk System Optimizations
+ 
+         public ChestCorridor(int genDepth, RandomSource random, BoundingBox box, Direction orientation) {
+             super(StructurePieceType.STRONGHOLD_CHEST_CORRIDOR, genDepth, box);
+@@ -723,7 +729,7 @@ public class StrongholdPieces {
+     static class PieceWeight {
+         public final Class<? extends StrongholdPieces.StrongholdPiece> pieceClass;
+         public final int weight;
+-        public int placeCount;
++        public final ThreadLocal<Integer> placeCount = ThreadLocal.withInitial(() -> 0); // DivineMC - Chunk System Optimizations
+         public final int maxPlaceCount;
+ 
+         public PieceWeight(Class<? extends StrongholdPieces.StrongholdPiece> pieceClass, int weight, int maxPlaceCount) {
+@@ -733,11 +739,11 @@ public class StrongholdPieces {
+         }
+ 
+         public boolean doPlace(int genDepth) {
+-            return this.maxPlaceCount == 0 || this.placeCount < this.maxPlaceCount;
++            return this.maxPlaceCount == 0 || this.placeCount.get() < this.maxPlaceCount; // DivineMC - Chunk System Optimizations
+         }
+ 
+         public boolean isValid() {
+-            return this.maxPlaceCount == 0 || this.placeCount < this.maxPlaceCount;
++            return this.maxPlaceCount == 0 || this.placeCount.get() < this.maxPlaceCount; // DivineMC - Chunk System Optimizations
+         }
+     }
+ 
+@@ -745,7 +751,7 @@ public class StrongholdPieces {
+         protected static final int WIDTH = 11;
+         protected static final int HEIGHT = 8;
+         protected static final int DEPTH = 16;
+-        private boolean hasPlacedSpawner;
++        private volatile boolean hasPlacedSpawner; // DivineMC - Chunk System Optimizations
+ 
+         public PortalRoom(int genDepth, BoundingBox box, Direction orientation) {
+             super(StructurePieceType.STRONGHOLD_PORTAL_ROOM, genDepth, box);
+@@ -1273,7 +1279,7 @@ public class StrongholdPieces {
+         @Override
+         public void addChildren(StructurePiece piece, StructurePieceAccessor pieces, RandomSource random) {
+             if (this.isSource) {
+-                StrongholdPieces.imposedPiece = StrongholdPieces.FiveCrossing.class;
++                StrongholdPieces.imposedPiece.set(StrongholdPieces.FiveCrossing.class);
+             }
+ 
+             this.generateSmallDoorChildForward((StrongholdPieces.StartPiece)piece, pieces, random, 1, 1);
+@@ -1322,10 +1328,10 @@ public class StrongholdPieces {
+     }
+ 
+     public static class StartPiece extends StrongholdPieces.StairsDown {
+-        public StrongholdPieces.PieceWeight previousPiece;
++        public volatile StrongholdPieces.PieceWeight previousPiece; // DivineMC - Chunk System Optimizations
+         @Nullable
+-        public StrongholdPieces.PortalRoom portalRoomPiece;
+-        public final List<StructurePiece> pendingChildren = Lists.newArrayList();
++        public volatile StrongholdPieces.PortalRoom portalRoomPiece; // DivineMC - Chunk System Optimizations
++        public final List<StructurePiece> pendingChildren = java.util.Collections.synchronizedList(Lists.newArrayList()); // DivineMC - Chunk System Optimizations
+ 
+         public StartPiece(RandomSource random, int x, int z) {
+             super(StructurePieceType.STRONGHOLD_START, 0, x, z, getRandomHorizontalDirection(random));
+diff --git a/net/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces.java b/net/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces.java
+index 6c5b6ba8973c88e959d57fec38abcef5f097e9b3..ad44f4915e7a9609445b62664d2a47581de8c169 100644
+--- a/net/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces.java
++++ b/net/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces.java
+@@ -126,7 +126,7 @@ public class WoodlandMansionPieces {
+             int i = 11;
+             this.entranceX = 7;
+             this.entranceY = 4;
+-            this.baseGrid = new WoodlandMansionPieces.SimpleGrid(11, 11, 5);
++            this.baseGrid = new org.bxteam.divinemc.util.ConcurrentFlagMatrix(11, 11, 5); // DivineMC - Chunk System Optimizations
+             this.baseGrid.set(this.entranceX, this.entranceY, this.entranceX + 1, this.entranceY + 1, 3);
+             this.baseGrid.set(this.entranceX - 1, this.entranceY, this.entranceX - 1, this.entranceY + 1, 2);
+             this.baseGrid.set(this.entranceX + 2, this.entranceY - 2, this.entranceX + 3, this.entranceY + 3, 5);
+@@ -145,14 +145,16 @@ public class WoodlandMansionPieces {
+             }
+ 
+             this.floorRooms = new WoodlandMansionPieces.SimpleGrid[3];
+-            this.floorRooms[0] = new WoodlandMansionPieces.SimpleGrid(11, 11, 5);
+-            this.floorRooms[1] = new WoodlandMansionPieces.SimpleGrid(11, 11, 5);
+-            this.floorRooms[2] = new WoodlandMansionPieces.SimpleGrid(11, 11, 5);
++            // DivineMC start - Chunk System Optimizations
++            this.floorRooms[0] = new org.bxteam.divinemc.util.ConcurrentFlagMatrix(11, 11, 5);
++            this.floorRooms[1] = new org.bxteam.divinemc.util.ConcurrentFlagMatrix(11, 11, 5);
++            this.floorRooms[2] = new org.bxteam.divinemc.util.ConcurrentFlagMatrix(11, 11, 5);
++            // DivineMC end - Chunk System Optimizations
+             this.identifyRooms(this.baseGrid, this.floorRooms[0]);
+             this.identifyRooms(this.baseGrid, this.floorRooms[1]);
+             this.floorRooms[0].set(this.entranceX + 1, this.entranceY, this.entranceX + 1, this.entranceY + 1, 8388608);
+             this.floorRooms[1].set(this.entranceX + 1, this.entranceY, this.entranceX + 1, this.entranceY + 1, 8388608);
+-            this.thirdFloorGrid = new WoodlandMansionPieces.SimpleGrid(this.baseGrid.width, this.baseGrid.height, 5);
++            this.thirdFloorGrid = new org.bxteam.divinemc.util.ConcurrentFlagMatrix(this.baseGrid.width, this.baseGrid.height, 5); // DivineMC - Chunk System Optimizations
+             this.setupThirdFloor();
+             this.identifyRooms(this.thirdFloorGrid, this.floorRooms[2]);
+         }
+@@ -1139,9 +1141,11 @@ public class WoodlandMansionPieces {
+     }
+ 
+     static class PlacementData {
+-        public Rotation rotation;
+-        public BlockPos position;
+-        public String wallType;
++        // DivineMC start - Chunk System Optimizations
++        public volatile Rotation rotation;
++        public volatile BlockPos position;
++        public volatile String wallType;
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     static class SecondFloorRoomCollection extends WoodlandMansionPieces.FloorRoomCollection {
 diff --git a/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java b/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java
 index 05027cc20d174d78bef118cd2ba545ac56e1559c..32bbfe48dee44b0b491aa369dec59cbf0772c4b5 100644
 --- a/net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings.java
