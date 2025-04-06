@@ -950,6 +950,39 @@ index 460bb584db04b582f3297ae419183f430aff1ec0..72c4e1876115745fbeec12fe8a1ad6f4
      public static void registerPaperCommands(final Map<Set<String>, PaperSubcommand> commands) {
          commands.put(Set.of("fixlight"), new FixLightCommand()); // Paper - rewrite chunk system
          commands.put(Set.of("debug", "chunkinfo", "holderinfo"), new ChunkDebugCommand());  // Paper - rewrite chunk system
+diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
+index 1d73154786e2ad4c1e9b307dfba43dd6ae008e2a..683a0296fd8b22a9a4a0268075df4f90759e5e8c 100644
+--- a/net/minecraft/server/level/ChunkMap.java
++++ b/net/minecraft/server/level/ChunkMap.java
+@@ -730,27 +730,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+             return false;
+         }
+ 
+-        final ServerPlayer[] raw = players.getRawDataUnchecked();
+-        final int len = players.size();
+-
+-        Objects.checkFromIndexSize(0, len, raw.length);
+-        for (int i = 0; i < len; ++i) {
+-            final ServerPlayer serverPlayer = raw[i];
+-            // Paper start - PlayerNaturallySpawnCreaturesEvent
+-            com.destroystokyo.paper.event.entity.PlayerNaturallySpawnCreaturesEvent event;
+-            blockRange = 16384.0D;
+-            if (reducedRange) {
+-                event = serverPlayer.playerNaturallySpawnedEvent;
+-                if (event == null || event.isCancelled()) continue;
+-                blockRange = (double) ((event.getSpawnRadius() << 4) * (event.getSpawnRadius() << 4));
+-            }
+-            // Paper end - PlayerNaturallySpawnCreaturesEvent
+-            if (this.playerIsCloseEnoughForSpawning(serverPlayer, chunkPos, blockRange)) {
+-                return true;
+-            }
+-        }
+-
+-        return false;
++        return !players.isEmpty(); // DivineMC - Chunk System Optimizations
+         // Paper end - chunk tick iteration optimisation
+     }
+ 
 diff --git a/net/minecraft/server/level/DistanceManager.java b/net/minecraft/server/level/DistanceManager.java
 index 5eab6179ce3913cb4e4d424f910ba423faf21c85..4b1efd53e423bdfe90d5efd472823869fc87e73b 100644
 --- a/net/minecraft/server/level/DistanceManager.java

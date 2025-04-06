@@ -5,7 +5,7 @@ Subject: [PATCH] Multithreaded Tracker
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index 8ffe79b81777015ff807538e461ec68463225557..b28083be4384d6c5efbdce898a0e9d7a2f5bd3d3 100644
+index dd2509996bfd08e8c3f9f2be042229eac6d7692d..8ef5a1aaac9c27873ce746eb281f77bb318a3c69 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 @@ -342,7 +342,11 @@ public final class RegionizedPlayerChunkLoader {
@@ -22,10 +22,10 @@ index 8ffe79b81777015ff807538e461ec68463225557..b28083be4384d6c5efbdce898a0e9d7a
          private static final byte CHUNK_TICKET_STAGE_NONE           = 0;
          private static final byte CHUNK_TICKET_STAGE_LOADING        = 1;
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d34be87a0 100644
+index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6ae008e2a 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -262,9 +262,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -248,9 +248,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          final ServerPlayer[] backingSet = inRange.getRawDataUnchecked();
@@ -47,7 +47,7 @@ index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d
      }
  
      // Paper start - per player mob count backoff
-@@ -965,6 +975,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -951,6 +961,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
      // Paper end - optimise entity tracker
  
      protected void tick() {
@@ -61,7 +61,7 @@ index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d
          // Paper start - optimise entity tracker
          if (true) {
              this.newTrackerTick();
-@@ -1087,7 +1104,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1073,7 +1090,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          final Entity entity;
          private final int range;
          SectionPos lastSectionPos;
@@ -74,7 +74,7 @@ index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d
  
          // Paper start - optimise entity tracker
          private long lastChunkUpdate = -1L;
-@@ -1114,21 +1135,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1100,21 +1121,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
              this.lastTrackedChunk = chunk;
  
              final ServerPlayer[] playersRaw = players.getRawDataUnchecked();
@@ -140,7 +140,7 @@ index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d
          }
  
          @Override
-@@ -1190,7 +1245,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1176,7 +1231,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcast(Packet<?> packet) {
@@ -149,7 +149,7 @@ index 72f019e3034d3268cf5526237ff0927eccc0c5bb..34c37abfe6c33ca1073450c8925f553d
                  serverPlayerConnection.send(packet);
              }
          }
-@@ -1203,21 +1258,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1189,21 +1244,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcastRemoved() {
@@ -243,7 +243,7 @@ index 9afd448ede87c9192dc576f66e08676a68b34d98..6e1ed33463c6280159d7f8187b9a9210
      }
  
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 420c9993df062466b85d60fe3fcc915e24d3da2a..19c7802969aa9d1e15b4c67ee5c97e73daf0a460 100644
+index 56a22d19a82a937c08cb4527b0f67f219a6bb8a0..f8c76bb2c9fa625e191036dc58ef3dfb1d4ee930 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -1822,7 +1822,7 @@ public class ServerGamePacketListenerImpl

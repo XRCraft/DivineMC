@@ -10,7 +10,7 @@ As part of: ModernFix (https://github.com/embeddedt/ModernFix)
 Licensed under: GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 
 diff --git a/net/minecraft/world/level/chunk/PalettedContainer.java b/net/minecraft/world/level/chunk/PalettedContainer.java
-index ea870afe24eb33a1333a32a42df5277155501ebc..450c119dcef10bcc2c0ef044aaed8760050c78db 100644
+index 712d3d1669aecd38934957c81835e1f38289539a..810e61913aece5a8158f83b6dd56a7b6cb083c19 100644
 --- a/net/minecraft/world/level/chunk/PalettedContainer.java
 +++ b/net/minecraft/world/level/chunk/PalettedContainer.java
 @@ -275,6 +275,28 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
