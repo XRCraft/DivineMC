@@ -6,6 +6,17 @@ private-f net.minecraft.world.level.levelgen.NoiseChunk$FlatCache noiseFiller
 private-f net.minecraft.world.level.levelgen.NoiseChunk$NoiseInterpolator noiseFiller
 private-f net.minecraft.world.level.levelgen.RandomState router
 private-f net.minecraft.world.level.levelgen.RandomState sampler
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.executor.RadiusAwarePrioritisedExecutor$Task
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.executor.RadiusAwarePrioritisedExecutor$Task chunkX
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.executor.RadiusAwarePrioritisedExecutor$Task chunkZ
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkProgressionTask chunkX
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkProgressionTask chunkZ
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkProgressionTask world
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask chunkX
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask chunkZ
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask world
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask$ProcessOffMainTask
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask$ProcessOnMainTask
 public net.minecraft.util.Mth SIN
 public net.minecraft.world.entity.ai.Brain sensors
 public net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities lineOfSightTest

@@ -538,8 +538,66 @@ index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18
              final ConcurrentLong2ReferenceChainedHashTable.TableEntry<SortedArraySet<Ticket<?>>> coordinateTickets = iterator.next();
              final long coordinate = coordinateTickets.getKey();
              final SortedArraySet<Ticket<?>> tickets = coordinateTickets.getValue();
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
+index 67532b85073b7978254a0b04caadfe822679e61f..4b97b676d4245e7ece956eb4c78bed96ff452b2d 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
+@@ -65,14 +65,6 @@ public final class ChunkTaskScheduler {
+ 
+     private static final Logger LOGGER = LogUtils.getClassLogger();
+ 
+-    public static void init(final boolean useParallelGen) {
+-        for (final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor executor : MoonriseCommon.RADIUS_AWARE_GROUP.getAllExecutors()) {
+-            executor.setMaxParallelism(useParallelGen ? -1 : 1);
+-        }
+-
+-        LOGGER.info("Chunk system is using population gen parallelism: " + useParallelGen);
+-    }
+-
+     public static final TicketType<Long> CHUNK_LOAD = TicketType.create("chunk_system:chunk_load", Long::compareTo);
+     private static final AtomicLong CHUNK_LOAD_IDS = new AtomicLong();
+ 
+@@ -115,12 +107,12 @@ public final class ChunkTaskScheduler {
+ 
+     public final ServerLevel world;
+     public final RadiusAwarePrioritisedExecutor radiusAwareScheduler;
+-    public final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor parallelGenExecutor;
+-    private final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor radiusAwareGenExecutor;
+-    public final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor loadExecutor;
++    public final org.bxteam.divinemc.server.chunk.TheChunkSystem.ExecutorGroup.ThreadPoolExecutor parallelGenExecutor;
++    private final org.bxteam.divinemc.server.chunk.TheChunkSystem.ExecutorGroup.ThreadPoolExecutor radiusAwareGenExecutor;
++    public final org.bxteam.divinemc.server.chunk.TheChunkSystem.ExecutorGroup.ThreadPoolExecutor loadExecutor;
+     public final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor ioExecutor;
+-    public final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor compressionExecutor;
+-    public final PrioritisedThreadPool.ExecutorGroup.ThreadPoolExecutor saveExecutor;
++    public final org.bxteam.divinemc.server.chunk.TheChunkSystem.ExecutorGroup.ThreadPoolExecutor compressionExecutor;
++    public final org.bxteam.divinemc.server.chunk.TheChunkSystem.ExecutorGroup.ThreadPoolExecutor saveExecutor;
+ 
+     private final PrioritisedTaskQueue mainThreadExecutor = new PrioritisedTaskQueue();
+ 
+@@ -291,14 +283,14 @@ public final class ChunkTaskScheduler {
+         this.lockShift = Math.max(((ChunkSystemServerLevel)world).moonrise$getRegionChunkShift(), ThreadedTicketLevelPropagator.SECTION_SHIFT);
+         this.schedulingLockArea = new ReentrantAreaLock(this.getChunkSystemLockShift());
+ 
+-        this.parallelGenExecutor = MoonriseCommon.PARALLEL_GEN_GROUP.createExecutor(-1, MoonriseCommon.WORKER_QUEUE_HOLD_TIME, 0);
+-        this.radiusAwareGenExecutor = MoonriseCommon.RADIUS_AWARE_GROUP.createExecutor(1, MoonriseCommon.WORKER_QUEUE_HOLD_TIME, 0);
+-        this.loadExecutor = MoonriseCommon.LOAD_GROUP.createExecutor(-1, MoonriseCommon.WORKER_QUEUE_HOLD_TIME, 0);
+-        this.radiusAwareScheduler = new RadiusAwarePrioritisedExecutor(this.radiusAwareGenExecutor, 16);
++        this.parallelGenExecutor = MoonriseCommon.PARALLEL_GEN_GROUP.createExecutor();
++        this.radiusAwareGenExecutor = MoonriseCommon.RADIUS_AWARE_GROUP.createExecutor();
++        this.loadExecutor = MoonriseCommon.LOAD_GROUP.createExecutor();
++        this.radiusAwareScheduler = new RadiusAwarePrioritisedExecutor(this.radiusAwareGenExecutor, 10_000);
+         this.ioExecutor = MoonriseCommon.SERVER_REGION_IO_GROUP.createExecutor(-1, MoonriseCommon.IO_QUEUE_HOLD_TIME, 0);
+         // we need a separate executor here so that on shutdown we can continue to process I/O tasks
+-        this.compressionExecutor = MoonriseCommon.LOAD_GROUP.createExecutor(-1, MoonriseCommon.WORKER_QUEUE_HOLD_TIME, 0);
+-        this.saveExecutor = MoonriseCommon.LOAD_GROUP.createExecutor(-1, MoonriseCommon.WORKER_QUEUE_HOLD_TIME, 0);
++        this.compressionExecutor = MoonriseCommon.LOAD_GROUP.createExecutor();
++        this.saveExecutor = MoonriseCommon.LOAD_GROUP.createExecutor();
+         this.chunkHolderManager = new ChunkHolderManager(world, this);
+     }
+ 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index e4a5fa25ed368fc4662c30934da2963ef446d782..6da0ea5cd83a00578223e0a19f952c917bcbcdae 100644
+index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8dfff8150c 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 @@ -644,11 +644,19 @@ public final class NewChunkHolder {
@@ -562,7 +620,7 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..6da0ea5cd83a00578223e0a19f952c91
          this.scheduler = scheduler;
          this.vanillaChunkHolder = new ChunkHolder(
                  new ChunkPos(chunkX, chunkZ), ChunkHolderManager.MAX_TICKET_LEVEL, world,
-@@ -790,9 +798,11 @@ public final class NewChunkHolder {
+@@ -790,12 +798,14 @@ public final class NewChunkHolder {
  
      // note: these are completed with null to indicate that no write occurred
      // they are also completed with null to indicate a null write occurred
@@ -576,7 +634,20 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..6da0ea5cd83a00578223e0a19f952c91
 +    // DivineMC end - Chunk System optimization
  
      public static final record UnloadTask(CallbackCompletable<CompoundTag> completable, PrioritisedExecutor.PrioritisedTask task,
-                                           LazyRunnable toRun) {}
+-                                          LazyRunnable toRun) {}
++                                          org.bxteam.divinemc.server.chunk.ChunkRunnable toRun) {} // DivineMC - Chunk System optimization
+ 
+     public UnloadTask getUnloadTask(final MoonriseRegionFileIO.RegionFileType type) {
+         switch (type) {
+@@ -858,7 +868,7 @@ public final class NewChunkHolder {
+         this.priorityLocked = false;
+ 
+         if (chunk != null) {
+-            final LazyRunnable toRun = new LazyRunnable();
++            final org.bxteam.divinemc.server.chunk.ChunkRunnable toRun = new org.bxteam.divinemc.server.chunk.ChunkRunnable(this.chunkX, this.chunkZ, this.world, null); // DivineMC - Chunk System optimization'
+             this.chunkDataUnload = new UnloadTask(new CallbackCompletable<>(), this.scheduler.saveExecutor.createTask(toRun), toRun);
+         }
+         if (poiChunk != null) {
 @@ -1190,6 +1200,7 @@ public final class NewChunkHolder {
              for (int dz = -NEIGHBOUR_RADIUS; dz <= NEIGHBOUR_RADIUS; ++dz) {
                  for (int dx = -NEIGHBOUR_RADIUS; dx <= NEIGHBOUR_RADIUS; ++dx) {
@@ -633,6 +704,198 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..6da0ea5cd83a00578223e0a19f952c91
          }).add(consumer);
      }
  
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/executor/RadiusAwarePrioritisedExecutor.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/executor/RadiusAwarePrioritisedExecutor.java
+index 28ffa653e87a4e8ef7cf614916ef3fe61681fe16..b35b92b204fbefd139c4544f15e32d46bfa30777 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/executor/RadiusAwarePrioritisedExecutor.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/executor/RadiusAwarePrioritisedExecutor.java
+@@ -110,60 +110,27 @@ public class RadiusAwarePrioritisedExecutor {
+         return priorityId == this.selectedQueue ? queue.tryPushTasks() : null;
+     }
+ 
++    // DivineMC start - Chunk System Optimizations
+     public PrioritisedExecutor.PrioritisedTask createTask(final int chunkX, final int chunkZ, final int radius,
+-                                                          final Runnable run, final Priority priority) {
++                                                          final Runnable run, final Priority priority, final net.minecraft.server.level.ServerLevel world) {
+         if (radius < 0) {
+             throw new IllegalArgumentException("Radius must be > 0: " + radius);
+         }
+-        return new Task(this, chunkX, chunkZ, radius, run, priority);
++        return new Task(this, chunkX, chunkZ, radius, run, priority, world);
+     }
+ 
+-    public PrioritisedExecutor.PrioritisedTask createTask(final int chunkX, final int chunkZ, final int radius,
+-                                                          final Runnable run) {
+-        return this.createTask(chunkX, chunkZ, radius, run, Priority.NORMAL);
+-    }
+-
+-    public PrioritisedExecutor.PrioritisedTask queueTask(final int chunkX, final int chunkZ, final int radius,
+-                                                         final Runnable run, final Priority priority) {
+-        final PrioritisedExecutor.PrioritisedTask ret = this.createTask(chunkX, chunkZ, radius, run, priority);
+-
+-        ret.queue();
+-
+-        return ret;
+-    }
+-
+-    public PrioritisedExecutor.PrioritisedTask queueTask(final int chunkX, final int chunkZ, final int radius,
+-                                                         final Runnable run) {
+-        final PrioritisedExecutor.PrioritisedTask ret = this.createTask(chunkX, chunkZ, radius, run);
+-
+-        ret.queue();
+-
+-        return ret;
+-    }
+-
+-    public PrioritisedExecutor.PrioritisedTask createInfiniteRadiusTask(final Runnable run, final Priority priority) {
+-        return new Task(this, 0, 0, -1, run, priority);
+-    }
+-
+-    public PrioritisedExecutor.PrioritisedTask createInfiniteRadiusTask(final Runnable run) {
+-        return this.createInfiniteRadiusTask(run, Priority.NORMAL);
+-    }
+-
+-    public PrioritisedExecutor.PrioritisedTask queueInfiniteRadiusTask(final Runnable run, final Priority priority) {
+-        final PrioritisedExecutor.PrioritisedTask ret = this.createInfiniteRadiusTask(run, priority);
+-
+-        ret.queue();
+-
+-        return ret;
++    public PrioritisedExecutor.PrioritisedTask createInfiniteRadiusTask(final Runnable run, final Priority priority, final net.minecraft.server.level.ServerLevel  world) {
++        return new Task(this, 0, 0, -1, run, priority, world);
+     }
+ 
+-    public PrioritisedExecutor.PrioritisedTask queueInfiniteRadiusTask(final Runnable run) {
+-        final PrioritisedExecutor.PrioritisedTask ret = this.createInfiniteRadiusTask(run, Priority.NORMAL);
++    public PrioritisedExecutor.PrioritisedTask queueInfiniteRadiusTask(final Runnable run, final net.minecraft.server.level.ServerLevel  world) {
++        final PrioritisedExecutor.PrioritisedTask ret = this.createInfiniteRadiusTask(run, Priority.NORMAL, world);
+ 
+         ret.queue();
+ 
+         return ret;
+     }
++    // DivineMC end - Chunk System Optimizations
+ 
+     private static void scheduleTasks(final List<PrioritisedExecutor.PrioritisedTask> toSchedule) {
+         if (toSchedule != null) {
+@@ -440,18 +407,20 @@ public class RadiusAwarePrioritisedExecutor {
+         private final int radius;
+         private Runnable run;
+         private Priority priority;
++        public final net.minecraft.server.level.ServerLevel world; // DivineMC - Chunk System Optimization
+ 
+         private DependencyNode dependencyNode;
+         private PrioritisedExecutor.PrioritisedTask queuedTask;
+ 
+         private Task(final RadiusAwarePrioritisedExecutor scheduler, final int chunkX, final int chunkZ, final int radius,
+-                     final Runnable run, final Priority priority) {
++                     final Runnable run, final Priority priority, final net.minecraft.server.level.ServerLevel world) { // DivineMC - Chunk System Optimization
+             this.scheduler = scheduler;
+             this.chunkX = chunkX;
+             this.chunkZ = chunkZ;
+             this.radius = radius;
+             this.run = run;
+             this.priority = priority;
++            this.world = world; // DivineMC - Chunk System Optimization
+         }
+ 
+         private boolean isFiniteRadius() {
+@@ -473,6 +442,7 @@ public class RadiusAwarePrioritisedExecutor {
+             synchronized (this.scheduler) {
+                 final DependencyNode node = this.dependencyNode;
+                 this.dependencyNode = null;
++                if (node == null) return; // DivineMC - Chunk System Optimization
+                 toSchedule = node.tree.returnNode(node);
+             }
+ 
+@@ -489,6 +459,7 @@ public class RadiusAwarePrioritisedExecutor {
+             final Runnable run = this.run;
+             this.run = null;
+             try {
++                if (run == null) return; // DivineMC - Chunk System Optimization
+                 run.run();
+             } finally {
+                 this.returnNode();
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkFullTask.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkFullTask.java
+index 6ab353b0d2465c3680bb3c8d0852ba0f65c00fd2..70067c12d4d82460d55d8f90d01b0bc1e5368408 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkFullTask.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkFullTask.java
+@@ -35,7 +35,7 @@ public final class ChunkFullTask extends ChunkProgressionTask implements Runnabl
+         super(scheduler, world, chunkX, chunkZ);
+         this.chunkHolder = chunkHolder;
+         this.fromChunk = fromChunk;
+-        this.convertToFullTask = scheduler.createChunkTask(chunkX, chunkZ, this, priority);
++        this.convertToFullTask = scheduler.radiusAwareScheduler.createInfiniteRadiusTask(this, priority, world); // DivineMC - Chunk System Optimizations
+     }
+ 
+     @Override
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkProgressionTask.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkProgressionTask.java
+index e9623c334858ebc698c92d05b36b70f6d846d0b1..43ef4d7b7db64a766bb815e1c2202b1f30ae4f99 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkProgressionTask.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkProgressionTask.java
+@@ -69,7 +69,7 @@ public abstract class ChunkProgressionTask {
+         }
+     }
+ 
+-    protected final void complete(final ChunkAccess chunk, final Throwable throwable) {
++    protected void complete(final ChunkAccess chunk, final Throwable throwable) { // DivineMC - not final
+         try {
+             this.complete0(chunk, throwable);
+         } catch (final Throwable thr2) {
+@@ -81,7 +81,7 @@ public abstract class ChunkProgressionTask {
+ 
+     private void complete0(final ChunkAccess chunk, final Throwable throwable) {
+         if ((boolean)COMPLETED_HANDLE.getAndSet((ChunkProgressionTask)this, (boolean)true)) {
+-            throw new IllegalStateException("Already completed");
++            return; // DivineMC - do not crash the server
+         }
+         this.completedChunk = chunk;
+         this.completedThrowable = throwable;
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkUpgradeGenericStatusTask.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkUpgradeGenericStatusTask.java
+index 25d8da4773dcee5096053e7e3788bfc224d705a7..2112ccbe382993dcfb56a50d991c3613765d7d56 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkUpgradeGenericStatusTask.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkUpgradeGenericStatusTask.java
+@@ -51,9 +51,9 @@ public final class ChunkUpgradeGenericStatusTask extends ChunkProgressionTask im
+         } else {
+             final int writeRadius = ((ChunkSystemChunkStatus)this.toStatus).moonrise$getWriteRadius();
+             if (writeRadius < 0) {
+-                this.generateTask = this.scheduler.radiusAwareScheduler.createInfiniteRadiusTask(this, priority);
++                this.generateTask = this.scheduler.radiusAwareScheduler.createInfiniteRadiusTask(this, priority, world); // DivineMC - Chunk System Optimizations
+             } else {
+-                this.generateTask = this.scheduler.radiusAwareScheduler.createTask(chunkX, chunkZ, writeRadius, this, priority);
++                this.generateTask = this.scheduler.radiusAwareScheduler.createTask(chunkX, chunkZ, writeRadius, this, priority, world); // DivineMC - Chunk System Optimizations
+             }
+         }
+     }
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/GenericDataLoadTask.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/GenericDataLoadTask.java
+index 95ed5a0ff3f0588f625ba48a5fee3aafbab9d13f..f2fd6d5eb024f646875868c441eb2da284206026 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/GenericDataLoadTask.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/GenericDataLoadTask.java
+@@ -333,6 +333,12 @@ public abstract class GenericDataLoadTask<OnMain,FinalCompletion> {
+                 GenericDataLoadTask.this.onComplete((TaskResult<FinalCompletion, Throwable>)newData);
+             }
+         }
++
++        // DivineMC start - Chunk System Optimizations
++        public GenericDataLoadTask<OnMain,FinalCompletion> loadTask() {
++            return GenericDataLoadTask.this;
++        }
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     public final class ProcessOnMainTask implements Runnable {
+@@ -351,6 +357,12 @@ public abstract class GenericDataLoadTask<OnMain,FinalCompletion> {
+ 
+             GenericDataLoadTask.this.onComplete(result);
+         }
++
++        // DivineMC start - Chunk System Optimizations
++        public GenericDataLoadTask<OnMain,FinalCompletion> loadTask() {
++            return GenericDataLoadTask.this;
++        }
++        // DivineMC end - Chunk System Optimizations
+     }
+ 
+     protected static final class LoadDataFromDiskTask {
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java b/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
 index e97e7d276faf055c89207385d3820debffb06463..4aeb75a2cdcfb4206bab3eee5ad674dd9890e720 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
@@ -658,6 +921,35 @@ index 4ca68a903e67606fc4ef0bfa9862a73797121c8b..f94f443f862611f039454d1dc8ff2a4b
          if (!this.isDirty()) {
              return false;
          }
+diff --git a/ca/spottedleaf/moonrise/patches/starlight/light/StarLightInterface.java b/ca/spottedleaf/moonrise/patches/starlight/light/StarLightInterface.java
+index 571db5f9bf94745a8afe2cd313e593fb15db5e37..c8e59f6abed384f45314fc995d3822724c9b4001 100644
+--- a/ca/spottedleaf/moonrise/patches/starlight/light/StarLightInterface.java
++++ b/ca/spottedleaf/moonrise/patches/starlight/light/StarLightInterface.java
+@@ -888,7 +888,7 @@ public final class StarLightInterface {
+                 super(chunkCoordinate, lightEngine, queue);
+                 this.task = ((ChunkSystemServerLevel)(ServerLevel)lightEngine.getWorld()).moonrise$getChunkTaskScheduler().radiusAwareScheduler.createTask(
+                         CoordinateUtils.getChunkX(chunkCoordinate), CoordinateUtils.getChunkZ(chunkCoordinate),
+-                        ((ChunkSystemChunkStatus)ChunkStatus.LIGHT).moonrise$getWriteRadius(), this, priority
++                        ((ChunkSystemChunkStatus)ChunkStatus.LIGHT).moonrise$getWriteRadius(), this, priority, lightEngine.world.getMinecraftWorld() // DivineMC - Chunk System Optimizations
+                 );
+             }
+ 
+diff --git a/io/papermc/paper/FeatureHooks.java b/io/papermc/paper/FeatureHooks.java
+index 460bb584db04b582f3297ae419183f430aff1ec0..72c4e1876115745fbeec12fe8a1ad6f4803e9d7f 100644
+--- a/io/papermc/paper/FeatureHooks.java
++++ b/io/papermc/paper/FeatureHooks.java
+@@ -32,11 +32,6 @@ import org.bukkit.Chunk;
+ import org.bukkit.World;
+ 
+ public final class FeatureHooks {
+-
+-    public static void initChunkTaskScheduler(final boolean useParallelGen) {
+-        ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.init(useParallelGen); // Paper - Chunk system
+-    }
+-
+     public static void registerPaperCommands(final Map<Set<String>, PaperSubcommand> commands) {
+         commands.put(Set.of("fixlight"), new FixLightCommand()); // Paper - rewrite chunk system
+         commands.put(Set.of("debug", "chunkinfo", "holderinfo"), new ChunkDebugCommand());  // Paper - rewrite chunk system
 diff --git a/net/minecraft/server/level/DistanceManager.java b/net/minecraft/server/level/DistanceManager.java
 index 5eab6179ce3913cb4e4d424f910ba423faf21c85..4b1efd53e423bdfe90d5efd472823869fc87e73b 100644
 --- a/net/minecraft/server/level/DistanceManager.java
@@ -695,7 +987,7 @@ index ab30af9cd58ff7310e05be87b08f42bacf69e11e..ae0e36d198ad8243920c8e8a55c0be49
      }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba28fa5871 100644
+index 973198ae0a73d6747e73548bdcbc1de46b6fb107..e17f5ba74295eb6585520ab9e5cc1cb2e3107098 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -181,6 +181,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -706,7 +998,15 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
      private int lastSpawnChunkRadius;
      final EntityTickList entityTickList = new EntityTickList(this); // DivineMC - parallel world ticking
      // Paper - rewrite chunk system
-@@ -689,6 +690,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -291,6 +292,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     }
+     // Paper end - optimise getPlayerByUUID
+     // Paper start - rewrite chunk system
++    public final org.bxteam.divinemc.server.chunk.PriorityHandler chunkSystemPriorities;
+     private final ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader.ViewDistanceHolder viewDistanceHolder = new ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader.ViewDistanceHolder();
+     private final ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader chunkLoader = new ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader((ServerLevel)(Object)this);
+     private final ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController entityDataController;
+@@ -689,6 +691,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          // Paper start - rewrite chunk system
          this.moonrise$setEntityLookup(new ca.spottedleaf.moonrise.patches.chunk_system.level.entity.server.ServerEntityLookup((ServerLevel)(Object)this, ((ServerLevel)(Object)this).new EntityCallbacks()));
          this.chunkTaskScheduler = new ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler((ServerLevel)(Object)this);
@@ -714,7 +1014,15 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
          this.entityDataController = new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController(
              new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
                  new RegionStorageInfo(levelStorageAccess.getLevelId(), dimension, "entities"),
-@@ -832,8 +834,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -703,6 +706,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         this.getCraftServer().addWorld(this.getWorld()); // CraftBukkit
+         this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new org.bxteam.divinemc.server.ServerLevelTickExecutorThreadFactory(getWorld().getName())); // DivineMC - parallel world ticking
+         this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
++        this.chunkSystemPriorities = new org.bxteam.divinemc.server.chunk.PriorityHandler(this); // DivineMC - Chunk System optimizations
+     }
+ 
+     // Paper start
+@@ -832,8 +836,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      @Override
      public boolean shouldTickBlocksAt(long chunkPos) {
          // Paper start - rewrite chunk system
@@ -724,7 +1032,7 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
          // Paper end - rewrite chunk system
      }
  
-@@ -889,7 +890,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -889,7 +892,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      private void optimiseRandomTick(final LevelChunk chunk, final int tickSpeed) {
          final LevelChunkSection[] sections = chunk.getSections();
@@ -733,7 +1041,7 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
          final ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom simpleRandom = this.simpleRandom;
          final boolean doubleTickFluids = !ca.spottedleaf.moonrise.common.PlatformHooks.get().configFixMC224294();
  
-@@ -897,42 +898,41 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -897,42 +900,41 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          final int offsetX = cpos.x << 4;
          final int offsetZ = cpos.z << 4;
  
@@ -786,7 +1094,7 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
      }
      // Paper end - optimise random ticking
  
-@@ -2525,30 +2525,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2525,30 +2527,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      private boolean isPositionTickingWithEntitiesLoaded(long chunkPos) {
          // Paper start - rewrite chunk system
@@ -821,6 +1129,19 @@ index 973198ae0a73d6747e73548bdcbc1de46b6fb107..59aa7f9c06b62de4e8997f325d66daba
          // Paper end - rewrite chunk system
      }
  
+diff --git a/net/minecraft/server/level/ThreadedLevelLightEngine.java b/net/minecraft/server/level/ThreadedLevelLightEngine.java
+index 5c9ac44a3b4bc8e047feaf61a94eb163761498a2..66dc6d77263d6f5de7d0a96b8b6575e7a363f5bf 100644
+--- a/net/minecraft/server/level/ThreadedLevelLightEngine.java
++++ b/net/minecraft/server/level/ThreadedLevelLightEngine.java
+@@ -138,7 +138,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+                     }
+                 }
+             );
+-        });
++        }, world); // DivineMC - Chunk System Optimizations
+ 
+         return chunks.size();
+     }
 diff --git a/net/minecraft/world/level/LevelReader.java b/net/minecraft/world/level/LevelReader.java
 index 26c8c1e5598daf3550aef05b12218c47bda6618b..94c824ab1457939c425e1f99929d3222ee2c18a0 100644
 --- a/net/minecraft/world/level/LevelReader.java
@@ -2894,16 +3215,3 @@ index ab1dcbe416e2c3c94cfddf04b7ed053425a71806..a37eb2e29b4577ebc711e8ef7b47fbbc
      private Vec3i size = Vec3i.ZERO;
      private String author = "?";
      // CraftBukkit start - data containers
-diff --git a/net/minecraft/world/level/levelgen/synth/PerlinNoise.java b/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
-index ffac5b7b1eb1364ab8442d7145a7b4ebde68ee10..ef28df96ed569113a9d61f6ac4b4d84d578c02da 100644
---- a/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
-+++ b/net/minecraft/world/level/levelgen/synth/PerlinNoise.java
-@@ -187,7 +187,7 @@ public class PerlinNoise {
-     }
- 
-     public static double wrap(double value) {
--        return value - Mth.lfloor(value / 3.3554432E7 + 0.5) * 3.3554432E7;
-+        return value - Math.floor(value / 3.3554432E7 + 0.5) * 3.3554432E7; // DivineMC - avoid casting
-     }
- 
-     protected int firstOctave() {

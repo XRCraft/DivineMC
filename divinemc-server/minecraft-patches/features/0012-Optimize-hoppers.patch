@@ -17,7 +17,7 @@ index 9f7698f8ce56d5d89cf86f6ea2d5b4d51b18c9a2..351b035d1f3025af28b5147b95b912e0
                  if (org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking) {
                      serverLevelTickingSemaphore.acquire();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 59aa7f9c06b62de4e8997f325d66daba28fa5871..5cb64b5da32183b7cd1e052c638e0789cc796bc4 100644
+index e17f5ba74295eb6585520ab9e5cc1cb2e3107098..15e6804a5faccb0a4f514d6b94f5856c7c15ab76 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -194,7 +194,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -29,7 +29,7 @@ index 59aa7f9c06b62de4e8997f325d66daba28fa5871..5cb64b5da32183b7cd1e052c638e0789
      protected final Raids raids;
      private final ObjectLinkedOpenHashSet<BlockEventData> blockEvents = new ObjectLinkedOpenHashSet<>();
      private final List<BlockEventData> blockEventsToReschedule = new ArrayList<>(64);
-@@ -1728,7 +1728,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1730,7 +1730,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public void sendBlockUpdated(BlockPos pos, BlockState oldState, BlockState newState, int flags) {
@@ -38,7 +38,7 @@ index 59aa7f9c06b62de4e8997f325d66daba28fa5871..5cb64b5da32183b7cd1e052c638e0789
              String string = "recursive call to sendBlockUpdated";
              Util.logAndPauseIfInIde("recursive call to sendBlockUpdated", new IllegalStateException("recursive call to sendBlockUpdated"));
          }
-@@ -1759,13 +1759,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1761,13 +1761,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              // Paper end - catch CME see below why
  
              try {
@@ -54,7 +54,7 @@ index 59aa7f9c06b62de4e8997f325d66daba28fa5871..5cb64b5da32183b7cd1e052c638e0789
              }
          }
          } // Paper - option to disable pathfinding updates
-@@ -2652,7 +2652,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2654,7 +2654,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {
@@ -63,7 +63,7 @@ index 59aa7f9c06b62de4e8997f325d66daba28fa5871..5cb64b5da32183b7cd1e052c638e0789
                      String string = "onTrackingStart called during navigation iteration";
                      Util.logAndPauseIfInIde(
                          "onTrackingStart called during navigation iteration", new IllegalStateException("onTrackingStart called during navigation iteration")
-@@ -2722,7 +2722,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2724,7 +2724,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
  
              if (entity instanceof Mob mob) {

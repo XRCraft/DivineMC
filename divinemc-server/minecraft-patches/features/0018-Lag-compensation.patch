@@ -25,7 +25,7 @@ index 351b035d1f3025af28b5147b95b912e0e2ab9212..1bcccba4df407ec4d53f49c3c2c7493d
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 5cb64b5da32183b7cd1e052c638e0789cc796bc4..e3e00afd4621c4b487f5d2f0a74f773e631ed776 100644
+index 15e6804a5faccb0a4f514d6b94f5856c7c15ab76..a7743ea4e5d672e1aa0d0945e19f3469ef81df62 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -218,6 +218,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -36,7 +36,7 @@ index 5cb64b5da32183b7cd1e052c638e0789cc796bc4..e3e00afd4621c4b487f5d2f0a74f773e
  
      public LevelChunk getChunkIfLoaded(int x, int z) {
          return this.chunkSource.getChunkAtIfLoadedImmediately(x, z); // Paper - Use getChunkIfLoadedImmediately
-@@ -772,6 +773,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -774,6 +775,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
          }
  
@@ -45,7 +45,7 @@ index 5cb64b5da32183b7cd1e052c638e0789cc796bc4..e3e00afd4621c4b487f5d2f0a74f773e
          this.updateSkyBrightness();
          if (runsNormally) {
              this.tickTime();
-@@ -851,11 +854,18 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -853,11 +856,18 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
                      this.setDayTime(this.preciseTime);
                  } else
                  // Purpur end - Configurable daylight cycle
