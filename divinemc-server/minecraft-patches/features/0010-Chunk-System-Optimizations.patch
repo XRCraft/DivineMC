@@ -597,7 +597,7 @@ index 67532b85073b7978254a0b04caadfe822679e61f..4b97b676d4245e7ece956eb4c78bed96
      }
  
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8dfff8150c 100644
+index e4a5fa25ed368fc4662c30934da2963ef446d782..b5057ffac429ea2d1910082a83c13a5b7dc550c1 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 @@ -644,11 +644,19 @@ public final class NewChunkHolder {
@@ -648,7 +648,20 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8d
              this.chunkDataUnload = new UnloadTask(new CallbackCompletable<>(), this.scheduler.saveExecutor.createTask(toRun), toRun);
          }
          if (poiChunk != null) {
-@@ -1190,6 +1200,7 @@ public final class NewChunkHolder {
+@@ -877,7 +887,11 @@ public final class NewChunkHolder {
+             MoonriseRegionFileIO.scheduleSave(this.world, this.chunkX, this.chunkZ, data, type);
+         }
+ 
+-        this.getUnloadTask(type).completable().complete(data);
++        // DivineMC start - Chunk System optimization
++        UnloadTask task = this.getUnloadTask(type);
++        if (task == null) return;
++        task.completable().complete(data);
++        // DivineMC end - Chunk System optimization
+         final ReentrantAreaLock.Node schedulingLock = this.scheduler.schedulingLockArea.lock(this.chunkX, this.chunkZ);
+         try {
+             // can only write to these fields while holding the schedule lock
+@@ -1190,6 +1204,7 @@ public final class NewChunkHolder {
              for (int dz = -NEIGHBOUR_RADIUS; dz <= NEIGHBOUR_RADIUS; ++dz) {
                  for (int dx = -NEIGHBOUR_RADIUS; dx <= NEIGHBOUR_RADIUS; ++dx) {
                      final NewChunkHolder holder = (dx | dz) == 0 ? this : this.scheduler.chunkHolderManager.getChunkHolder(dx + this.chunkX, dz + this.chunkZ);
@@ -656,7 +669,7 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8d
                      if (loaded) {
                          if (holder.setNeighbourFullLoaded(-dx, -dz)) {
                              changedFullStatus.add(holder);
-@@ -1214,6 +1225,19 @@ public final class NewChunkHolder {
+@@ -1214,6 +1229,19 @@ public final class NewChunkHolder {
  
      private void updateCurrentState(final FullChunkStatus to) {
          this.currentFullChunkStatus = to;
@@ -676,7 +689,7 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8d
      }
  
      // only to be called on the main thread, no locks need to be held
-@@ -1348,11 +1372,11 @@ public final class NewChunkHolder {
+@@ -1348,11 +1376,11 @@ public final class NewChunkHolder {
          return this.requestedGenStatus;
      }
  
@@ -690,12 +703,12 @@ index e4a5fa25ed368fc4662c30934da2963ef446d782..33bb74186bfd0e1781e85410e98abe8d
          }).add(consumer);
      }
  
-@@ -1394,11 +1418,11 @@ public final class NewChunkHolder {
+@@ -1394,11 +1422,11 @@ public final class NewChunkHolder {
          }, Priority.HIGHEST);
      }
  
 -    private final Reference2ObjectOpenHashMap<FullChunkStatus, List<Consumer<LevelChunk>>> fullStatusWaiters = new Reference2ObjectOpenHashMap<>();
-+    private final Map<FullChunkStatus, List<Consumer<LevelChunk>>> fullStatusWaiters = new java.util.concurrent.ConcurrentHashMap<>();
++    private final Map<FullChunkStatus, List<Consumer<LevelChunk>>> fullStatusWaiters = new java.util.concurrent.ConcurrentHashMap<>(); // DivineMC - Chunk System optimization
  
      void addFullStatusConsumer(final FullChunkStatus status, final Consumer<LevelChunk> consumer) {
          this.fullStatusWaiters.computeIfAbsent(status, (final FullChunkStatus keyInMap) -> {
@@ -1020,7 +1033,7 @@ index ab30af9cd58ff7310e05be87b08f42bacf69e11e..ae0e36d198ad8243920c8e8a55c0be49
      }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 973198ae0a73d6747e73548bdcbc1de46b6fb107..e17f5ba74295eb6585520ab9e5cc1cb2e3107098 100644
+index 8c566a587be3a384979cf10aabd0536c88bf69ac..bab5834741d0f11732ef1d1723868b8701d84961 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -181,6 +181,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe

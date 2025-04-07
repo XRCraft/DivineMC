@@ -230,7 +230,7 @@ index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9
  
              attributesToSync.clear();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 9afd448ede87c9192dc576f66e08676a68b34d98..6e1ed33463c6280159d7f8187b9a9210d6b85e0c 100644
+index 9afd448ede87c9192dc576f66e08676a68b34d98..d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -2471,7 +2471,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -242,6 +242,15 @@ index 9afd448ede87c9192dc576f66e08676a68b34d98..6e1ed33463c6280159d7f8187b9a9210
          return this.moonrise$getEntityLookup(); // Paper - rewrite chunk system
      }
  
+@@ -2698,7 +2698,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+                         }
+ 
+                         map.carriedByPlayers.remove(player);
+-                        if (map.carriedBy.removeIf(holdingPlayer -> holdingPlayer.player == player)) {
++                        if (map.carriedBy.removeIf(holdingPlayer -> holdingPlayer != null && holdingPlayer.player == player)) { // DivineMC - Multithreaded tracker
+                             map.decorations.remove(player.getName().getString());
+                         }
+                     }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 index 56a22d19a82a937c08cb4527b0f67f219a6bb8a0..f8c76bb2c9fa625e191036dc58ef3dfb1d4ee930 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
@@ -293,3 +302,15 @@ index a25d74592e89e3d6339479c6dc2b6f45d1932cfc..621b183211b8148bb8db256d2119c82f
      private final AttributeSupplier supplier;
      private final net.minecraft.world.entity.LivingEntity entity; // Purpur - Ridables
  
+diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
+index 681dec447486138088fe5f705ef4fadab531139f..3d6aad86519be3e1449d3288369a41aebb924c90 100644
+--- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
++++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
+@@ -279,6 +279,7 @@ public class MapItemSavedData extends SavedData {
+ 
+         for (int i = 0; i < this.carriedBy.size(); i++) {
+             MapItemSavedData.HoldingPlayer holdingPlayer1 = this.carriedBy.get(i);
++            if (holdingPlayer1 == null) continue; // DivineMC - Multithreaded tracker
+             Player player1 = holdingPlayer1.player;
+             String string = player1.getName().getString();
+             if (!player1.isRemoved() && (player1.getInventory().contains(predicate) || mapStack.isFramed())) {
