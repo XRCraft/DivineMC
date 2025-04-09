@@ -22,32 +22,10 @@ index dd2509996bfd08e8c3f9f2be042229eac6d7692d..8ef5a1aaac9c27873ce746eb281f77bb
          private static final byte CHUNK_TICKET_STAGE_NONE           = 0;
          private static final byte CHUNK_TICKET_STAGE_LOADING        = 1;
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6ae008e2a 100644
+index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cbf15b714d 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -248,9 +248,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
-         }
- 
-         final ServerPlayer[] backingSet = inRange.getRawDataUnchecked();
--        for (int i = 0, len = inRange.size(); i < len; i++) {
--            ++(backingSet[i].mobCounts[index]);
-+        // DivineMC start - Multithreaded tracker
-+        if (org.bxteam.divinemc.DivineConfig.multithreadedEnabled) {
-+            for (int i = 0, len = inRange.size(); i < len; i++) {
-+                final ServerPlayer player = backingSet[i];
-+                if (player == null) continue;
-+                ++(player.mobCounts[index]);
-+            }
-+        } else {
-+            for (int i = 0, len = inRange.size(); i < len; i++) {
-+                ++(backingSet[i].mobCounts[index]);
-+            }
-         }
-+        // DivineMC end - Multithreaded tracker
-     }
- 
-     // Paper start - per player mob count backoff
-@@ -951,6 +961,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -951,6 +951,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
      // Paper end - optimise entity tracker
  
      protected void tick() {
@@ -61,7 +39,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6
          // Paper start - optimise entity tracker
          if (true) {
              this.newTrackerTick();
-@@ -1073,7 +1090,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1073,7 +1080,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          final Entity entity;
          private final int range;
          SectionPos lastSectionPos;
@@ -74,7 +52,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6
  
          // Paper start - optimise entity tracker
          private long lastChunkUpdate = -1L;
-@@ -1100,21 +1121,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1100,21 +1111,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
              this.lastTrackedChunk = chunk;
  
              final ServerPlayer[] playersRaw = players.getRawDataUnchecked();
@@ -140,7 +118,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6
          }
  
          @Override
-@@ -1176,7 +1231,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1176,7 +1221,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcast(Packet<?> packet) {
@@ -149,7 +127,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..1d73154786e2ad4c1e9b307dfba43dd6
                  serverPlayerConnection.send(packet);
              }
          }
-@@ -1189,21 +1244,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1189,21 +1234,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcastRemoved() {
