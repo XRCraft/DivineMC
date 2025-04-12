@@ -5,7 +5,7 @@ Subject: [PATCH] Async mob spawning
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 6182c6f7cc6f5199897a5e227dabe9f9738733a5..272a87eaa7a6406d0b059c18d7a7aa8c945dffa0 100644
+index 34bc5d54de26608e64170bd902baa87da137dab6..ec09a21a71b00031efdd2561a14594b4013a2025 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -291,6 +291,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa

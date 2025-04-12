@@ -5,7 +5,7 @@ Subject: [PATCH] Re-Fix MC-117075
 
 
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 9608aa7231e1e19ac34f7fcf6cc4051da01f2f3e..440d890d32a6705aa5ebc84040c4290634bbae9b 100644
+index 9608aa7231e1e19ac34f7fcf6cc4051da01f2f3e..92fc936c6bdbda909b9cdf157ec9d46a4872098c 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -113,7 +113,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
@@ -17,7 +17,14 @@ index 9608aa7231e1e19ac34f7fcf6cc4051da01f2f3e..440d890d32a6705aa5ebc84040c42906
      protected final NeighborUpdater neighborUpdater;
      private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
      private boolean tickingBlockEntities;
-@@ -1528,7 +1528,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1521,14 +1521,12 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         boolean runsNormally = this.tickRateManager().runsNormally();
+ 
+         int tickedEntities = 0; // Paper - rewrite chunk system
+-        var toRemove = new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<TickingBlockEntity>(); // Paper - Fix MC-117075; use removeAll
+-        toRemove.add(null); // Paper - Fix MC-117075
+         for (tileTickPosition = 0; tileTickPosition < this.blockEntityTickers.size(); tileTickPosition++) { // Paper - Disable tick limiters
+             this.tileTickPosition = (this.tileTickPosition < this.blockEntityTickers.size()) ? this.tileTickPosition : 0;
              TickingBlockEntity tickingBlockEntity = this.blockEntityTickers.get(this.tileTickPosition);
              // Spigot end
              if (tickingBlockEntity.isRemoved()) {
@@ -26,11 +33,12 @@ index 9608aa7231e1e19ac34f7fcf6cc4051da01f2f3e..440d890d32a6705aa5ebc84040c42906
              } else if (runsNormally && this.shouldTickBlocksAt(tickingBlockEntity.getPos())) {
                  tickingBlockEntity.tick();
                  // DivineMC start - Parallel world ticking
-@@ -1541,6 +1541,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -1539,7 +1537,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+                 // DivineMC end - Parallel world ticking
+             }
          }
-         this.blockEntityTickers.removeAll(toRemove); // Paper - Fix MC-117075
- 
+-        this.blockEntityTickers.removeAll(toRemove); // Paper - Fix MC-117075
 +        this.blockEntityTickers.removeMarkedEntries(); // DivineMC - optimize block entity removals - Fix MC-117075
+ 
          this.tickingBlockEntities = false;
          this.spigotConfig.currentPrimedTnt = 0; // Spigot
-     }

@@ -3320,3 +3320,134 @@ index ab1dcbe416e2c3c94cfddf04b7ed053425a71806..a37eb2e29b4577ebc711e8ef7b47fbbc
      private Vec3i size = Vec3i.ZERO;
      private String author = "?";
      // CraftBukkit start - data containers
+diff --git a/net/minecraft/world/ticks/LevelChunkTicks.java b/net/minecraft/world/ticks/LevelChunkTicks.java
+index faf45ac459f7c25309d6ef6dce371d484a0dae7b..0e862e9c0d9d562e77ce02a35deb761c28fa2f90 100644
+--- a/net/minecraft/world/ticks/LevelChunkTicks.java
++++ b/net/minecraft/world/ticks/LevelChunkTicks.java
+@@ -18,10 +18,10 @@ import net.minecraft.nbt.ListTag;
+ import net.minecraft.world.level.ChunkPos;
+ 
+ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickContainerAccess<T>, ca.spottedleaf.moonrise.patches.chunk_system.ticks.ChunkSystemLevelChunkTicks { // Paper - rewrite chunk system
+-    private final Queue<ScheduledTick<T>> tickQueue = new PriorityQueue<>(ScheduledTick.DRAIN_ORDER);
++    private final Queue<ScheduledTick<T>> tickQueue = new java.util.concurrent.PriorityBlockingQueue<>(11, ScheduledTick.DRAIN_ORDER); // DivineMC - Chunk System Optimizations
+     @Nullable
+     private List<SavedTick<T>> pendingTicks;
+-    private final Set<ScheduledTick<?>> ticksPerPosition = new ObjectOpenCustomHashSet<>(ScheduledTick.UNIQUE_TICK_HASH);
++    private final Set<ScheduledTick<?>> ticksPerPosition = it.unimi.dsi.fastutil.objects.ObjectSets.synchronize(new ObjectOpenCustomHashSet<>(ScheduledTick.UNIQUE_TICK_HASH)); // DivineMC - Chunk System Optimizations
+     @Nullable
+     private BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> onTickAdded;
+ 
+@@ -71,10 +71,18 @@ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickCon
+ 
+     @Nullable
+     public ScheduledTick<T> poll() {
+-        ScheduledTick<T> scheduledTick = this.tickQueue.poll();
+-        if (scheduledTick != null) {
+-            this.ticksPerPosition.remove(scheduledTick); this.dirty = true; // Paper - rewrite chunk system
++        // DivineMC start - Chunk System Optimizations
++        ScheduledTick<T> scheduledTick = null;
++        try {
++            scheduledTick = this.tickQueue.poll();
++            if (scheduledTick != null) {
++                this.ticksPerPosition.remove(scheduledTick); this.dirty = true; // Paper - rewrite chunk system
++            }
++        } catch (Exception e) {
++            net.minecraft.server.MinecraftServer.LOGGER.error("Encountered caught exception when polling chunk ticks, blocking and returning null.", e);
++            return null;
+         }
++        // DivineMC end - Chunk System Optimizations
+ 
+         return scheduledTick;
+     }
+@@ -87,6 +95,7 @@ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickCon
+     }
+ 
+     private void scheduleUnchecked(ScheduledTick<T> tick) {
++        if (tick == null) return; // DivineMC - Chunk System Optimizations
+         this.tickQueue.add(tick);
+         if (this.onTickAdded != null) {
+             this.onTickAdded.accept(this, tick);
+@@ -127,6 +136,7 @@ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickCon
+         }
+ 
+         for (ScheduledTick<T> scheduledTick : this.tickQueue) {
++            if (scheduledTick == null) continue; // DivineMC - Chunk System Optimizations - fix NPE
+             list.add(scheduledTick.toSavedTick(gametime));
+         }
+ 
+diff --git a/net/minecraft/world/ticks/LevelTicks.java b/net/minecraft/world/ticks/LevelTicks.java
+index 0a9805d42142678ca5213c511235daa6505ddbf3..cd73f1a3ccc80e4ab1766147fccc67d81eeb4cc3 100644
+--- a/net/minecraft/world/ticks/LevelTicks.java
++++ b/net/minecraft/world/ticks/LevelTicks.java
+@@ -30,17 +30,18 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     private static final Comparator<LevelChunkTicks<?>> CONTAINER_DRAIN_ORDER = (levelChunkTicks, levelChunkTicks1) -> ScheduledTick.INTRA_TICK_DRAIN_ORDER
+         .compare(levelChunkTicks.peek(), levelChunkTicks1.peek());
+     private final LongPredicate tickCheck;
+-    private final Long2ObjectMap<LevelChunkTicks<T>> allContainers = new Long2ObjectOpenHashMap<>();
+-    private final Long2LongMap nextTickForContainer = Util.make(new Long2LongOpenHashMap(), map -> map.defaultReturnValue(Long.MAX_VALUE));
+-    private final Queue<LevelChunkTicks<T>> containersToTick = new PriorityQueue<>(CONTAINER_DRAIN_ORDER);
+-    private final Queue<ScheduledTick<T>> toRunThisTick = new ArrayDeque<>();
++    private final Long2ObjectMap<LevelChunkTicks<T>> allContainers = it.unimi.dsi.fastutil.longs.Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>()); // DivineMC - Chunk System Optimizations
++    private final java.util.Map<Long, Long> nextTickForContainer = new java.util.concurrent.ConcurrentHashMap<>(); // DivineMC - Chunk System Optimizations
++    private final Queue<LevelChunkTicks<T>> containersToTick = new java.util.concurrent.PriorityBlockingQueue<>(11, CONTAINER_DRAIN_ORDER); // DivineMC - Chunk System Optimizations
++    private final Queue<ScheduledTick<T>> toRunThisTick = new java.util.concurrent.ConcurrentLinkedQueue<>(); // DivineMC - Chunk System Optimizations
+     private final List<ScheduledTick<T>> alreadyRunThisTick = new ArrayList<>();
+-    private final Set<ScheduledTick<?>> toRunThisTickSet = new ObjectOpenCustomHashSet<>(ScheduledTick.UNIQUE_TICK_HASH);
++    private final Set<ScheduledTick<?>> toRunThisTickSet = com.google.common.collect.Sets.newConcurrentHashSet(); // DivineMC - Chunk System Optimizations
+     private final BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> chunkScheduleUpdater = (levelChunkTicks, scheduledTick) -> {
+         if (scheduledTick.equals(levelChunkTicks.peek())) {
+             this.updateContainerScheduling(scheduledTick);
+         }
+     };
++    private final java.util.concurrent.atomic.AtomicInteger toRunThisTickCount = new java.util.concurrent.atomic.AtomicInteger(0); // DivineMC - Chunk System Optimizations
+ 
+     public LevelTicks(LongPredicate tickCheck) {
+         this.tickCheck = tickCheck;
+@@ -90,12 +91,14 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     }
+ 
+     private void sortContainersToTick(long gameTime) {
+-        ObjectIterator<Entry> objectIterator = Long2LongMaps.fastIterator(this.nextTickForContainer);
++        java.util.Iterator<java.util.Map.Entry<Long, Long>> objectIterator = this.nextTickForContainer.entrySet().iterator(); // DivineMC - Chunk System Optimizations
+ 
+         while (objectIterator.hasNext()) {
+-            Entry entry = objectIterator.next();
+-            long longKey = entry.getLongKey();
+-            long longValue = entry.getLongValue();
++            // DivineMC start - Chunk System Optimizations
++            java.util.Map.Entry<Long, Long> entry = objectIterator.next();
++            long longKey = entry.getKey();
++            long longValue = entry.getValue();
++            // DivineMC end - Chunk System Optimizations
+             if (longValue <= gameTime) {
+                 LevelChunkTicks<T> levelChunkTicks = this.allContainers.get(longKey);
+                 if (levelChunkTicks == null) {
+@@ -162,16 +165,19 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     }
+ 
+     private void scheduleForThisTick(ScheduledTick<T> tick) {
++        if (tick == null) return; // DivineMC - Chunk System Optimizations
+         this.toRunThisTick.add(tick);
++        this.toRunThisTickCount.incrementAndGet(); // DivineMC - Chunk System Optimizations
+     }
+ 
+     private boolean canScheduleMoreTicks(int maxAllowedTicks) {
+-        return this.toRunThisTick.size() < maxAllowedTicks;
++        return this.toRunThisTickCount.get() < maxAllowedTicks; // DivineMC - Chunk System Optimizations
+     }
+ 
+     private void runCollectedTicks(BiConsumer<BlockPos, T> ticker) {
+         while (!this.toRunThisTick.isEmpty()) {
+             ScheduledTick<T> scheduledTick = this.toRunThisTick.poll();
++            this.toRunThisTickCount.decrementAndGet(); // DivineMC - Chunk System Optimizations
+             if (!this.toRunThisTickSet.isEmpty()) {
+                 this.toRunThisTickSet.remove(scheduledTick);
+             }
+@@ -183,6 +189,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+ 
+     private void cleanupAfterTick() {
+         this.toRunThisTick.clear();
++        this.toRunThisTickCount.set(0); // DivineMC - Chunk System Optimizations
+         this.containersToTick.clear();
+         this.alreadyRunThisTick.clear();
+         this.toRunThisTickSet.clear();

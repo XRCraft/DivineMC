@@ -6,7 +6,7 @@ Subject: [PATCH] Skip EntityScheduler's executeTick checks if there isn't any
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 54c8605a4e36605208344e39726a4c3bbe972076..72ab570ca8b532a1f55408515f34a02aa0c79a6a 100644
+index fc9de137ed1681afd1ef51391cf8f30fd4c61c4b..804de864da13ae0be6a1caee88e95a19e35d08c0 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -290,6 +290,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa

@@ -5,14 +5,14 @@ Subject: [PATCH] Async Chunk Sending
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index 76b8d42ae530b59cdaba0583365a557da6b90ede..4943f57f648d5350e174c995ccb12bf8b2eb700f 100644
+index 76b8d42ae530b59cdaba0583365a557da6b90ede..235772cc9a7c878235b97c8d84cacda3016f91ca 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 @@ -55,6 +55,8 @@ public final class RegionizedPlayerChunkLoader {
      public static final int LOADED_TICKET_LEVEL = ChunkTaskScheduler.getTicketLevel(ChunkStatus.EMPTY);
      public static final int TICK_TICKET_LEVEL = ChunkHolderManager.ENTITY_TICKING_TICKET_LEVEL;
  
-+    public static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger("RegionizedPlayerChunkLoader");
++    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger("RegionizedPlayerChunkLoader"); // DivineMC - Async Chunk Sending
 +
      public static final class ViewDistanceHolder {
  

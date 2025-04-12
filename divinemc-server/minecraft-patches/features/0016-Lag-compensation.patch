@@ -5,7 +5,7 @@ Subject: [PATCH] Lag compensation
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 351b035d1f3025af28b5147b95b912e0e2ab9212..1bcccba4df407ec4d53f49c3c2c7493db87b2240 100644
+index 9f7698f8ce56d5d89cf86f6ea2d5b4d51b18c9a2..11b89a625b942f5f2f882c54dbfc08c16e983425 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -289,6 +289,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -25,7 +25,7 @@ index 351b035d1f3025af28b5147b95b912e0e2ab9212..1bcccba4df407ec4d53f49c3c2c7493d
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 15e6804a5faccb0a4f514d6b94f5856c7c15ab76..a7743ea4e5d672e1aa0d0945e19f3469ef81df62 100644
+index bab5834741d0f11732ef1d1723868b8701d84961..e034d9f903728cdf7356629694c9f528ba5ebae3 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -218,6 +218,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
