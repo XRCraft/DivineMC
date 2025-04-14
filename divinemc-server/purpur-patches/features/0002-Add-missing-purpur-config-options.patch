@@ -5,7 +5,7 @@ Subject: [PATCH] Add missing purpur config options
 
 
 diff --git a/src/main/java/org/purpurmc/purpur/PurpurConfig.java b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
-index 168361632d4af27c2144864ade539ce7ea217217..48248e1a7eb9f63220dd619c1868dcca3150c345 100644
+index 554ae05a1a7f7dbe91455cb14b1d9a02f3b7d288..2c32f98e4f3ac2705ae6e95a8e8965b4b9d9a0d5 100644
 --- a/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 +++ b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 @@ -327,6 +327,7 @@ public class PurpurConfig {
@@ -16,7 +16,7 @@ index 168361632d4af27c2144864ade539ce7ea217217..48248e1a7eb9f63220dd619c1868dcca
      public static boolean enderChestSixRows = false;
      public static boolean enderChestPermissionRows = false;
      public static boolean cryingObsidianValidForPortalFrame = false;
-@@ -369,6 +370,7 @@ public class PurpurConfig {
+@@ -370,6 +371,7 @@ public class PurpurConfig {
              case 1 -> 9;
              default -> 27;
          });

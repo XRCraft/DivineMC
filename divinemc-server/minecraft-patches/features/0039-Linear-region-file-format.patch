@@ -5,7 +5,7 @@ Subject: [PATCH] Linear region file format
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/io/ChunkSystemRegionFileStorage.java b/ca/spottedleaf/moonrise/patches/chunk_system/io/ChunkSystemRegionFileStorage.java
-index a814512fcfb85312474ae2c2c21443843bf57831..c21e04c1d43797db221e4712fcc987a44eaa983c 100644
+index a814512fcfb85312474ae2c2c21443843bf57831..fdccc27c528b01b16a72e614ffd96523aa6f50d2 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/io/ChunkSystemRegionFileStorage.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/io/ChunkSystemRegionFileStorage.java
 @@ -8,9 +8,9 @@ public interface ChunkSystemRegionFileStorage {
@@ -13,15 +13,15 @@ index a814512fcfb85312474ae2c2c21443843bf57831..c21e04c1d43797db221e4712fcc987a4
      public boolean moonrise$doesRegionFileNotExistNoIO(final int chunkX, final int chunkZ);
  
 -    public RegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ);
-+    public org.stupidcraft.linearpaper.region.IRegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ); // DivineMC - Linear region file format
++    public org.bxteam.divinemc.region.IRegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ); // DivineMC - Linear region file format
  
 -    public RegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException;
-+    public org.stupidcraft.linearpaper.region.IRegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException; // DivineMC - Linear region file format
++    public org.bxteam.divinemc.region.IRegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException; // DivineMC - Linear region file format
  
      public MoonriseRegionFileIO.RegionDataController.WriteData moonrise$startWrite(
              final int chunkX, final int chunkZ, final CompoundTag compound
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/io/MoonriseRegionFileIO.java b/ca/spottedleaf/moonrise/patches/chunk_system/io/MoonriseRegionFileIO.java
-index 98fbc5c8044bd945d64569f13412a6e7e49a4e7f..57ae23fdd5a95e7670eb4dfaca0d290edfc1d25c 100644
+index 98fbc5c8044bd945d64569f13412a6e7e49a4e7f..34682217252cb98a70511a8cb25f077ec9f872b8 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/io/MoonriseRegionFileIO.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/io/MoonriseRegionFileIO.java
 @@ -1260,7 +1260,7 @@ public final class MoonriseRegionFileIO {
@@ -29,7 +29,7 @@ index 98fbc5c8044bd945d64569f13412a6e7e49a4e7f..57ae23fdd5a95e7670eb4dfaca0d290e
                  // Paper start - flush regionfiles on save
                  if (this.world.paperConfig().chunks.flushRegionsOnSave) {
 -                    final RegionFile regionFile = this.regionDataController.getCache().moonrise$getRegionFileIfLoaded(this.chunkX, this.chunkZ);
-+                    final org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.regionDataController.getCache().moonrise$getRegionFileIfLoaded(this.chunkX, this.chunkZ); // DivineMC - Linear region file format
++                    final org.bxteam.divinemc.region.IRegionFile regionFile = this.regionDataController.getCache().moonrise$getRegionFileIfLoaded(this.chunkX, this.chunkZ); // DivineMC - Linear region file format
                      if (regionFile != null) {
                          regionFile.flush();
                      } // else: evicted from cache, which should have called flush
@@ -38,12 +38,12 @@ index 98fbc5c8044bd945d64569f13412a6e7e49a4e7f..57ae23fdd5a95e7670eb4dfaca0d290e
          public static interface IORunnable {
  
 -            public void run(final RegionFile regionFile) throws IOException;
-+            public void run(final org.stupidcraft.linearpaper.region.IRegionFile regionFile) throws IOException; // DivineMC - Linear region file format
++            public void run(final org.bxteam.divinemc.region.IRegionFile regionFile) throws IOException; // DivineMC - Linear region file format
  
          }
      }
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/storage/ChunkSystemChunkBuffer.java b/ca/spottedleaf/moonrise/patches/chunk_system/storage/ChunkSystemChunkBuffer.java
-index 51c126735ace8fdde89ad97b5cab62f244212db0..c466ce5c669e4b5ed835b13584a5ae5afe08fa11 100644
+index 51c126735ace8fdde89ad97b5cab62f244212db0..8713d00d767c9225a0823d2fdbb0b479005738d7 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/storage/ChunkSystemChunkBuffer.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/storage/ChunkSystemChunkBuffer.java
 @@ -8,5 +8,5 @@ public interface ChunkSystemChunkBuffer {
@@ -51,10 +51,10 @@ index 51c126735ace8fdde89ad97b5cab62f244212db0..c466ce5c669e4b5ed835b13584a5ae5a
      public void moonrise$setWriteOnClose(final boolean value);
  
 -    public void moonrise$write(final RegionFile regionFile) throws IOException;
-+    public void moonrise$write(final org.stupidcraft.linearpaper.region.IRegionFile regionFile) throws IOException; // DivineMC - Linear region file format
++    public void moonrise$write(final org.bxteam.divinemc.region.IRegionFile regionFile) throws IOException; // DivineMC - Linear region file format
  }
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 9d6fa3bced0ba5ab3443bdf4ce306598a8e4a31f..34bc5d54de26608e64170bd902baa87da137dab6 100644
+index 26a4a279122bb03a83dd4a34e780d6a4567ba3a8..51b79f614417f231951e9ba05b29ff0044e081e7 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -947,10 +947,10 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -71,7 +71,7 @@ index 9d6fa3bced0ba5ab3443bdf4ce306598a8e4a31f..34bc5d54de26608e64170bd902baa87d
  
          return flag;
 diff --git a/net/minecraft/util/worldupdate/WorldUpgrader.java b/net/minecraft/util/worldupdate/WorldUpgrader.java
-index e0bcda2ddea0d6633445a7440fbf0d18e50a7653..2ab8e8d9db5ea390a1334c28b97ef6d05ce3afb3 100644
+index e0bcda2ddea0d6633445a7440fbf0d18e50a7653..e99f3c3567f9e6fb5a328bf9b59d40c72522f922 100644
 --- a/net/minecraft/util/worldupdate/WorldUpgrader.java
 +++ b/net/minecraft/util/worldupdate/WorldUpgrader.java
 @@ -72,7 +72,7 @@ public class WorldUpgrader implements AutoCloseable {
@@ -97,7 +97,7 @@ index e0bcda2ddea0d6633445a7440fbf0d18e50a7653..2ab8e8d9db5ea390a1334c28b97ef6d0
                          List<ChunkPos> list1 = Lists.newArrayList();
  
 -                        try (RegionFile regionFile = new RegionFile(regionStorageInfo, file.toPath(), path, true)) {
-+                        try (org.stupidcraft.linearpaper.region.IRegionFile regionFile = org.stupidcraft.linearpaper.region.IRegionFileFactory.getAbstractRegionFile(regionStorageInfo, file.toPath(), path, true)) { // DivineMC - Linear region file format
++                        try (org.bxteam.divinemc.region.IRegionFile regionFile = org.bxteam.divinemc.region.RegionFileFactory.getAbstractRegionFile(regionStorageInfo, file.toPath(), path, true)) { // DivineMC - Linear region file format
                              for (int i2 = 0; i2 < 32; i2++) {
                                  for (int i3 = 0; i3 < 32; i3++) {
                                      ChunkPos chunkPos = new ChunkPos(i2 + i, i3 + i1);
@@ -106,7 +106,7 @@ index e0bcda2ddea0d6633445a7440fbf0d18e50a7653..2ab8e8d9db5ea390a1334c28b97ef6d0
          protected abstract boolean tryProcessOnePosition(T chunkStorage, ChunkPos chunkPos, ResourceKey<Level> dimension);
  
 -        private void onFileFinished(RegionFile regionFile) {
-+        private void onFileFinished(org.stupidcraft.linearpaper.region.IRegionFile regionFile) { // DivineMC - Linear region file format
++        private void onFileFinished(org.bxteam.divinemc.region.IRegionFile regionFile) { // DivineMC - Linear region file format
              if (WorldUpgrader.this.recreateRegionFiles) {
                  if (this.previousWriteFuture != null) {
                      this.previousWriteFuture.join();
@@ -115,12 +115,12 @@ index e0bcda2ddea0d6633445a7440fbf0d18e50a7653..2ab8e8d9db5ea390a1334c28b97ef6d0
      }
  
 -    record FileToUpgrade(RegionFile file, List<ChunkPos> chunksToUpgrade) {
-+    record FileToUpgrade(org.stupidcraft.linearpaper.region.IRegionFile file, List<ChunkPos> chunksToUpgrade) { // DivineMC - Linear region file format
++    record FileToUpgrade(org.bxteam.divinemc.region.IRegionFile file, List<ChunkPos> chunksToUpgrade) { // DivineMC - Linear region file format
      }
  
      class PoiUpgrader extends WorldUpgrader.SimpleRegionStorageUpgrader {
 diff --git a/net/minecraft/world/level/chunk/storage/RegionFile.java b/net/minecraft/world/level/chunk/storage/RegionFile.java
-index c72494e757a9dc50e053dbc873f7b30e83d5cb8c..5d29e3046485dcdda9356f6bfe6f6463e9b9bef4 100644
+index c72494e757a9dc50e053dbc873f7b30e83d5cb8c..2988084cf2d72557dd304dcb904d09441e79863d 100644
 --- a/net/minecraft/world/level/chunk/storage/RegionFile.java
 +++ b/net/minecraft/world/level/chunk/storage/RegionFile.java
 @@ -22,7 +22,7 @@ import net.minecraft.util.profiling.jfr.JvmProfiler;
@@ -128,7 +128,7 @@ index c72494e757a9dc50e053dbc873f7b30e83d5cb8c..5d29e3046485dcdda9356f6bfe6f6463
  import org.slf4j.Logger;
  
 -public class RegionFile implements AutoCloseable, ca.spottedleaf.moonrise.patches.chunk_system.storage.ChunkSystemRegionFile { // Paper - rewrite chunk system
-+public class RegionFile implements AutoCloseable, ca.spottedleaf.moonrise.patches.chunk_system.storage.ChunkSystemRegionFile, org.stupidcraft.linearpaper.region.IRegionFile { // Paper - rewrite chunk system // DivineMC - Linear region file format
++public class RegionFile implements AutoCloseable, ca.spottedleaf.moonrise.patches.chunk_system.storage.ChunkSystemRegionFile, org.bxteam.divinemc.region.IRegionFile { // Paper - rewrite chunk system // DivineMC - Linear region file format
      private static final Logger LOGGER = LogUtils.getLogger();
      public static final int MAX_CHUNK_SIZE = 500 * 1024 * 1024; // Paper - don't write garbage data to disk if writing serialization fails
      private static final int SECTOR_BYTES = 4096;
@@ -137,12 +137,12 @@ index c72494e757a9dc50e053dbc873f7b30e83d5cb8c..5d29e3046485dcdda9356f6bfe6f6463
  
          @Override
 -        public final void moonrise$write(final RegionFile regionFile) throws IOException {
-+        public final void moonrise$write(final org.stupidcraft.linearpaper.region.IRegionFile regionFile) throws IOException { // DivineMC - Linear region file format
++        public final void moonrise$write(final org.bxteam.divinemc.region.IRegionFile regionFile) throws IOException { // DivineMC - Linear region file format
              regionFile.write(this.pos, ByteBuffer.wrap(this.buf, 0, this.count));
          }
          // Paper end - rewrite chunk system
 diff --git a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
-index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b4196cf25588 100644
+index 16cd10ab8de69ca3d29c84cf93715645322fd72a..9fd987078625bee796b381108ae7dbfb1f14d256 100644
 --- a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
 +++ b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
 @@ -18,7 +18,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
@@ -150,7 +150,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      public static final String ANVIL_EXTENSION = ".mca";
      private static final int MAX_CACHE_SIZE = 256;
 -    public final Long2ObjectLinkedOpenHashMap<RegionFile> regionCache = new Long2ObjectLinkedOpenHashMap<>();
-+    public final Long2ObjectLinkedOpenHashMap<org.stupidcraft.linearpaper.region.IRegionFile> regionCache = new Long2ObjectLinkedOpenHashMap<>(); // DivineMC - Linear region file format
++    public final Long2ObjectLinkedOpenHashMap<org.bxteam.divinemc.region.IRegionFile> regionCache = new Long2ObjectLinkedOpenHashMap<>(); // DivineMC - Linear region file format
      private final RegionStorageInfo info;
      private final Path folder;
      private final boolean sync;
@@ -168,7 +168,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      private final it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet nonExistingRegionFiles = new it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet();
      private static String getRegionFileName(final int chunkX, final int chunkZ) {
 +        // DivineMC start - Linear region file format
-+        if (org.bxteam.divinemc.DivineConfig.regionFormatTypeName == org.stupidcraft.linearpaper.region.EnumRegionFileExtension.LINEAR) {
++        if (org.bxteam.divinemc.DivineConfig.regionFormatTypeName == org.bxteam.divinemc.region.RegionFileFormat.LINEAR) {
 +            return "r." + (chunkX >> REGION_SHIFT) + "." + (chunkZ >> REGION_SHIFT) + ".linear";
 +        }
 +        // DivineMC end - Linear region file format
@@ -181,17 +181,17 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
  
      @Override
 -    public synchronized final RegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ) {
-+    public synchronized final org.stupidcraft.linearpaper.region.IRegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ) { // DivineMC - Linear region file format
++    public synchronized final org.bxteam.divinemc.region.IRegionFile moonrise$getRegionFileIfLoaded(final int chunkX, final int chunkZ) { // DivineMC - Linear region file format
          return this.regionCache.getAndMoveToFirst(ChunkPos.asLong(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT));
      }
  
      @Override
 -    public synchronized final RegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException {
-+    public synchronized final org.stupidcraft.linearpaper.region.IRegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException { // DivineMC - Linear region file format
++    public synchronized final org.bxteam.divinemc.region.IRegionFile moonrise$getRegionFileIfExists(final int chunkX, final int chunkZ) throws IOException { // DivineMC - Linear region file format
          final long key = ChunkPos.asLong(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT);
  
 -        RegionFile ret = this.regionCache.getAndMoveToFirst(key);
-+        org.stupidcraft.linearpaper.region.IRegionFile ret = this.regionCache.getAndMoveToFirst(key); // DivineMC - Linear region file format
++        org.bxteam.divinemc.region.IRegionFile ret = this.regionCache.getAndMoveToFirst(key); // DivineMC - Linear region file format
          if (ret != null) {
              return ret;
          }
@@ -200,7 +200,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
          FileUtil.createDirectoriesSafe(this.folder);
  
 -        ret = new RegionFile(this.info, regionPath, this.folder, this.sync);
-+        ret = org.stupidcraft.linearpaper.region.IRegionFileFactory.getAbstractRegionFile(this.info, regionPath, this.folder, this.sync); // DivineMC - Linear region file format
++        ret = org.bxteam.divinemc.region.RegionFileFactory.getAbstractRegionFile(this.info, regionPath, this.folder, this.sync); // DivineMC - Linear region file format
  
          this.regionCache.putAndMoveToFirst(key, ret);
  
@@ -209,7 +209,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
  
          final ChunkPos pos = new ChunkPos(chunkX, chunkZ);
 -        final RegionFile regionFile = this.getRegionFile(pos);
-+        final org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.getRegionFile(pos); // DivineMC - Linear region file format
++        final org.bxteam.divinemc.region.IRegionFile regionFile = this.getRegionFile(pos); // DivineMC - Linear region file format
  
          // note: not required to keep regionfile loaded after this call, as the write param takes a regionfile as input
          // (and, the regionfile parameter is unused for writing until the write call)
@@ -223,7 +223,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
          final ChunkPos pos = new ChunkPos(chunkX, chunkZ);
          if (writeData.result() == ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO.RegionDataController.WriteData.WriteResult.DELETE) {
 -            final RegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ);
-+            final org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ); // DivineMC - Linear region file format
++            final org.bxteam.divinemc.region.IRegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ); // DivineMC - Linear region file format
              if (regionFile != null) {
                  regionFile.clear(pos);
              } // else: didn't exist
@@ -232,7 +232,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
          final int chunkX, final int chunkZ
      ) throws IOException {
 -        final RegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ);
-+        final org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ); // DivineMC - Linear region file format
++        final org.bxteam.divinemc.region.IRegionFile regionFile = this.moonrise$getRegionFileIfExists(chunkX, chunkZ); // DivineMC - Linear region file format
  
          final DataInputStream input = regionFile == null ? null : regionFile.getChunkDataInputStream(new ChunkPos(chunkX, chunkZ));
  
@@ -241,7 +241,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      // Paper end - rewrite chunk system
      // Paper start - rewrite chunk system
 -    public RegionFile getRegionFile(ChunkPos chunkcoordintpair) throws IOException {
-+    public org.stupidcraft.linearpaper.region.IRegionFile getRegionFile(ChunkPos chunkcoordintpair) throws IOException { // DivineMC - Linear region file format
++    public org.bxteam.divinemc.region.IRegionFile getRegionFile(ChunkPos chunkcoordintpair) throws IOException { // DivineMC - Linear region file format
          return this.getRegionFile(chunkcoordintpair, false);
      }
      // Paper end - rewrite chunk system
@@ -250,7 +250,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      }
  
 -    @org.jetbrains.annotations.Contract("_, false -> !null") @Nullable private RegionFile getRegionFile(ChunkPos chunkPos, boolean existingOnly) throws IOException { // CraftBukkit
-+    @org.jetbrains.annotations.Contract("_, false -> !null") @Nullable private org.stupidcraft.linearpaper.region.IRegionFile getRegionFile(ChunkPos chunkPos, boolean existingOnly) throws IOException { // CraftBukkit // DivineMC - Linear region file format
++    @org.jetbrains.annotations.Contract("_, false -> !null") @Nullable private org.bxteam.divinemc.region.IRegionFile getRegionFile(ChunkPos chunkPos, boolean existingOnly) throws IOException { // CraftBukkit // DivineMC - Linear region file format
          // Paper start - rewrite chunk system
          if (existingOnly) {
              return this.moonrise$getRegionFileIfExists(chunkPos.x, chunkPos.z);
@@ -259,7 +259,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
              final long key = ChunkPos.asLong(chunkPos.x >> REGION_SHIFT, chunkPos.z >> REGION_SHIFT);
  
 -            RegionFile ret = this.regionCache.getAndMoveToFirst(key);
-+            org.stupidcraft.linearpaper.region.IRegionFile ret = this.regionCache.getAndMoveToFirst(key); // DivineMC - Linear region file format
++            org.bxteam.divinemc.region.IRegionFile ret = this.regionCache.getAndMoveToFirst(key); // DivineMC - Linear region file format
              if (ret != null) {
                  return ret;
              }
@@ -268,7 +268,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
              FileUtil.createDirectoriesSafe(this.folder);
  
 -            ret = new RegionFile(this.info, regionPath, this.folder, this.sync);
-+            ret = org.stupidcraft.linearpaper.region.IRegionFileFactory.getAbstractRegionFile(this.info, regionPath, this.folder, this.sync); // DivineMC - Linear region file format
++            ret = org.bxteam.divinemc.region.RegionFileFactory.getAbstractRegionFile(this.info, regionPath, this.folder, this.sync); // DivineMC - Linear region file format
  
              this.regionCache.putAndMoveToFirst(key, ret);
  
@@ -277,7 +277,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      }
  
 -    private static CompoundTag readOversizedChunk(RegionFile regionfile, ChunkPos chunkCoordinate) throws IOException {
-+    private static CompoundTag readOversizedChunk(org.stupidcraft.linearpaper.region.IRegionFile regionfile, ChunkPos chunkCoordinate) throws IOException { // DivineMC - Linear region file format
++    private static CompoundTag readOversizedChunk(org.bxteam.divinemc.region.IRegionFile regionfile, ChunkPos chunkCoordinate) throws IOException { // DivineMC - Linear region file format
          synchronized (regionfile) {
              try (DataInputStream datainputstream = regionfile.getChunkDataInputStream(chunkCoordinate)) {
                  CompoundTag oversizedData = regionfile.getOversizedData(chunkCoordinate.x, chunkCoordinate.z);
@@ -286,7 +286,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      public CompoundTag read(ChunkPos chunkPos) throws IOException {
          // CraftBukkit start - SPIGOT-5680: There's no good reason to preemptively create files on read, save that for writing
 -        RegionFile regionFile = this.getRegionFile(chunkPos, true);
-+        org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.getRegionFile(chunkPos, true); // DivineMC - Linear region file format
++        org.bxteam.divinemc.region.IRegionFile regionFile = this.getRegionFile(chunkPos, true); // DivineMC - Linear region file format
          if (regionFile == null) {
              return null;
          }
@@ -295,7 +295,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
      public void scanChunk(ChunkPos chunkPos, StreamTagVisitor visitor) throws IOException {
          // CraftBukkit start - SPIGOT-5680: There's no good reason to preemptively create files on read, save that for writing
 -        RegionFile regionFile = this.getRegionFile(chunkPos, true);
-+        org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.getRegionFile(chunkPos, true); // DivineMC - Linear region file format
++        org.bxteam.divinemc.region.IRegionFile regionFile = this.getRegionFile(chunkPos, true); // DivineMC - Linear region file format
          if (regionFile == null) {
              return;
          }
@@ -304,7 +304,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
  
      public void write(ChunkPos chunkPos, @Nullable CompoundTag chunkData) throws IOException { // Paper - rewrite chunk system - public
 -        RegionFile regionFile = this.getRegionFile(chunkPos, chunkData == null); // CraftBukkit // Paper - rewrite chunk system
-+        org.stupidcraft.linearpaper.region.IRegionFile regionFile = this.getRegionFile(chunkPos, chunkData == null); // CraftBukkit // Paper - rewrite chunk system // DivineMC - Linear region file format
++        org.bxteam.divinemc.region.IRegionFile regionFile = this.getRegionFile(chunkPos, chunkData == null); // CraftBukkit // Paper - rewrite chunk system // DivineMC - Linear region file format
          // Paper start - rewrite chunk system
          if (regionFile == null) {
              // if the RegionFile doesn't exist, no point in deleting from it
@@ -313,7 +313,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
          synchronized (this) {
              final ExceptionCollector<IOException> exceptionCollector = new ExceptionCollector<>();
 -            for (final RegionFile regionFile : this.regionCache.values()) {
-+            for (final org.stupidcraft.linearpaper.region.IRegionFile regionFile : this.regionCache.values()) { // DivineMC - Linear region file format
++            for (final org.bxteam.divinemc.region.IRegionFile regionFile : this.regionCache.values()) { // DivineMC - Linear region file format
                  try {
                      regionFile.close();
                  } catch (final IOException ex) {
@@ -322,7 +322,7 @@ index 16cd10ab8de69ca3d29c84cf93715645322fd72a..1061d1480af0d4947d0f7f1b0028b419
          synchronized (this) {
              final ExceptionCollector<IOException> exceptionCollector = new ExceptionCollector<>();
 -            for (final RegionFile regionFile : this.regionCache.values()) {
-+            for (final org.stupidcraft.linearpaper.region.IRegionFile regionFile : this.regionCache.values()) { // DivineMC - Linear region file format
++            for (final org.bxteam.divinemc.region.IRegionFile regionFile : this.regionCache.values()) { // DivineMC - Linear region file format
                  try {
                      regionFile.flush();
                  } catch (final IOException ex) {

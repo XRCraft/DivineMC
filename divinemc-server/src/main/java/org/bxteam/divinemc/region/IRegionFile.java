@@ -1,4 +1,4 @@
-package org.stupidcraft.linearpaper.region;
+package org.bxteam.divinemc.region;
 
 import ca.spottedleaf.moonrise.patches.chunk_system.storage.ChunkSystemRegionFile;
 import net.minecraft.nbt.CompoundTag;

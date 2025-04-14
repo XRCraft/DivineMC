@@ -1,46 +1,46 @@
-package org.stupidcraft.linearpaper.region;
+package org.bxteam.divinemc.region;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.Locale;
 
-public enum EnumRegionFileExtension {
+public enum RegionFileFormat {
     LINEAR(".linear"),
-    MCA(".mca"),
+    ANVIL(".mca"),
     UNKNOWN(null);
 
-    private final String extensionName;
+    private final String extension;
 
-    EnumRegionFileExtension(String extensionName) {
-        this.extensionName = extensionName;
+    RegionFileFormat(String extension) {
+        this.extension = extension;
     }
 
     public String getExtensionName() {
-        return this.extensionName;
+        return this.extension;
     }
 
     @Contract(pure = true)
-    public static EnumRegionFileExtension fromName(@NotNull String name) {
+    public static RegionFileFormat fromName(@NotNull String name) {
         switch (name.toUpperCase(Locale.ROOT)) {
-            case "MCA" -> {
-                return MCA;
+            case "MCA", "ANVIL" -> {
+                return ANVIL;
             }
 
             case "LINEAR" -> {
                 return LINEAR;
             }
+
             default -> {
-                return UNKNOWN;
+                throw new IllegalArgumentException("Unknown region file format: " + name);
             }
         }
     }
 
     @Contract(pure = true)
-    public static EnumRegionFileExtension fromExtension(@NotNull String name) {
+    public static RegionFileFormat fromExtension(@NotNull String name) {
         switch (name.toLowerCase()) {
-            case "mca" -> {
-                return MCA;
+            case "mca", "anvil" -> {
+                return ANVIL;
             }
 
             case "linear" -> {

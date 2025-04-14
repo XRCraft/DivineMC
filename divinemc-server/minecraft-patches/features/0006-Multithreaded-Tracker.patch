@@ -208,10 +208,10 @@ index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9
  
              attributesToSync.clear();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 9afd448ede87c9192dc576f66e08676a68b34d98..d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0 100644
+index c229d69ce3d007e4cb57e559611b3fca7a03562f..ba5ca5213fafd60b2257409f334a7c6b28fe918a 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -2471,7 +2471,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2497,7 +2497,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public LevelEntityGetter<Entity> getEntities() {
@@ -220,7 +220,7 @@ index 9afd448ede87c9192dc576f66e08676a68b34d98..d4b44e0fdf113e66c45cc86221df20fe
          return this.moonrise$getEntityLookup(); // Paper - rewrite chunk system
      }
  
-@@ -2698,7 +2698,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2724,7 +2724,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
                          }
  
                          map.carriedByPlayers.remove(player);

@@ -1293,7 +1293,7 @@ index 6540b2d6a1062d883811ce240c49d30d1925b291..8055b8552b40160732953b15876dda79
          }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 3c3e8e58cd2761ab2f0652e63f944a5c9a95dca8..3980e0dfb08a357384ea33670fb282a26a598f6e 100644
+index eb6286d34a68bf6eb57877a9cfc2be09615c7e83..f4b1f45f1dc86bd077860f088cdd6da78ecc6020 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -77,8 +77,6 @@ import net.minecraft.util.ProgressListener;
@@ -1437,7 +1437,7 @@ index 3c3e8e58cd2761ab2f0652e63f944a5c9a95dca8..3980e0dfb08a357384ea33670fb282a2
      }
  
      @VisibleForTesting
-@@ -1330,17 +1296,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1356,17 +1322,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              }
              // Paper end - log detailed entity tick information
          entity.setOldPosAndRot();
@@ -1455,7 +1455,7 @@ index 3c3e8e58cd2761ab2f0652e63f944a5c9a95dca8..3980e0dfb08a357384ea33670fb282a2
  
          for (Entity entity1 : entity.getPassengers()) {
              this.tickPassenger(entity, entity1, isActive); // Paper - EAR 2
-@@ -1361,9 +1323,6 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1387,9 +1349,6 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              passengerEntity.setOldPosAndRot();
              passengerEntity.tickCount++;
              passengerEntity.totalEntityAge++; // Paper - age-like counter for all entities
@@ -1465,7 +1465,7 @@ index 3c3e8e58cd2761ab2f0652e63f944a5c9a95dca8..3980e0dfb08a357384ea33670fb282a2
              // Paper start - EAR 2
              if (isActive) {
              passengerEntity.rideTick();
-@@ -1375,7 +1334,6 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1401,7 +1360,6 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
                  ridingEntity.positionRider(passengerEntity);
              }
              // Paper end - EAR 2

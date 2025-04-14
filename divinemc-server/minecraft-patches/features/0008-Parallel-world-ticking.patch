@@ -435,7 +435,7 @@ index 0d889730641fd88d4da0c9116226a4dae385e846..f7a061ad623fa909389c60c1d5b4be84
          try {
              org.purpurmc.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0..50ea7f4a0428cbc49fb13a31b1fa643e00ef9434 100644
+index ba5ca5213fafd60b2257409f334a7c6b28fe918a..52ba052fc1ff2a35786570c282a7de4e9dff99f5 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -182,7 +182,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -463,7 +463,7 @@ index d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0..50ea7f4a0428cbc49fb13a31b1fa643e
          this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
      }
  
-@@ -1255,12 +1257,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1281,12 +1283,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          if (fluidState.is(fluid)) {
              fluidState.tick(this, pos, blockState);
          }
@@ -481,7 +481,7 @@ index d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0..50ea7f4a0428cbc49fb13a31b1fa643e
      }
  
      private void tickBlock(BlockPos pos, Block block) {
-@@ -1268,12 +1270,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1294,12 +1296,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          if (blockState.is(block)) {
              blockState.tick(this, pos, this.random);
          }
@@ -499,7 +499,7 @@ index d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0..50ea7f4a0428cbc49fb13a31b1fa643e
      }
  
      // Paper start - log detailed entity tick information
-@@ -1522,6 +1524,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1548,6 +1550,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      }
  
      private void addPlayer(ServerPlayer player) {
@@ -507,7 +507,7 @@ index d4b44e0fdf113e66c45cc86221df20fe2d3bb9f0..50ea7f4a0428cbc49fb13a31b1fa643e
          Entity entity = this.getEntities().get(player.getUUID());
          if (entity != null) {
              LOGGER.warn("Force-added player with duplicate UUID {}", player.getUUID());
-@@ -1534,7 +1537,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -1560,7 +1563,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      // CraftBukkit start
      private boolean addEntity(Entity entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {

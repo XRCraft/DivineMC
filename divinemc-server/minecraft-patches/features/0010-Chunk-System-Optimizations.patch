@@ -1092,7 +1092,7 @@ index ab30af9cd58ff7310e05be87b08f42bacf69e11e..ae0e36d198ad8243920c8e8a55c0be49
      }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 50ea7f4a0428cbc49fb13a31b1fa643e00ef9434..a70007d324e2169d1b2a1a11046500196b8b5660 100644
+index 52ba052fc1ff2a35786570c282a7de4e9dff99f5..9298bdca9a653622f3625190e875e7b6c5e40023 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -181,6 +181,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -1199,7 +1199,7 @@ index 50ea7f4a0428cbc49fb13a31b1fa643e00ef9434..a70007d324e2169d1b2a1a1104650019
      }
      // Paper end - optimise random ticking
  
-@@ -2531,30 +2533,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2557,30 +2559,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      private boolean isPositionTickingWithEntitiesLoaded(long chunkPos) {
          // Paper start - rewrite chunk system

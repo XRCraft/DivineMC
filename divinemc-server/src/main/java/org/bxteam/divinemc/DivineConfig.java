@@ -10,13 +10,14 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bxteam.divinemc.entity.pathfinding.PathfindTaskRejectPolicy;
+import org.bxteam.divinemc.region.LinearImplementation;
 import org.bxteam.divinemc.server.chunk.ChunkSystemAlgorithms;
 import org.bxteam.divinemc.server.chunk.ChunkTaskPriority;
 import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.comments.CommentType;
 import org.simpleyaml.configuration.file.YamlFile;
 import org.simpleyaml.exceptions.InvalidConfigurationException;
-import org.stupidcraft.linearpaper.region.EnumRegionFileExtension;
+import org.bxteam.divinemc.region.RegionFileFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -526,32 +527,50 @@ public class DivineConfig {
         if (asyncEntityTrackerQueueSize <= 0) asyncEntityTrackerQueueSize = asyncEntityTrackerMaxThreads * 384;
     }
 
-    public static EnumRegionFileExtension regionFormatTypeName = EnumRegionFileExtension.MCA;
+    public static RegionFileFormat regionFormatTypeName = RegionFileFormat.ANVIL;
+    public static LinearImplementation linearImplementation = LinearImplementation.V2;
+    public static int linearFlushMaxThreads = 4;
+    public static int linearFlushDelay = 100;
+    public static boolean linearUseVirtualThread = false;
     public static int linearCompressionLevel = 1;
-    public static int linearFlushFrequency = 5;
     private static void linearRegionFormat() {
-        regionFormatTypeName = EnumRegionFileExtension.fromName(getString("settings.linear-region-format.type", regionFormatTypeName.name(),
+        regionFormatTypeName = RegionFileFormat.fromName(getString("settings.linear-region-format.type", regionFormatTypeName.name(),
             "The type of region file format to use for storing chunk data.",
             "Valid values:",
             " - LINEAR: Linear region file format",
-            " - MCA: Anvil region file format (default)"));
+            " - ANVIL: Anvil region file format (default)"));
+        linearImplementation = LinearImplementation.valueOf(getString("settings.linear-region-format.implementation", linearImplementation.name(),
+            "The implementation of the linear region file format to use.",
+            "Valid values:",
+            " - V1: Basic and default linear implementation",
+            " - V2: Introduces a grid-based compression scheme for better data management and flexibility (default)"));
+
+        linearFlushMaxThreads = getInt("settings.linear-region-format.flush-max-threads", linearFlushMaxThreads,
+            "The maximum number of threads to use for flushing linear region files.",
+            "If this value is less than or equal to 0, it will be set to the number of available processors + this value.");
+        linearFlushDelay = getInt("settings.linear-region-format.flush-delay", linearFlushDelay,
+            "The delay in milliseconds to wait before flushing next files.");
+        linearUseVirtualThread = getBoolean("settings.linear-region-format.use-virtual-thread", linearUseVirtualThread,
+            "Whether to use virtual threads for flushing.");
         linearCompressionLevel = getInt("settings.linear-region-format.compression-level", linearCompressionLevel,
             "The compression level to use for the linear region file format.");
-        linearFlushFrequency = getInt("settings.linear-region-format.flush-frequency", linearFlushFrequency,
-            "The frequency in seconds to flush the linear region file format.");
 
         setComment("settings.linear-region-format",
-            "The linear region file format is a custom region file format that is designed to be more efficient than the MCA format.",
+            "The linear region file format is a custom region file format that is designed to be more efficient than the ANVIL format.",
             "It uses uses ZSTD compression instead of ZLIB. This format saves about 50% of disk space.",
             "Read more information about linear region format at https://github.com/xymb-endcrystalme/LinearRegionFileFormatTools",
             "WARNING: If you are want to use this format, make sure to create backup of your world before switching to it, there is potential risk to lose chunk data.");
 
-        if (regionFormatTypeName == EnumRegionFileExtension.UNKNOWN) {
-            LOGGER.error("Unknown region file type: {}, falling back to MCA format.", regionFormatTypeName);
-            regionFormatTypeName = EnumRegionFileExtension.MCA;
+        if (regionFormatTypeName == RegionFileFormat.UNKNOWN) {
+            LOGGER.error("Unknown region file type: {}, falling back to ANVIL format.", regionFormatTypeName);
+            regionFormatTypeName = RegionFileFormat.ANVIL;
         }
 
-        if (linearCompressionLevel > 23 || linearCompressionLevel < 1) {
+        if (linearFlushMaxThreads <= 0) {
+            linearFlushMaxThreads = Math.max(Runtime.getRuntime().availableProcessors() + linearFlushMaxThreads, 1);
+        }
+
+        if (linearCompressionLevel > 22 || linearCompressionLevel < 1) {
             LOGGER.warn("Invalid linear compression level: {}, resetting to default (1)", playerNearChunkDetectionRange);
             linearCompressionLevel = 1;
         }
