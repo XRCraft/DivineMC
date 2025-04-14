@@ -315,6 +315,13 @@ index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..3731ca80ed58cd385cd66ffbe67f2eea
                  }
  
                  logger.log(Level.SEVERE, "------------------------------");
+diff --git a/src/main/resources/META-INF/services/ca.spottedleaf.moonrise.common.PlatformHooks b/src/main/resources/META-INF/services/ca.spottedleaf.moonrise.common.PlatformHooks
+index e57c3ca79677b1dfe7cf3db36f0406de7ea5bd0a..fc80cbc5dbb49e7a8e251a47c9c05e0c2b20e8d0 100644
+--- a/src/main/resources/META-INF/services/ca.spottedleaf.moonrise.common.PlatformHooks
++++ b/src/main/resources/META-INF/services/ca.spottedleaf.moonrise.common.PlatformHooks
+@@ -1 +1 @@
+-ca.spottedleaf.moonrise.paper.PaperHooks
++org.bxteam.divinemc.DivineHooks
 diff --git a/src/main/resources/logo.png b/src/main/resources/logo.png
 index 518591dd83289e041a16e2c2e7d7e7640d4b2e1b..f54753531b3bf2e8b5377f342465e727c7da98f2 100644
 GIT binary patch
