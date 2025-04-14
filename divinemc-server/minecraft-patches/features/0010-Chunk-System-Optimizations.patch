@@ -273,7 +273,7 @@ index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557d
      }
  }
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
-index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18a0cdfe99 100644
+index 5683395e09a65b1b39748df5152fffef630ac083..6aea99f071bd1a6a1ea9507bb70739d56318eb22 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 @@ -71,36 +71,49 @@ public final class ChunkHolderManager {
@@ -464,7 +464,7 @@ index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18
                  // removed concurrently
 @@ -1033,7 +1046,7 @@ public final class ChunkHolderManager {
          }
-         if (!TickThread.isTickThreadFor(world)) { // DivineMC - parallel world ticking
+         if (org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking && !TickThread.isTickThreadFor(world)) { // DivineMC - Parallel world ticking
              this.taskScheduler.scheduleChunkTask(() -> {
 -                final ArrayDeque<NewChunkHolder> pendingFullLoadUpdate = ChunkHolderManager.this.pendingFullLoadUpdate;
 +                final java.util.Deque<NewChunkHolder> pendingFullLoadUpdate = ChunkHolderManager.this.getData().pendingFullLoadUpdate; // DivineMC - Chunk System optimization
@@ -491,7 +491,7 @@ index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18
          PlatformHooks.get().onChunkHolderDelete(this.world, holder.vanillaChunkHolder);
          this.chunkHolders.remove(CoordinateUtils.getChunkKey(holder.chunkX, holder.chunkZ));
      }
-@@ -1208,6 +1221,27 @@ public final class ChunkHolderManager {
+@@ -1214,6 +1227,27 @@ public final class ChunkHolderManager {
          }
      }
  
@@ -519,7 +519,7 @@ index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18
      public enum TicketOperationType {
          ADD, REMOVE, ADD_IF_REMOVED, ADD_AND_REMOVE
      }
-@@ -1381,7 +1415,7 @@ public final class ChunkHolderManager {
+@@ -1387,7 +1421,7 @@ public final class ChunkHolderManager {
  
      // only call on tick thread
      private boolean processPendingFullUpdate() {
@@ -528,7 +528,7 @@ index 0c99bffa769d53562a10d23c4a9b37dc59c7f478..f4fcc3b2676b17ebc276dcb177285f18
  
          boolean ret = false;
  
-@@ -1417,8 +1451,7 @@ public final class ChunkHolderManager {
+@@ -1423,8 +1457,7 @@ public final class ChunkHolderManager {
          final JsonArray allTicketsJson = new JsonArray();
          ret.add("tickets", allTicketsJson);
  
@@ -1092,7 +1092,7 @@ index ab30af9cd58ff7310e05be87b08f42bacf69e11e..ae0e36d198ad8243920c8e8a55c0be49
      }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 8c566a587be3a384979cf10aabd0536c88bf69ac..bab5834741d0f11732ef1d1723868b8701d84961 100644
+index 50ea7f4a0428cbc49fb13a31b1fa643e00ef9434..a70007d324e2169d1b2a1a11046500196b8b5660 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -181,6 +181,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -1101,7 +1101,7 @@ index 8c566a587be3a384979cf10aabd0536c88bf69ac..bab5834741d0f11732ef1d1723868b87
      public final net.minecraft.world.level.storage.PrimaryLevelData serverLevelData; // CraftBukkit - type
 +    public final ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.LevelHolderData chunkHolderData; // DivineMC - Chunk System optimization
      private int lastSpawnChunkRadius;
-     final EntityTickList entityTickList = new EntityTickList(this); // DivineMC - parallel world ticking
+     final EntityTickList entityTickList = new EntityTickList(this); // DivineMC - Parallel world ticking
      // Paper - rewrite chunk system
 @@ -291,6 +292,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      }
@@ -1121,7 +1121,7 @@ index 8c566a587be3a384979cf10aabd0536c88bf69ac..bab5834741d0f11732ef1d1723868b87
                  new RegionStorageInfo(levelStorageAccess.getLevelId(), dimension, "entities"),
 @@ -703,6 +706,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          this.getCraftServer().addWorld(this.getWorld()); // CraftBukkit
-         this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new org.bxteam.divinemc.server.ServerLevelTickExecutorThreadFactory(getWorld().getName())); // DivineMC - parallel world ticking
+         this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new org.bxteam.divinemc.server.ServerLevelTickExecutorThreadFactory(getWorld().getName())); // DivineMC - Parallel world ticking
          this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
 +        this.chunkSystemPriorities = new org.bxteam.divinemc.server.chunk.PriorityHandler(this); // DivineMC - Chunk System optimizations
      }
@@ -1199,7 +1199,7 @@ index 8c566a587be3a384979cf10aabd0536c88bf69ac..bab5834741d0f11732ef1d1723868b87
      }
      // Paper end - optimise random ticking
  
-@@ -2525,30 +2527,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2531,30 +2533,25 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      private boolean isPositionTickingWithEntitiesLoaded(long chunkPos) {
          // Paper start - rewrite chunk system

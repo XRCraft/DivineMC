@@ -5,11 +5,11 @@ Subject: [PATCH] Multithreaded Tracker
 
 
 diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
-index d7398b1ecf2660c29fb7d106b48fe02d3736603e..a9ec83b5bcb329bf3d2f3fb0e502685a37f9dcbc 100644
+index 124715b53090085fc0a9f50bb2df196d31d89bed..adf526bcb5b4df3b798a8b80ad11b7b2c30775d7 100644
 --- a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
 +++ b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
-@@ -42,6 +42,12 @@ class PaperEventManager {
-         if (event.isAsynchronous() && this.server.isPrimaryThread()) {
+@@ -49,6 +49,12 @@ class PaperEventManager {
+             // DivineMC end - Parallel world ticking
              throw new IllegalStateException(event.getEventName() + " may only be triggered asynchronously.");
          } else if (!event.isAsynchronous() && !this.server.isPrimaryThread() && !this.server.isStopping()) {
 +            // DivineMC start - Multithreaded Tracker
@@ -22,10 +22,10 @@ index d7398b1ecf2660c29fb7d106b48fe02d3736603e..a9ec83b5bcb329bf3d2f3fb0e502685a
          }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 1a398376298fbc5a247d6645e733f7c543106fb1..b761e416d3844063efd66d7ec8519f548995aacd 100644
+index 59ee059f8d2d96b5e5ae507f209d267da24c9fa1..68c529473e9ce24cb6c6108cb65100757d1d8759 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -1973,6 +1973,26 @@ public class CraftEventFactory {
+@@ -1996,6 +1996,26 @@ public class CraftEventFactory {
      }
  
      public static boolean handleBlockFormEvent(Level world, BlockPos pos, net.minecraft.world.level.block.state.BlockState block, int flag, @Nullable Entity entity) {

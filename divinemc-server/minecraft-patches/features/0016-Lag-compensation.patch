@@ -5,13 +5,13 @@ Subject: [PATCH] Lag compensation
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 9f7698f8ce56d5d89cf86f6ea2d5b4d51b18c9a2..11b89a625b942f5f2f882c54dbfc08c16e983425 100644
+index 5a726da8535aa939f043829a3c60fdd9d4ed154a..0aebdd1cb0e1b63ff9a867bdcda7cbdc3c194b56 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -289,6 +289,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      public static final long SERVER_INIT = System.nanoTime(); // Paper - Lag compensation
      protected boolean upnp = false; // Purpur - UPnP Port Forwarding
-     public java.util.concurrent.Semaphore serverLevelTickingSemaphore = null; // DivineMC - parallel world ticking
+     public java.util.concurrent.Semaphore serverLevelTickingSemaphore = null; // DivineMC - Parallel world ticking
 +    public final org.bxteam.divinemc.util.tps.TPSCalculator tpsCalculator = new org.bxteam.divinemc.util.tps.TPSCalculator(); // DivineMC - Lag compensation
  
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
@@ -25,7 +25,7 @@ index 9f7698f8ce56d5d89cf86f6ea2d5b4d51b18c9a2..11b89a625b942f5f2f882c54dbfc08c1
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index bab5834741d0f11732ef1d1723868b8701d84961..e034d9f903728cdf7356629694c9f528ba5ebae3 100644
+index a70007d324e2169d1b2a1a11046500196b8b5660..53b606c34f65b80a676ddd26d64028dbdebecb43 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -218,6 +218,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -96,10 +96,10 @@ index 04a1c17a34b495b71eb1b0ccd597cef83480464d..edb128a3f454e7b3009ca360509decd7
      protected float getBlockSpeedFactor() {
          return Mth.lerp((float)this.getAttributeValue(Attributes.MOVEMENT_EFFICIENCY), super.getBlockSpeedFactor(), 1.0F);
 diff --git a/net/minecraft/world/entity/PortalProcessor.java b/net/minecraft/world/entity/PortalProcessor.java
-index 88b07fbb96b20124777889830afa480673629d43..d2661ea79536010414f77256332f214d19106dd9 100644
+index be357d9e3c5327ceec12c31830551a564c8cea1b..f77da420bc88df6ec304086fc1eba0690fe278b1 100644
 --- a/net/minecraft/world/entity/PortalProcessor.java
 +++ b/net/minecraft/world/entity/PortalProcessor.java
-@@ -24,10 +24,20 @@ public class PortalProcessor {
+@@ -26,10 +26,20 @@ public class PortalProcessor {
              return false;
          } else {
              this.insidePortalThisTick = false;
@@ -244,7 +244,7 @@ index b631e35e965b1914cdeeddab8bd6bdbfd2465079..bb7dab597850fba8f0dff4461fc518e0
      }
  
 diff --git a/net/minecraft/world/level/chunk/LevelChunk.java b/net/minecraft/world/level/chunk/LevelChunk.java
-index ba88a3aed79543f69a5bf30cfd03f30983d229cf..0337f4b9ca3c9c9a1e2a7cf19fcbad5e78b949dc 100644
+index b245f594ff91e2d29c83f56b9ed5165f37387e7e..534384727e852dc8ea822f49f182af49eb3a40c1 100644
 --- a/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -907,6 +907,19 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
