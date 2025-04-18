@@ -96,9 +96,25 @@ index 866f38eb0f379ffbe2888023a7d1c290f521a231..08666b4aa1c7663861dc361f60e6f1cc
          if (indexer == null) {
              return dfl;
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557da6b90ede 100644
+index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..886825a10bd06b4b656d19a05624c74f2686feb3 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+@@ -189,13 +189,13 @@ public final class RegionizedPlayerChunkLoader {
+         }
+ 
+         if (((ChunkSystemServerPlayer)player).moonrise$getChunkLoader() != null) {
+-            throw new IllegalStateException("Player is already added to player chunk loader");
++            return; // DivineMC - Chunk System optimization - already loaded
+         }
+ 
+         final PlayerChunkLoaderData loader = new PlayerChunkLoaderData(this.world, player);
+ 
+-        ((ChunkSystemServerPlayer)player).moonrise$setChunkLoader(loader);
+         loader.add();
++        player.moonrise$setChunkLoader(loader); // DivineMC - Chunk System optimization
+     }
+ 
+     public void updatePlayer(final ServerPlayer player) {
 @@ -301,7 +301,7 @@ public final class RegionizedPlayerChunkLoader {
          return false;
      }
@@ -154,7 +170,7 @@ index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557d
  
              @Override
 -            protected void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) {
-+            protected synchronized void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) { // DivineMC - Chunk System optimization - synchronized
++            protected synchronized void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) { // DivineMC - Chunk System optimization
                  final long chunk = CoordinateUtils.getChunkKey(chunkX, chunkZ);
                  // note: by the time this is called, the tick cleanup should have ran - so, if the chunk is at
                  // the tick stage it was deemed in range for loading. Thus, we need to move it to generated
@@ -163,107 +179,46 @@ index 8ef5a1aaac9c27873ce746eb281f77bb318a3c69..76b8d42ae530b59cdaba0583365a557d
          }
  
 -        private boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) {
-+        private synchronized boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) { // DivineMC - Chunk System optimization - synchronized
++        private synchronized boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) { // DivineMC - Chunk System optimization
              for (int dz = -radius; dz <= radius; ++dz) {
                  for (int dx = -radius; dx <= radius; ++dx) {
                      if ((dx | dz) == 0) {
-@@ -643,19 +653,11 @@ public final class RegionizedPlayerChunkLoader {
+@@ -643,10 +653,10 @@ public final class RegionizedPlayerChunkLoader {
              return true;
          }
  
 -        void updateQueues(final long time) {
-+        synchronized void updateQueues(final long time) { // DivineMC - Chunk System optimization - synchronized
++        synchronized void updateQueues(final long time) { // DivineMC - Chunk System optimization
              TickThread.ensureTickThread(this.player, "Cannot tick player chunk loader async");
              if (this.removed) {
-                 throw new IllegalStateException("Ticking removed player chunk loader");
+-                throw new IllegalStateException("Ticking removed player chunk loader");
++                return; // DivineMC - Chunk System optimization - just return
              }
--            // update rate limits
--            final double loadRate = this.getMaxChunkLoadRate();
--            final double genRate = this.getMaxChunkGenRate();
--            final double sendRate = this.getMaxChunkSendRate();
--
--            this.chunkLoadTicketLimiter.tickAllocation(time, loadRate, loadRate);
--            this.chunkGenerateTicketLimiter.tickAllocation(time, genRate, genRate);
--            this.chunkSendLimiter.tickAllocation(time, sendRate, sendRate);
- 
-             // try to progress chunk loads
-             while (!this.loadingQueue.isEmpty()) {
-@@ -682,8 +684,7 @@ public final class RegionizedPlayerChunkLoader {
-             }
- 
-             // try to push more chunk loads
--            final long maxLoads = Math.max(0L, Math.min(MAX_RATE, Math.min(this.loadQueue.size(), this.getMaxChunkLoads())));
--            final int maxLoadsThisTick = (int)this.chunkLoadTicketLimiter.takeAllocation(time, loadRate, maxLoads);
-+            final int maxLoadsThisTick = this.loadQueue.size(); // DivineMC - Chunk System optimization
-             if (maxLoadsThisTick > 0) {
-                 final LongArrayList chunks = new LongArrayList(maxLoadsThisTick);
-                 for (int i = 0; i < maxLoadsThisTick; ++i) {
-@@ -758,9 +759,7 @@ public final class RegionizedPlayerChunkLoader {
-             }
- 
-             // try to push more chunk generations
--            final long maxGens = Math.max(0L, Math.min(MAX_RATE, Math.min(this.genQueue.size(), this.getMaxChunkGenerates())));
--            // preview the allocations, as we may not actually utilise all of them
--            final long maxGensThisTick = this.chunkGenerateTicketLimiter.previewAllocation(time, genRate, maxGens);
-+            final long maxGensThisTick = this.genQueue.size(); // DivineMC - Chunk System optimization
-             long ratedGensThisTick = 0L;
-             while (!this.genQueue.isEmpty()) {
-                 final long chunkKey = this.genQueue.firstLong();
-@@ -790,8 +789,6 @@ public final class RegionizedPlayerChunkLoader {
-                 );
-                 this.generatingQueue.enqueue(chunkKey);
-             }
--            // take the allocations we actually used
--            this.chunkGenerateTicketLimiter.takeAllocation(time, genRate, ratedGensThisTick);
- 
-             // try to pull ticking chunks
-             while (!this.tickingQueue.isEmpty()) {
-@@ -821,10 +818,10 @@ public final class RegionizedPlayerChunkLoader {
-             }
- 
-             // try to pull sending chunks
--            final long maxSends = Math.max(0L, Math.min(MAX_RATE, Integer.MAX_VALUE)); // note: no logic to track concurrent sends
--            final int maxSendsThisTick = Math.min((int)this.chunkSendLimiter.takeAllocation(time, sendRate, maxSends), this.sendQueue.size());
-+            final int maxSendsThisTick = this.sendQueue.size(); // DivineMC - Chunk System optimization
-             // we do not return sends that we took from the allocation back because we want to limit the max send rate, not target it
-             for (int i = 0; i < maxSendsThisTick; ++i) {
-+                if (this.sendQueue.isEmpty()) break; // DivineMC - Chunk System optimization
-                 final long pendingSend = this.sendQueue.firstLong();
-                 final int pendingSendX = CoordinateUtils.getChunkX(pendingSend);
-                 final int pendingSendZ = CoordinateUtils.getChunkZ(pendingSend);
-@@ -889,9 +886,6 @@ public final class RegionizedPlayerChunkLoader {
- 
-             // reset limiters, they will start at a zero allocation
-             final long time = System.nanoTime();
--            this.chunkLoadTicketLimiter.reset(time);
--            this.chunkGenerateTicketLimiter.reset(time);
--            this.chunkSendLimiter.reset(time);
- 
-             // now we can update
-             this.update();
-@@ -910,10 +904,10 @@ public final class RegionizedPlayerChunkLoader {
+             // update rate limits
+             final double loadRate = this.getMaxChunkLoadRate();
+@@ -910,10 +920,10 @@ public final class RegionizedPlayerChunkLoader {
              );
          }
  
 -        void update() {
-+        synchronized void update() { // DivineMC - Chunk System optimization - synchronized
++        synchronized void update() { // DivineMC - Chunk System optimization
              TickThread.ensureTickThread(this.player, "Cannot update player asynchronously");
              if (this.removed) {
 -                throw new IllegalStateException("Updating removed player chunk loader");
-+                return; // DivineMC - Chunk System optimization
++                return; // DivineMC - Chunk System optimization - just return
              }
              final ViewDistances playerDistances = ((ChunkSystemServerPlayer)this.player).moonrise$getViewDistanceHolder().getViewDistances();
              final ViewDistances worldDistances = ((ChunkSystemServerLevel)this.world).moonrise$getViewDistanceHolder().getViewDistances();
-@@ -1062,7 +1056,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -1062,7 +1072,7 @@ public final class RegionizedPlayerChunkLoader {
              this.flushDelayedTicketOps();
          }
  
 -        void remove() {
-+        synchronized void remove() { // DivineMC - Chunk System optimization - synchronized
++        synchronized void remove() { // DivineMC - Chunk System optimization
              TickThread.ensureTickThread(this.player, "Cannot add player asynchronously");
              if (this.removed) {
                  throw new IllegalStateException("Removing removed player chunk loader");
-@@ -1090,7 +1084,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -1090,7 +1100,7 @@ public final class RegionizedPlayerChunkLoader {
          }
  
          public LongOpenHashSet getSentChunksRaw() {
