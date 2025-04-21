@@ -18,6 +18,12 @@ public class DivineBootstrap {
 
     public static void boot(final OptionSet options) {
         SharedConstants.tryDetectVersion();
+
+        io.papermc.paper.ServerBuildInfo info = io.papermc.paper.ServerBuildInfo.buildInfo();
+        if (io.papermc.paper.ServerBuildInfoImpl.IS_EXPERIMENTAL) {
+            LOGGER.warn("Running an experimental version of {}, please proceed with caution.", info.brandName());
+        }
+
         Path path2 = Paths.get("eula.txt");
         Eula eula = new Eula(path2);
         boolean eulaAgreed = Boolean.getBoolean("com.mojang.eula.agree");

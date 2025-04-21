@@ -16,10 +16,10 @@ DivineMC is a high-performance [Purpur](https://github.com/PurpurMC/Purpur) fork
 
 ## ⚙️ Features
 - **Based on [Purpur](https://github.com/PurpurMC/Purpur)** that adds a high customization level to the server.
-- All worlds **are ticked in parallel**, so the server can take full advantage of multicore processors.
-- **Implemented Secure Seed mod** that changes default 64-bit seed to a 1024-bit seed, making it almost impossible to crack the seed.
+- Implemented **Parallel world ticking** feature, that allows to server take advantage of multiple CPU cores to tick worlds.
+- Implemented **Secure Seed** mod that changes default 64-bit seed to a 1024-bit seed, making it almost impossible to crack the seed.
 - **Optimized chunk generation** that can generate chunks up to 70% faster than vanilla.
-- **Async** pathfinding, mob spawning and entity tracker
+- **Async** pathfinding, entity tracker, mob spawning and chunk sending.
 - Implemented **Linear region file format**
 - **Fully compatible** with Bukkit, Spigot and Paper plugins
 - **Fixes** some Minecraft bugs
@@ -29,7 +29,7 @@ DivineMC is a high-performance [Purpur](https://github.com/PurpurMC/Purpur) fork
 ## 📥 Downloading & Installing
 If you want to install DivineMC, you can read our [installation documentation](https://bxteam.org/docs/divinemc/getting-started/installation).
 
-You can find the latest successful build in [GitHub Action](https://github.com/BX-Team/DivineMC/actions) or [Releases](https://github.com/BX-Team/DivineMC/releases)
+You can find the latest successful build in [Releases](https://github.com/BX-Team/DivineMC/releases) or you can use [MCJars](https://mcjars.app/DIVINEMC/versions) website.
 
 ## 📈 bStats
 [![bStats](https://bstats.org/signatures/server-implementation/DivineMC.svg)](https://bstats.org/plugin/server-implementation/DivineMC)

@@ -1,0 +1,137 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sun, 6 Apr 2025 20:53:48 +0300
+Subject: [PATCH] Optimize Raids
+
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 92e35158b68dcb8d1f34fb1b748c12d1d39468c7..c87d1f81bd1b4b9756bd2f4c1dbc58a2dc85c63b 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -219,6 +219,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     private final alternate.current.wire.WireHandler wireHandler = new alternate.current.wire.WireHandler(this); // Paper - optimize redstone (Alternate Current)
+     public boolean hasRidableMoveEvent = false; // Purpur - Ridables
+     public org.bxteam.divinemc.util.tps.TPSCalculator tpsCalculator = new org.bxteam.divinemc.util.tps.TPSCalculator(); // DivineMC - Lag Compensation
++    public net.minecraft.world.item.ItemStack ominousBanner; // DivineMC - Optimize Raids
+ 
+     public LevelChunk getChunkIfLoaded(int x, int z) {
+         return this.chunkSource.getChunkAtIfLoadedImmediately(x, z); // Paper - Use getChunkIfLoadedImmediately
+@@ -714,6 +715,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new org.bxteam.divinemc.server.ServerLevelTickExecutorThreadFactory(getWorld().getName())); // DivineMC - Parallel world ticking
+         this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
+         this.chunkSystemPriorities = new org.bxteam.divinemc.server.chunk.PriorityHandler(this); // DivineMC - Chunk System optimizations
++        this.ominousBanner = Objects.requireNonNullElse(this.registryAccess(), net.minecraft.core.RegistryAccess.EMPTY).lookup(Registries.BANNER_PATTERN).map(Raid::getOminousBannerInstance).orElse(null); // DivineMC - Optimize Raids
+     }
+ 
+     // Paper start
+diff --git a/net/minecraft/world/entity/raid/Raid.java b/net/minecraft/world/entity/raid/Raid.java
+index 41b0db439b425b052bd1469daa6620a435ca852b..4e53cb7ad7c787fd7581763ae3e77c988277887c 100644
+--- a/net/minecraft/world/entity/raid/Raid.java
++++ b/net/minecraft/world/entity/raid/Raid.java
+@@ -109,6 +109,7 @@ public class Raid {
+     private static final org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry PDC_TYPE_REGISTRY = new org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry();
+     public final org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer persistentDataContainer = new org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer(PDC_TYPE_REGISTRY);
+     // Paper end
++    private boolean isBarDirty; // DivineMC - Optimize Raids
+ 
+     public Raid(int id, ServerLevel level, BlockPos center) {
+         this.id = id;
+@@ -263,6 +264,12 @@ public class Raid {
+     }
+ 
+     public void tick() {
++        // DivineMC start - Optimize Raids
++        if (this.isBarDirty) {
++            this.raidEvent.setProgress(Mth.clamp(this.getHealthOfLivingRaiders() / this.totalHealth, 0.0F, 1.0F));
++            this.isBarDirty = false;
++        }
++        // DivineMC end - Optimize Raids
+         if (!this.isStopped()) {
+             if (this.status == Raid.RaidStatus.ONGOING) {
+                 boolean flag = this.active;
+@@ -581,7 +588,7 @@ public class Raid {
+     }
+ 
+     public void updateBossbar() {
+-        this.raidEvent.setProgress(Mth.clamp(this.getHealthOfLivingRaiders() / this.totalHealth, 0.0F, 1.0F));
++        this.isBarDirty = true; // DivineMC - Optimize Raids
+     }
+ 
+     public float getHealthOfLivingRaiders() {
+diff --git a/net/minecraft/world/entity/raid/Raider.java b/net/minecraft/world/entity/raid/Raider.java
+index c06b589e669b055a26f662df60070d5908256220..7f954bab6e8a1b25abcb3aa6c2d26315dacec930 100644
+--- a/net/minecraft/world/entity/raid/Raider.java
++++ b/net/minecraft/world/entity/raid/Raider.java
+@@ -42,9 +42,25 @@ import net.minecraft.world.phys.Vec3;
+ 
+ public abstract class Raider extends PatrollingMonster {
+     protected static final EntityDataAccessor<Boolean> IS_CELEBRATING = SynchedEntityData.defineId(Raider.class, EntityDataSerializers.BOOLEAN);
+-    static final Predicate<ItemEntity> ALLOWED_ITEMS = item -> !item.hasPickUpDelay()
+-        && item.isAlive()
+-        && ItemStack.matches(item.getItem(), Raid.getOminousBannerInstance(item.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN)));
++    // DivineMC start - Optimize Raids
++    static final Predicate<ItemEntity> ALLOWED_ITEMS = (itemEntity) -> {
++        ItemStack ominousBanner = ((ServerLevel) itemEntity.level()).ominousBanner;
++        if (ominousBanner == null) {
++            ominousBanner = Raid.getOminousBannerInstance(itemEntity.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN));
++        }
++
++        return !itemEntity.hasPickUpDelay() && itemEntity.isAlive() &&
++            ItemStack.matches(itemEntity.getItem(), ominousBanner);
++    };
++
++    private ItemStack getOminousBanner(net.minecraft.core.HolderGetter<net.minecraft.world.level.block.entity.BannerPattern> bannerPatternLookup) {
++        ItemStack ominousBanner = ((ServerLevel) this.level()).ominousBanner;
++        if (ominousBanner == null) {
++            ominousBanner = Raid.getOminousBannerInstance(bannerPatternLookup);
++        }
++        return ominousBanner;
++    }
++    // DivineMC end - Optimize Raids
+     @Nullable
+     protected Raid raid;
+     private int wave;
+@@ -147,7 +163,7 @@ public abstract class Raider extends PatrollingMonster {
+     public boolean isCaptain() {
+         ItemStack itemBySlot = this.getItemBySlot(EquipmentSlot.HEAD);
+         boolean flag = !itemBySlot.isEmpty()
+-            && ItemStack.matches(itemBySlot, Raid.getOminousBannerInstance(this.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN)));
++            && ItemStack.matches(itemBySlot, getOminousBanner(this.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN))); // DivineMC - Optimize Raids
+         boolean isPatrolLeader = this.isPatrolLeader();
+         return flag && isPatrolLeader;
+     }
+@@ -211,7 +227,7 @@ public abstract class Raider extends PatrollingMonster {
+         boolean flag = this.hasActiveRaid() && this.getCurrentRaid().getLeader(this.getWave()) != null;
+         if (this.hasActiveRaid()
+             && !flag
+-            && ItemStack.matches(item, Raid.getOminousBannerInstance(this.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN)))) {
++            && ItemStack.matches(item, getOminousBanner(this.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN)))) { // DivineMC - Optimize Raids
+             // Paper start - EntityPickupItemEvent fixes
+             if (org.bukkit.craftbukkit.event.CraftEventFactory.callEntityPickupItemEvent(this, entity, 0, false).isCancelled()) {
+                 return;
+@@ -398,6 +414,16 @@ public abstract class Raider extends PatrollingMonster {
+                 && !this.cannotPickUpBanner();
+         }
+ 
++        // DivineMC start - Optimize Raids
++        private ItemStack getOminousBanner(net.minecraft.core.HolderGetter<net.minecraft.world.level.block.entity.BannerPattern> bannerPatternLookup) {
++            ItemStack ominousBanner = ((ServerLevel) this.mob.level()).ominousBanner;
++            if (ominousBanner == null) {
++                ominousBanner = Raid.getOminousBannerInstance(bannerPatternLookup);
++            }
++            return ominousBanner;
++        }
++        // DivineMC end - Optimize Raids
++
+         private boolean cannotPickUpBanner() {
+             if (!this.mob.level().purpurConfig.pillagerBypassMobGriefing == !getServerLevel(this.mob).getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_MOBGRIEFING) || !this.mob.canPickUpLoot()) return false; // Paper - respect game and entity rules for picking up items // Purpur - Add mobGriefing bypass to everything affected
+             if (!this.mob.hasActiveRaid()) {
+@@ -407,7 +433,7 @@ public abstract class Raider extends PatrollingMonster {
+             } else if (!this.mob.canBeLeader()) {
+                 return true;
+             } else if (ItemStack.matches(
+-                this.mob.getItemBySlot(EquipmentSlot.HEAD), Raid.getOminousBannerInstance(this.mob.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN))
++                this.mob.getItemBySlot(EquipmentSlot.HEAD), getOminousBanner(this.mob.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN)) // DivineMC - Optimize Raids
+             )) {
+                 return true;
+             } else {
