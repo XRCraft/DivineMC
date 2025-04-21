@@ -45,18 +45,3 @@ index 097500a59336db1bbfffcd1aa4cff7a8586e46ec..69341cb3b11409e41b9ff756b11d9bd1
      }
  
      @Override
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 037ca6ea2edb3c4ff9bf9f7856360cd2c19b7628..d38061eb738a17368e08750c9297894778b27c84 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -1048,10 +1048,8 @@ public final class CraftServer implements Server {
-             commands.performCommand(results, commandLine, commandLine, true);
-         } catch (CommandException ex) {
-             this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
--            //target.timings.stopTiming(); // Spigot // Paper
-             throw ex;
-         } catch (Throwable ex) {
--            //target.timings.stopTiming(); // Spigot // Paper
-             String msg = "Unhandled exception executing '" + commandLine + "' in " + target;
-             this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
-             throw new CommandException(msg, ex);

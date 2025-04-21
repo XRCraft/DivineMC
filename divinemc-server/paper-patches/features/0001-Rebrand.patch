@@ -5,10 +5,10 @@ Subject: [PATCH] Rebrand
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/Metrics.java b/src/main/java/com/destroystokyo/paper/Metrics.java
-index be1bb14dca9367b9685841985b6198376986c496..a3f08edec9d5bc60839688df8579fde3f5c927d8 100644
+index 212e0df38ae3ed0b06d147fb5e7e93ef556a0bdd..5736b550ad3f1e7dd9fd1a1f985be2974278e7a9 100644
 --- a/src/main/java/com/destroystokyo/paper/Metrics.java
 +++ b/src/main/java/com/destroystokyo/paper/Metrics.java
-@@ -592,7 +592,7 @@ public class Metrics {
+@@ -593,7 +593,7 @@ public class Metrics {
              boolean logFailedRequests = config.getBoolean("logFailedRequests", false);
              // Only start Metrics, if it's enabled in the config
              if (config.getBoolean("enabled", true)) {
@@ -17,7 +17,7 @@ index be1bb14dca9367b9685841985b6198376986c496..a3f08edec9d5bc60839688df8579fde3
  
                  metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
                      String minecraftVersion = Bukkit.getVersion();
-@@ -602,7 +602,7 @@ public class Metrics {
+@@ -603,7 +603,7 @@ public class Metrics {
  
                  metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> Bukkit.getOnlinePlayers().size()));
                  metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() ? "online" : (io.papermc.paper.configuration.GlobalConfiguration.get().proxies.isProxyOnlineMode() ? "bungee" : "offline"))); // Purpur - Purpur config files
@@ -27,7 +27,7 @@ index be1bb14dca9367b9685841985b6198376986c496..a3f08edec9d5bc60839688df8579fde3
                  metrics.addCustomChart(new Metrics.DrilldownPie("java_version", () -> {
                      Map<String, Map<String, Integer>> map = new HashMap<>();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
-index fe66e43c27e0798770e102d1385bacbaa90bda07..5aef1f7aa8c614e50b34747456e7d5a3f0045aff 100644
+index 6ac291288f1e71f56a45e50b650dea4b4adeb763..785c6f744d67592e7b22d9fff7655ee43dd99696 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 @@ -36,7 +36,7 @@ public class PaperVersionFetcher implements VersionFetcher {
@@ -81,7 +81,7 @@ index fe66e43c27e0798770e102d1385bacbaa90bda07..5aef1f7aa8c614e50b34747456e7d5a3
 -        try {
 -            try (final BufferedReader reader = Resources.asCharSource(
 -                URI.create("https://api.purpurmc.org/v2/purpur/" + build.minecraftVersionId()).toURL(), // Purpur - Rebrand
--                Charsets.UTF_8
+-                StandardCharsets.UTF_8
 -            ).openBufferedStream()) {
 -                final JsonObject json = new Gson().fromJson(reader, JsonObject.class);
 -                //final JsonArray builds = json.getAsJsonArray("builds"); // Purpur - Rebrand
@@ -231,13 +231,13 @@ index 62e2d5704c348955bc8284dc2d54c933b7bcdd06..341f13e57896f03058ea3ec68e69b7cb
              public void executeAsync(final Runnable runnable) {
                  MCUtil.scheduleAsyncTask(this.catching(runnable, "asynchronous"));
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 2e1b7f613de8876095ef39bb0341a3f9520c8d5d..bab0d25e82f85c7b9524ae42e0bb41e6233d71cf 100644
+index 7091dcb86cad81ed4429f11bf5876b4e192a93f5..81a8076b9bbe94788a682d9ec52dc1a8b779fb83 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -285,7 +285,7 @@ public class Main {
+@@ -248,7 +248,7 @@ public class Main {
+                 System.setProperty("library.jansi.version", "Paper"); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
                  System.setProperty("jdk.console", "java.base"); // Paper - revert default console provider back to java.base so we can have our own jline
-                 //System.out.println("Loading libraries, please wait...");
-                 //net.minecraft.server.Main.main(options);
+ 
 -                io.papermc.paper.PaperBootstrap.boot(options);
 +                org.bxteam.divinemc.DivineBootstrap.boot(options); // DivineMC - Replace with DivineBootstrap
              } catch (Throwable t) {
@@ -270,12 +270,12 @@ index 99eb04643fce44c37fd96c99756837ccafe7b559..4aef151bd162c4c99a3eaec1854b5463
  
          if (stream != null) {
 diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
-index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..3731ca80ed58cd385cd66ffbe67f2eeaae642d0f 100644
+index b8b5c2da54a4875d0d23ae6f3efb6052ef25463a..0df159b65ade979c15992aaec51ea1dbc988085b 100644
 --- a/src/main/java/org/spigotmc/WatchdogThread.java
 +++ b/src/main/java/org/spigotmc/WatchdogThread.java
-@@ -77,14 +77,14 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
+@@ -75,14 +75,14 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
+                 this.lastEarlyWarning = currentTime;
                  if (isLongTimeout) {
-                     // Paper end
                      logger.log(Level.SEVERE, "------------------------------");
 -                    logger.log(Level.SEVERE, "The server has stopped responding! This is (probably) not a Purpur bug."); // Paper // Purpur - Rebrand
 +                    logger.log(Level.SEVERE, "The server has stopped responding! This is (probably) not a DivineMC bug."); // DivineMC - Rebrand
@@ -291,7 +291,7 @@ index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..3731ca80ed58cd385cd66ffbe67f2eea
  
                      if (net.minecraft.world.level.Level.lastPhysicsProblem != null) {
                          logger.log(Level.SEVERE, "------------------------------");
-@@ -104,12 +104,12 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
+@@ -102,12 +102,12 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                      }
                      // Paper end
                  } else {
@@ -306,7 +306,7 @@ index 776bc01784b53e3f1d9a35046109c3b9ee4f0882..3731ca80ed58cd385cd66ffbe67f2eea
                  FeatureHooks.dumpAllChunkLoadInfo(MinecraftServer.getServer(), isLongTimeout); // Paper - log detailed tick information
                  WatchdogThread.dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(MinecraftServer.getServer().serverThread.getId(), Integer.MAX_VALUE), logger);
                  logger.log(Level.SEVERE, "------------------------------");
-@@ -122,7 +122,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
+@@ -120,7 +120,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                          WatchdogThread.dumpThread(thread, logger);
                      }
                  } else {

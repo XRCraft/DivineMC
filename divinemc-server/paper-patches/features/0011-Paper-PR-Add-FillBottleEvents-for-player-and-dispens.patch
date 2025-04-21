@@ -5,13 +5,13 @@ Subject: [PATCH] Paper PR: Add FillBottleEvents for player and dispenser
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 68c529473e9ce24cb6c6108cb65100757d1d8759..ba5adea7a791a9539ae485ef1c1641a56ca19236 100644
+index 2e28891cb4c058c022b06040c0283aacf4c2445e..e3ba9a423ca15d611196400e394a637c85669087 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -2330,4 +2330,18 @@ public class CraftEventFactory {
+@@ -2065,4 +2065,18 @@ public class CraftEventFactory {
+ 
          return event;
      }
-     // Paper end - add EntityFertilizeEggEvent
 +
 +    // DivineMC start - Paper PR: Add FillBottleEvents for player and dispenser
 +    public static io.papermc.paper.event.player.PlayerFillBottleEvent callPlayerFillBottleEvent(net.minecraft.world.entity.player.Player player, InteractionHand hand, ItemStack glassBottle, ItemStack resultItem) {

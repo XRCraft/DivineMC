@@ -664,7 +664,7 @@ index 559c959aff3c9deef867b9e425fba3e2e669cac6..a5b0585b56d71d21c9da3b129d213def
      private MoonriseConstants() {}
  
 diff --git a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-index 8b70a8e9b0aacbe7964b0441b5bbbaab228962d8..f0c420f4a1b282fb976825c33cb7a118e45de36d 100644
+index 6e9bfd986674c26240700c788987028be4ec32e7..4fd8c2f6fdefe518b5cea0ae81901c44be0ff021 100644
 --- a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 @@ -229,7 +229,7 @@ public class GlobalConfiguration extends ConfigurationPart {
