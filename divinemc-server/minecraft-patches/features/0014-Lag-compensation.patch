@@ -5,7 +5,7 @@ Subject: [PATCH] Lag compensation
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index eb9b9473417a107092b05a9baf467410db32dc49..63ebc5549aafeb3a97ba6c7a8f52460d019d079c 100644
+index 9956405d7f9d14af7278837adeede76dea8d4bd9..86754cb52caeef962172bcb79cbc8f16bcdd3b63 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -287,6 +287,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -16,7 +16,7 @@ index eb9b9473417a107092b05a9baf467410db32dc49..63ebc5549aafeb3a97ba6c7a8f52460d
  
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
          AtomicReference<S> atomicReference = new AtomicReference<>();
-@@ -1543,6 +1544,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1533,6 +1534,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          }
  
          this.server.spark.tickStart(); // Paper - spark

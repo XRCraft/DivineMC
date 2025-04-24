@@ -5,25 +5,25 @@ Subject: [PATCH] Configuration
 
 
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 8bb2c4266a543c4b6a3d9686d6010241a0f40c86..798d32b4497ec77b2ebe5bec3caa4039257ceddf 100644
+index 6a296adcd9d5289dd86840fdc58dce3accbe9ce5..90c78b71fc456e9369af7afb62beb7de7303eaf1 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -177,6 +177,15 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -193,6 +193,15 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
          }
          org.purpurmc.purpur.PurpurConfig.registerCommands();
-         // Purpur end - Configurable void damage height and damage
+         // Purpur end - Purpur config files
 +        // DivineMC start - Configuration
 +        try {
 +            org.bxteam.divinemc.DivineConfig.init((java.io.File) options.valueOf("divinemc-settings"));
 +        } catch (Exception e) {
-+            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
++            DedicatedServer.LOGGER.error("Unable to load DivineMC configuration", e);
 +            return false;
 +        }
 +        org.bxteam.divinemc.command.DivineCommands.registerCommands(this);
 +        // DivineMC end - Configuration
-         // Paper start - initialize global and world-defaults configuration
-         this.paperConfigurations.initializeGlobalConfiguration(this.registryAccess());
-         this.paperConfigurations.initializeWorldDefaultsConfiguration(this.registryAccess());
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // Paper - load version history now
+ 
+         this.setPvpAllowed(properties.pvp);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
 index bbadbdfd643e61a6a3e55df7dd7a646ea1a9744b..38ddadf551c039202c68c44d740f23a08b58d003 100644
 --- a/net/minecraft/world/level/Level.java
