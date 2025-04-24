@@ -5,7 +5,7 @@ Subject: [PATCH] Dynamic Activation of Brain
 
 
 diff --git a/io/papermc/paper/entity/activation/ActivationRange.java b/io/papermc/paper/entity/activation/ActivationRange.java
-index 265f20fd771df850a0bb0029e699d3146d883837..e9269a5ecf1eb95f1b41a090820d898bde86c3ec 100644
+index 265f20fd771df850a0bb0029e699d3146d883837..a9326f1acc6ffe7fbacc34bf13f56d87e212027a 100644
 --- a/io/papermc/paper/entity/activation/ActivationRange.java
 +++ b/io/papermc/paper/entity/activation/ActivationRange.java
 @@ -161,6 +161,21 @@ public final class ActivationRange {
@@ -14,7 +14,7 @@ index 265f20fd771df850a0bb0029e699d3146d883837..e9269a5ecf1eb95f1b41a090820d898b
                  ActivationRange.activateEntity(entity);
 +
 +                // DivineMC start - Dynamic Activation of Brain
-+                if (org.bxteam.divinemc.DivineConfig.dabEnabled && entity.getType().dabEnabled && (!org.bxteam.divinemc.DivineConfig.dabDontEnableIfInWater || entity.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER) || !entity.isInWaterOrBubble())) {
++                if (org.bxteam.divinemc.DivineConfig.dabEnabled && entity.getType().dabEnabled && (!org.bxteam.divinemc.DivineConfig.dabDontEnableIfInWater || entity.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER) || !entity.isInWaterOrRain())) {
 +                    if (!entity.activatedPriorityReset) {
 +                        entity.activatedPriorityReset = true;
 +                        entity.activatedPriority = org.bxteam.divinemc.DivineConfig.dabMaximumActivationFrequency;

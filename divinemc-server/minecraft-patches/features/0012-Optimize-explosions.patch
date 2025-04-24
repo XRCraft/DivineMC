@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize explosions
 
 
 diff --git a/net/minecraft/world/level/ServerExplosion.java b/net/minecraft/world/level/ServerExplosion.java
-index a772f2bd7be00172ad41353c6ad42d9239b9ec88..4fcbf5181e9e8053302ae9b75a6d76aa6698a21b 100644
+index a772f2bd7be00172ad41353c6ad42d9239b9ec88..fb6df8b2d96727b3febfe404be0eb2d77b2edf13 100644
 --- a/net/minecraft/world/level/ServerExplosion.java
 +++ b/net/minecraft/world/level/ServerExplosion.java
 @@ -372,6 +372,11 @@ public class ServerExplosion implements Explosion {
@@ -170,7 +170,7 @@ index a772f2bd7be00172ad41353c6ad42d9239b9ec88..4fcbf5181e9e8053302ae9b75a6d76aa
 +    }
 +
 +    private Optional<Float> noBlockCalcsWithNoBLockDamage(final ExplosionDamageCalculator instance, final Explosion explosion, final BlockGetter blockGetter, final BlockPos blockPos, final BlockState blockState, final FluidState fluidState) {
-+        if (org.bxteam.divinemc.DivineConfig.explosionNoBlockDamage) return Optional.of(Blocks.BEDROCK.getExplosionResistance());
++        if (org.bxteam.divinemc.DivineConfig.explosionNoBlockDamage) return Optional.of(net.minecraft.world.level.block.Blocks.BEDROCK.getExplosionResistance());
 +        return instance.getBlockExplosionResistance(explosion, blockGetter, blockPos, blockState, fluidState);
 +    }
 +    // DivineMC end - Optimize explosions

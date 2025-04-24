@@ -32,16 +32,18 @@
  
      // Deprecate bungeecord-chat in favor of adventure
      api("net.md-5:bungeecord-chat:$bungeeCordChatVersion") {
-@@ -68,9 +_,9 @@
+@@ -68,9 +_,11 @@
      apiAndDocs("$adventureGroup:adventure-text-serializer-plain")
      apiAndDocs("$adventureGroup:adventure-text-logger-slf4j")
  
 -    api("org.apache.maven:maven-resolver-provider:3.9.6") // make API dependency for Paper Plugins
 -    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.18")
 -    compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.18")
-+    api("org.apache.maven:maven-resolver-provider:3.9.9") // make API dependency for Paper Plugins // DivineMC - Bump dependencies
-+    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.22") // DivineMC - Bump dependencies
-+    compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.22") // DivineMC - Bump dependencies
++    // DivineMC start - Bump dependencies
++    api("org.apache.maven:maven-resolver-provider:3.9.9") // make API dependency for Paper Plugins
++    compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.22")
++    compileOnly("org.apache.maven.resolver:maven-resolver-transport-http:1.9.22")
++    // DivineMC end - Bump dependencies
  
      // Annotations - Slowly migrate to jspecify
      val annotations = "org.jetbrains:annotations:$annotationsVersion"

@@ -54,7 +54,7 @@ index 51c126735ace8fdde89ad97b5cab62f244212db0..8713d00d767c9225a0823d2fdbb0b479
 +    public void moonrise$write(final org.bxteam.divinemc.region.IRegionFile regionFile) throws IOException; // DivineMC - Linear region file format
  }
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 3fe3e36439a750c2614fc94df4bbbe7375c37614..0270e0045a76927e156f7bf54fed7ca406a113f8 100644
+index b2e90749bcaf3b9132681713ab0afae95b3197ee..7de51e99507dfca76ec5848483fecc9e8df1b86f 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -926,10 +926,10 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -142,7 +142,7 @@ index ae0a893498d0bfe90c14508f15b431d4885e06ff..6fba4d36377359dbcf8c804b194c4aef
          }
          // Paper end - rewrite chunk system
 diff --git a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
-index c98cb390bda4b536f97445f228e06aaebcd84609..3b07e9e355032b9f797935df16435a45b68866c7 100644
+index c98cb390bda4b536f97445f228e06aaebcd84609..db2a7a2ddb6e3f8e5c0291426407f708585db4ee 100644
 --- a/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
 +++ b/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
 @@ -18,7 +18,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
@@ -236,6 +236,15 @@ index c98cb390bda4b536f97445f228e06aaebcd84609..3b07e9e355032b9f797935df16435a45
  
          final DataInputStream input = regionFile == null ? null : regionFile.getChunkDataInputStream(new ChunkPos(chunkX, chunkZ));
  
+@@ -238,7 +244,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
+ 
+             final ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+             final ChunkPos headerChunkPos = SerializableChunkData.getChunkCoordinate(ret);
+-            final RegionFile regionFile = this.getRegionFile(pos);
++            final org.bxteam.divinemc.region.IRegionFile regionFile = this.getRegionFile(pos); // DivineMC - Linear region file format
+ 
+             if (regionFile.getRecalculateCount() != readData.recalculateCount()) {
+                 return null;
 @@ -262,7 +268,7 @@ public class RegionFileStorage implements AutoCloseable, ca.spottedleaf.moonrise
      }
      // Paper end - rewrite chunk system

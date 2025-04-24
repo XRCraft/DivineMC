@@ -17,6 +17,7 @@ public interface IRegionFile extends AutoCloseable, ChunkSystemRegionFile {
 
     void clear(ChunkPos pos) throws IOException;
 
+    @Override
     void close() throws IOException;
 
     void setOversized(int x, int z, boolean b) throws IOException;
@@ -30,6 +31,8 @@ public interface IRegionFile extends AutoCloseable, ChunkSystemRegionFile {
     boolean isOversized(int x, int z);
 
     boolean recalculateHeader() throws IOException;
+
+    int getRecalculateCount();
 
     DataOutputStream getChunkDataOutputStream(ChunkPos pos) throws IOException;
 

@@ -593,6 +593,11 @@ public class LinearRegionFile implements IRegionFile {
     }
 
     @Override
+    public int getRecalculateCount() {
+        return 0;
+    }
+
+    @Override
     public void setOversized(int x, int z, boolean something) {
         // stub
     }
