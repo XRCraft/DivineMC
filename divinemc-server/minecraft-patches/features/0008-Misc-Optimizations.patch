@@ -17,18 +17,6 @@ index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..00a63a6a5983e6a25f2a9014a2f9eefe
      private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
      private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
      public Predicate<S> requirement; // Paper - public-f
-diff --git a/com/mojang/math/OctahedralGroup.java b/com/mojang/math/OctahedralGroup.java
-index c2bdb4b37e8af761815a072df93ee1e241fb29e8..c23e99fcda6fc9062d77472ac756187275b22ed8 100644
---- a/com/mojang/math/OctahedralGroup.java
-+++ b/com/mojang/math/OctahedralGroup.java
-@@ -138,6 +138,7 @@ public enum OctahedralGroup implements StringRepresentable {
-         Matrix3f matrix3f = new Matrix3f().scaling(invertX ? -1.0F : 1.0F, invertY ? -1.0F : 1.0F, invertZ ? -1.0F : 1.0F);
-         matrix3f.mul(permutation.transformation());
-         this.transformation = matrix3f;
-+        this.rotate(Direction.UP); // DivineMC - Math Optimizations
-     }
- 
-     private BooleanList packInversions() {
 diff --git a/com/mojang/math/Transformation.java b/com/mojang/math/Transformation.java
 index 5fb382be4d86328690c49f2a5a0c3ec698a38e21..f333d9028f315e7912dd335c8158abd525c27ecd 100644
 --- a/com/mojang/math/Transformation.java
