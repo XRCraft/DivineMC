@@ -17,7 +17,7 @@ index ae609e0603a78423c4c89b7efb9c41ab8fe7aa52..5c143e3227371c701f36362e24bd3c1f
                      }
                      // CraftBukkit end
 diff --git a/net/minecraft/world/level/material/FlowingFluid.java b/net/minecraft/world/level/material/FlowingFluid.java
-index 1b06e44a267d2d4af844997ac0c557f30aaf9b15..fa4570dbeba4acad4da6442faebed2401fafe59d 100644
+index 1b06e44a267d2d4af844997ac0c557f30aaf9b15..abf1866c26330fc3ec61a4457a7c6966cf0f38a7 100644
 --- a/net/minecraft/world/level/material/FlowingFluid.java
 +++ b/net/minecraft/world/level/material/FlowingFluid.java
 @@ -199,6 +199,7 @@ public abstract class FlowingFluid extends Fluid {
@@ -41,7 +41,7 @@ index 1b06e44a267d2d4af844997ac0c557f30aaf9b15..fa4570dbeba4acad4da6442faebed240
 +                BlockPos blockPos = pos.relative(direction.getOpposite());
 +                if (level.getFluidState(blockPos).is(net.minecraft.tags.FluidTags.WATER)) {
 +                    Block block = level.getFluidState(pos).isSource() ? Blocks.OBSIDIAN : Blocks.COBBLESTONE;
-+                    if (org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockFormEvent(level, pos, block.defaultBlockState())) {
++                    if (org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockFormEvent(level, pos, block.defaultBlockState(), 3)) {
 +                        this.fizz(level, pos);
 +                        level.setBlock(pos, block.defaultBlockState(), 3);
 +                    }
@@ -49,7 +49,7 @@ index 1b06e44a267d2d4af844997ac0c557f30aaf9b15..fa4570dbeba4acad4da6442faebed240
 +                }
 +
 +                if (isSoulSoil && level.getBlockState(blockPos).is(Blocks.BLUE_ICE)) {
-+                    if (org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockFormEvent(level, pos, Blocks.BASALT.defaultBlockState())) {
++                    if (org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockFormEvent(level, pos, Blocks.BASALT.defaultBlockState(), 3)) {
 +                        this.fizz(level, pos);
 +                    }
 +                    return false;
