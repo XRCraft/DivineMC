@@ -20,7 +20,7 @@ index f0c420f4a1b282fb976825c33cb7a118e45de36d..af728eec05f67d9c3185bd2ccf7a9088
          public IntOr.Default compressionLevel = IntOr.Default.USE_DEFAULT;
          @Comment("Defines the leniency distance added on the server to the interaction range of a player when validating interact packets.")
 diff --git a/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java b/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
-index d838c90f98c6593404c77d0aab8655c0d15905c4..f4e60728cb0c1b1ae5a95b47d3291b07994477da 100644
+index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397fa02e0d4 100644
 --- a/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
 @@ -146,8 +146,10 @@ public class WorldConfiguration extends ConfigurationPart {
@@ -107,7 +107,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..f4e60728cb0c1b1ae5a95b47d3291b07
          public boolean allowPlayerCrammingDamage = false;
      }
  
-@@ -513,16 +545,33 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -513,16 +545,32 @@ public class WorldConfiguration extends ConfigurationPart {
          public AutosavePeriod autoSaveInterval = AutosavePeriod.def();
          public int maxAutoSaveChunksPerTick = 24;
          public int fixedChunkInhabitedTime = -1;
@@ -135,8 +135,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..f4e60728cb0c1b1ae5a95b47d3291b07
 +            map.put(EntityType.FIREBALL, 8);
 +            map.put(EntityType.FIREWORK_ROCKET, 8);
 +            map.put(EntityType.LLAMA_SPIT, 3);
-+            map.put(EntityType.SPLASH_POTION, 8);
-+            map.put(EntityType.LINGERING_POTION, 8);
++            map.put(EntityType.POTION, 8);
 +            map.put(EntityType.SHULKER_BULLET, 8);
 +            map.put(EntityType.SMALL_FIREBALL, 8);
 +            map.put(EntityType.SNOWBALL, 8);
@@ -148,7 +147,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..f4e60728cb0c1b1ae5a95b47d3291b07
          });
          public boolean flushRegionsOnSave = false;
      }
-@@ -537,9 +586,9 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -537,9 +585,9 @@ public class WorldConfiguration extends ConfigurationPart {
      public TickRates tickRates;
  
      public class TickRates extends ConfigurationPart {
@@ -160,7 +159,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..f4e60728cb0c1b1ae5a95b47d3291b07
          public int wetFarmland = 1;
          public int dryFarmland = 1;
          public Table<EntityType<?>, String, Integer> sensor = Util.make(HashBasedTable.create(), table -> table.put(EntityType.VILLAGER, "secondarypoisensor", 40));
-@@ -574,7 +623,7 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -574,7 +622,7 @@ public class WorldConfiguration extends ConfigurationPart {
      public class Misc extends ConfigurationPart {
          public boolean updatePathfindingOnBlockUpdate = true;
          public boolean showSignClickCommandFailureMsgsToPlayer = false;
