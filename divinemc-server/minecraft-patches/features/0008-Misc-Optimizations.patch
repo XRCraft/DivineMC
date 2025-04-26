@@ -4,19 +4,6 @@ Date: Fri, 31 Jan 2025 21:50:46 +0300
 Subject: [PATCH] Misc Optimizations
 
 
-diff --git a/com/mojang/brigadier/tree/CommandNode.java b/com/mojang/brigadier/tree/CommandNode.java
-index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..00a63a6a5983e6a25f2a9014a2f9eefeda468cdf 100644
---- a/com/mojang/brigadier/tree/CommandNode.java
-+++ b/com/mojang/brigadier/tree/CommandNode.java
-@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
- import java.util.function.Predicate;
- 
- public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
--    private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-+    private final Map<String, CommandNode<S>> children = Collections.synchronizedMap(new LinkedHashMap<>()); // DivineMC - Misc Optimizations
-     private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
-     private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
-     public Predicate<S> requirement; // Paper - public-f
 diff --git a/com/mojang/math/Transformation.java b/com/mojang/math/Transformation.java
 index 5fb382be4d86328690c49f2a5a0c3ec698a38e21..f333d9028f315e7912dd335c8158abd525c27ecd 100644
 --- a/com/mojang/math/Transformation.java
@@ -58,6 +45,63 @@ index 761e583a56b1c4a605b0cbb04b61c4df60b8b9bb..c07155589ef44cbbacafe03b36d2cd4c
      private Lifecycle registryLifecycle;
      private final Map<TagKey<T>, HolderSet.Named<T>> frozenTags = new IdentityHashMap<>();
      MappedRegistry.TagSet<T> allTags = MappedRegistry.TagSet.unbound();
+diff --git a/net/minecraft/network/VarInt.java b/net/minecraft/network/VarInt.java
+index 4897ff4648083ebe737ae5b32bae344af27357e4..0d103821d7220daa5cc0d5d3231e794fca0ca055 100644
+--- a/net/minecraft/network/VarInt.java
++++ b/net/minecraft/network/VarInt.java
+@@ -52,16 +52,43 @@ public class VarInt {
+ 
+     public static ByteBuf write(ByteBuf buffer, int value) {
+      // Paper start - Optimize VarInts
+-        // Peel the one and two byte count cases explicitly as they are the most common VarInt sizes
+-        // that the proxy will write, to improve inlining.
+-        if ((value & (0xFFFFFFFF << 7)) == 0) {
+-            buffer.writeByte(value);
+-        } else if ((value & (0xFFFFFFFF << 14)) == 0) {
+-            int w = (value & 0x7F | 0x80) << 8 | (value >>> 7);
+-            buffer.writeShort(w);
+-        } else {
+-            writeOld(buffer, value);
++        // DivineMC start - Misc optimizations
++        int bytesNeeded = getByteSize(value);
++
++        switch (bytesNeeded) {
++            case 1:
++                buffer.writeByte(value);
++                break;
++            case 2:
++                int w2 = ((value & 0x7F) << 8) | (value >>> 7) | 0x00008000;
++                buffer.writeShort(w2);
++                break;
++            case 3:
++                int w3 = (value & 0x7F) << 16
++                    | (value & 0x3F80) << 1
++                    | (value >>> 14)
++                    | 0x00808000;
++                buffer.writeMedium(w3);
++                break;
++            case 4:
++                int w4 = (value & 0x7F) << 24
++                    | ((value & 0x3F80) << 9)
++                    | (value & 0x1FC000) >> 6
++                    | (value >>> 21)
++                    | 0x80808000;
++                buffer.writeInt(w4);
++                break;
++            case 5:
++                int w5 = (value & 0x7F) << 24
++                    | (value & 0x3F80) << 9
++                    | (value & 0x1FC000) >> 6
++                    | ((value >>> 21) & 0x7F)
++                    | 0x80808080;
++                buffer.writeInt(w5);
++                buffer.writeByte(value >>> 28);
++                break;
+         }
++        // DivineMC end - Slightly optimized VarInt#write
+         return buffer;
+     }
+     public static ByteBuf writeOld(ByteBuf buffer, int value) {
 diff --git a/net/minecraft/server/level/ChunkTrackingView.java b/net/minecraft/server/level/ChunkTrackingView.java
 index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e681562b5b09cc 100644
 --- a/net/minecraft/server/level/ChunkTrackingView.java
@@ -422,7 +466,7 @@ index a18240418a19a95147341a634527d774f3d5bb92..66f74ad2a194a6676574da2932cf4677
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index d513b82c0681fdc990af082af69278bd773225a9..18718693412f3cc0848c462361c2f06e1ad65a6e 100644
+index d513b82c0681fdc990af082af69278bd773225a9..b065accf4ca3e87a4c35506f8cbf4d88759e1128 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -149,7 +149,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -434,6 +478,30 @@ index d513b82c0681fdc990af082af69278bd773225a9..18718693412f3cc0848c462361c2f06e
      // Paper start - replace random
      private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
          public RandomRandomSource() {
+@@ -4502,10 +4502,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+ 
+     // Paper start - optimise collisions
+     public boolean updateFluidHeightAndDoFluidPushing(final TagKey<Fluid> fluid, final double flowScale) {
+-        if (this.touchingUnloadedChunk()) {
+-            return false;
+-        }
+-
+         final AABB boundingBox = this.getBoundingBox().deflate(1.0E-3);
+ 
+         final Level world = this.level;
+@@ -4541,7 +4537,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+ 
+         for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
+             for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
+-                final net.minecraft.world.level.chunk.LevelChunkSection[] sections = chunkSource.getChunk(currChunkX, currChunkZ, net.minecraft.world.level.chunk.status.ChunkStatus.FULL, false).getSections();
++                // DivineMC start - Misc optimizations
++                final net.minecraft.world.level.chunk.ChunkAccess chunk = chunkSource.getChunk(currChunkX, currChunkZ, net.minecraft.world.level.chunk.status.ChunkStatus.FULL, false);
++                if (chunk == null) continue;
++                final net.minecraft.world.level.chunk.LevelChunkSection[] sections = chunk.getSections();
++                // DivineMC end - Misc optimizations
+ 
+                 // bound y
+                 for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
 index 5bcbebf35eb726a43b957aca5b8b7a1dca7648cd..d618752727e2f2f5c0c1afa97f455e349cb7e76c 100644
 --- a/net/minecraft/world/entity/Mob.java

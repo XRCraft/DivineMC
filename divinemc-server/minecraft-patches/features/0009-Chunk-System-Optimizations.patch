@@ -3319,7 +3319,7 @@ index 66d0a6390febe929ef774b0a7813329015bc8cc2..d1917dee4ca6bba5f2c92475811c724c
          }
  
 diff --git a/net/minecraft/world/ticks/LevelTicks.java b/net/minecraft/world/ticks/LevelTicks.java
-index 0a9805d42142678ca5213c511235daa6505ddbf3..cd73f1a3ccc80e4ab1766147fccc67d81eeb4cc3 100644
+index 0a9805d42142678ca5213c511235daa6505ddbf3..6e3d4e78a7d92a846e68fe60271cfe5a5cd7b569 100644
 --- a/net/minecraft/world/ticks/LevelTicks.java
 +++ b/net/minecraft/world/ticks/LevelTicks.java
 @@ -30,17 +30,18 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
@@ -3386,10 +3386,11 @@ index 0a9805d42142678ca5213c511235daa6505ddbf3..cd73f1a3ccc80e4ab1766147fccc67d8
              if (!this.toRunThisTickSet.isEmpty()) {
                  this.toRunThisTickSet.remove(scheduledTick);
              }
-@@ -183,6 +189,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+@@ -182,7 +188,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     }
  
      private void cleanupAfterTick() {
-         this.toRunThisTick.clear();
+-        this.toRunThisTick.clear();
 +        this.toRunThisTickCount.set(0); // DivineMC - Chunk System Optimizations
          this.containersToTick.clear();
          this.alreadyRunThisTick.clear();

@@ -327,6 +327,8 @@ public class DivineConfig {
     public static boolean disableDisconnectSpam = false;
     public static boolean gracefulTeleportHandling  = false;
     public static boolean dontRespondPingBeforeStart = true;
+    public static boolean playerProfileResultCachingEnabled = true;
+    public static int playerProfileResultCachingTimeout = 1440;
     private static void networkSettings() {
         disableDisconnectSpam = getBoolean("settings.network.disable-disconnect-spam", disableDisconnectSpam,
             "Prevents players being disconnected by 'disconnect.spam' when sending too many chat packets");
@@ -334,6 +336,11 @@ public class DivineConfig {
             "Disables being disconnected from 'multiplayer.disconnect.invalid_player_movement' (also declines the packet handling).");
         dontRespondPingBeforeStart = getBoolean("settings.network.dont-respond-ping-before-start", dontRespondPingBeforeStart,
             "Prevents the server from responding to pings before the server is fully booted.");
+
+        playerProfileResultCachingEnabled = getBoolean("settings.network.player-profile-result-caching.enabled", playerProfileResultCachingEnabled,
+            "Enables caching of player profile results on first join.");
+        playerProfileResultCachingTimeout = getInt("settings.network.player-profile-result-caching.timeout", playerProfileResultCachingTimeout,
+            "The amount of time in minutes to cache player profile results.");
     }
 
     public static boolean enableFasterTntOptimization = true;
