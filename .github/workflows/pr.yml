@@ -1,15 +1,13 @@
-name: DivineMC Test CI
+name: DivineMC Test Build
 
 on:
-  push:
-    branches-ignore: [ master ]
   pull_request:
+    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: blacksmith-8vcpu-ubuntu-2204
-    if: "!contains(github.event.commits[0].message, '[ci-skip]')"
     steps:
       - name: Setup Action
         uses: actions/checkout@v4
