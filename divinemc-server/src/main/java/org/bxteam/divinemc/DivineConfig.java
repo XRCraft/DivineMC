@@ -1,6 +1,7 @@
 package org.bxteam.divinemc;
 
 import com.google.common.base.Throwables;
+import gg.pufferfish.pufferfish.simd.SIMDDetection;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;

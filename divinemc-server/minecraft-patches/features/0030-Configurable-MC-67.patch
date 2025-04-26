@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sun, 23 Feb 2025 01:03:59 +0300
+Subject: [PATCH] Configurable MC-67
+
+
+diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
+index 18718693412f3cc0848c462361c2f06e1ad65a6e..0a23d54a6f03b1d776ab24922f88144762c90875 100644
+--- a/net/minecraft/world/entity/Entity.java
++++ b/net/minecraft/world/entity/Entity.java
+@@ -3961,6 +3961,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+     }
+ 
+     public boolean canTeleport(Level fromLevel, Level toLevel) {
++        if (!fromLevel.divineConfig.allowEntityPortalWithPassenger && (this.isPassenger() || this.isVehicle())) return false; // DivineMC - Allow entity teleport with passenger
+         if (!this.isAlive() || !this.valid) return false; // Paper - Fix item duplication and teleport issues
+         if (fromLevel.dimension() == Level.END && toLevel.dimension() == Level.OVERWORLD) {
+             for (Entity entity : this.getPassengers()) {

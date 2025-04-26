@@ -1,8 +1,8 @@
 --- a/net/minecraft/world/entity/monster/ZombieVillager.java
 +++ b/net/minecraft/world/entity/monster/ZombieVillager.java
-@@ -319,6 +_,12 @@
+@@ -293,6 +_,12 @@
                  if (!this.isSilent()) {
-                     serverLevel.levelEvent(null, 1027, this.blockPosition(), 0);
+                     level.levelEvent(null, 1027, this.blockPosition(), 0);
                  }
 +
 +                // DivineMC start - Fix MC-200418

@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
-@@ -1385,7 +_,7 @@
+@@ -1393,7 +_,7 @@
                  player.setRealHealth(health);
              }
  
@@ -9,7 +9,7 @@
              return;
          }
          // CraftBukkit end
-@@ -2673,6 +_,7 @@
+@@ -2730,6 +_,7 @@
      }
  
      protected void updateSwingTime() {
@@ -17,7 +17,7 @@
          int currentSwingDuration = this.getCurrentSwingDuration();
          if (this.swinging) {
              this.swingTime++;
-@@ -3157,7 +_,13 @@
+@@ -3212,7 +_,13 @@
      }
  
      protected float getFlyingSpeed() {
@@ -32,7 +32,7 @@
      }
  
      public float getSpeed() {
-@@ -3642,6 +_,7 @@
+@@ -3657,6 +_,7 @@
      protected void updateFallFlying() {
          this.checkSlowFallDistance();
          if (!this.level().isClientSide) {

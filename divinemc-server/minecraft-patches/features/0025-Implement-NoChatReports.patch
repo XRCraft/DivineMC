@@ -5,7 +5,7 @@ Subject: [PATCH] Implement NoChatReports
 
 
 diff --git a/net/minecraft/network/FriendlyByteBuf.java b/net/minecraft/network/FriendlyByteBuf.java
-index d1daa3443446f47e2215f0c7c5823da58e053bab..61b1440ee7909946cd2d7a4d8622f79c6f6ac76b 100644
+index 7da7d645f83f351e8c964da01734f3074a877ca1..39426086e1c417758d6ff940c3ab716fcba6cd6c 100644
 --- a/net/minecraft/network/FriendlyByteBuf.java
 +++ b/net/minecraft/network/FriendlyByteBuf.java
 @@ -105,7 +105,28 @@ public class FriendlyByteBuf extends ByteBuf {
@@ -123,7 +123,7 @@ index 1df628ac0b414511aaed6e09d78f884c4170f730..d94858facc06d57139e953796ee09dad
      }
  }
 diff --git a/net/minecraft/network/protocol/status/ServerStatus.java b/net/minecraft/network/protocol/status/ServerStatus.java
-index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c74091612b79f39e 100644
+index 094d1821d298fc228270b2d6cf0445949434f3e2..8f7e3e5f1d3a87ba3528c9dd61e063ecfda4e1ec 100644
 --- a/net/minecraft/network/protocol/status/ServerStatus.java
 +++ b/net/minecraft/network/protocol/status/ServerStatus.java
 @@ -15,13 +15,7 @@ import net.minecraft.network.chat.CommonComponents;
@@ -206,10 +206,10 @@ index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c7409161
          private static final String PREFIX = "data:image/png;base64,";
          public static final Codec<ServerStatus.Favicon> CODEC = Codec.STRING.comapFlatMap(string -> {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index d3431511fdc6c3e807ea4dfcf877ebe088ff90bd..fb02ec67234e46a55d68d2b4b1c7a6ba56f9995a 100644
+index 116970622a4e7cc9c7c8333cdb18da71381abcff..3f9b26de801b2d8e85c56d219ca7bd61c41b3f9d 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -688,6 +688,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -631,6 +631,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
  
      @Override
      public boolean enforceSecureProfile() {
@@ -218,10 +218,10 @@ index d3431511fdc6c3e807ea4dfcf877ebe088ff90bd..fb02ec67234e46a55d68d2b4b1c7a6ba
          // Paper start - Add setting for proxy online mode status
          return properties.enforceSecureProfile
 diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index 801dd76a2c7f76fc6fdb7167cbf3ab1310be36c9..4fa55fac5dab26a505cba2c1876e9459a582da12 100644
+index b865c2fd503c3f0368d77d28c2f7a7c7fa7008bb..b3356c65992b1bb165876dfc58a8331d6fda138c 100644
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-@@ -312,10 +312,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -311,10 +311,64 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
      }
  
      public void send(Packet<?> packet) {
@@ -287,10 +287,10 @@ index 801dd76a2c7f76fc6fdb7167cbf3ab1310be36c9..4fa55fac5dab26a505cba2c1876e9459
          if (packet == null || this.processedDisconnect) { // Spigot
              return;
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index 5ff0ce34cfacb745748d3dc627127842ac1df9fa..0483b754ab9c9da4eaa62101198007d12174cf84 100644
+index 3155f2fb46deebf12bcceb8283c6dc57d96ee365..338df3c49e19b7ff3f54ecf93a980d4573b142d7 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
-@@ -274,7 +274,7 @@ public abstract class PlayerList {
+@@ -275,7 +275,7 @@ public abstract class PlayerList {
                  !_boolean,
                  _boolean2,
                  player.createCommonSpawnInfo(serverLevel),
@@ -299,10 +299,10 @@ index 5ff0ce34cfacb745748d3dc627127842ac1df9fa..0483b754ab9c9da4eaa62101198007d1
              )
          );
          player.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
-@@ -1333,6 +1333,7 @@ public abstract class PlayerList {
+@@ -1327,6 +1327,7 @@ public abstract class PlayerList {
      }
  
-     public boolean verifyChatTrusted(PlayerChatMessage message) { // Paper - private -> public
+     public boolean verifyChatTrusted(PlayerChatMessage message) {
 +        if (org.bxteam.divinemc.DivineConfig.noChatReportsEnabled) return true; // DivineMC - Implement NoChatReports
          return message.hasSignature() && !message.hasExpiredServer(Instant.now());
      }

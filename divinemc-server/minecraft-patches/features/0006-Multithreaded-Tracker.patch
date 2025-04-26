@@ -5,10 +5,10 @@ Subject: [PATCH] Multithreaded Tracker
 
 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index dd2509996bfd08e8c3f9f2be042229eac6d7692d..8ef5a1aaac9c27873ce746eb281f77bb318a3c69 100644
+index 02a9ef1694c796584c29430d27f0a09047368835..7a52c42845bd74d0bb7649f87764aba12f442f02 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-@@ -342,7 +342,11 @@ public final class RegionizedPlayerChunkLoader {
+@@ -340,7 +340,11 @@ public final class RegionizedPlayerChunkLoader {
          private boolean canGenerateChunks = true;
  
          private final ArrayDeque<ChunkHolderManager.TicketOperation<?, ?>> delayedTicketOps = new ArrayDeque<>();
@@ -22,10 +22,10 @@ index dd2509996bfd08e8c3f9f2be042229eac6d7692d..8ef5a1aaac9c27873ce746eb281f77bb
          private static final byte CHUNK_TICKET_STAGE_NONE           = 0;
          private static final byte CHUNK_TICKET_STAGE_LOADING        = 1;
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cbf15b714d 100644
+index b28d19b2fcdff9250e95db05f6e428db54a771e6..b5028cc64e2a43c841801114908825102df41765 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -951,6 +951,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1013,6 +1013,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
      // Paper end - optimise entity tracker
  
      protected void tick() {
@@ -39,7 +39,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cb
          // Paper start - optimise entity tracker
          if (true) {
              this.newTrackerTick();
-@@ -1073,7 +1080,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1135,7 +1142,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          final Entity entity;
          private final int range;
          SectionPos lastSectionPos;
@@ -52,7 +52,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cb
  
          // Paper start - optimise entity tracker
          private long lastChunkUpdate = -1L;
-@@ -1100,21 +1111,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1162,21 +1173,55 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
              this.lastTrackedChunk = chunk;
  
              final ServerPlayer[] playersRaw = players.getRawDataUnchecked();
@@ -118,7 +118,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cb
          }
  
          @Override
-@@ -1176,7 +1221,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1238,7 +1283,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcast(Packet<?> packet) {
@@ -127,7 +127,7 @@ index d3d9926d504fa6b3384be5ae06b2843ebb7f807c..965899a98223b15bd770378c202873cb
                  serverPlayerConnection.send(packet);
              }
          }
-@@ -1189,21 +1234,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1259,21 +1304,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
  
          public void broadcastRemoved() {
@@ -169,29 +169,10 @@ index f106373ef3ac4a8685c2939c9e8361688a285913..3b4dff8867e91884b5720ca8a9cb64af
      public boolean visible = true;
  
 diff --git a/net/minecraft/server/level/ServerEntity.java b/net/minecraft/server/level/ServerEntity.java
-index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9966ba496 100644
+index 257ecbcf7d463eefb951867a5426eaf24e356305..7748183dd12434693b89d2dbc8325988381857c9 100644
 --- a/net/minecraft/server/level/ServerEntity.java
 +++ b/net/minecraft/server/level/ServerEntity.java
-@@ -110,8 +110,16 @@ public class ServerEntity {
-                 .forEach(
-                     removedPassenger -> {
-                         if (removedPassenger instanceof ServerPlayer serverPlayer1) {
--                            serverPlayer1.connection
--                                .teleport(serverPlayer1.getX(), serverPlayer1.getY(), serverPlayer1.getZ(), serverPlayer1.getYRot(), serverPlayer1.getXRot());
-+                            // DivineMC start - Multithreaded tracker
-+                            if (org.bxteam.divinemc.DivineConfig.multithreadedEnabled && Thread.currentThread() instanceof org.bxteam.divinemc.entity.tracking.MultithreadedTracker.MultithreadedTrackerThread) {
-+                                net.minecraft.server.MinecraftServer.getServer().scheduleOnMain(() -> serverPlayer1.connection
-+                                    .teleport(serverPlayer1.getX(), serverPlayer1.getY(), serverPlayer1.getZ(), serverPlayer1.getYRot(), serverPlayer1.getXRot())
-+                                );
-+                            } else {
-+                                serverPlayer1.connection
-+                                    .teleport(serverPlayer1.getX(), serverPlayer1.getY(), serverPlayer1.getZ(), serverPlayer1.getYRot(), serverPlayer1.getXRot());
-+                            }
-+                            // DivineMC end - Multithreaded tracker
-                         }
-                     }
-                 );
-@@ -410,12 +418,13 @@ public class ServerEntity {
+@@ -418,12 +418,13 @@ public class ServerEntity {
          if (this.entity instanceof LivingEntity) {
              Set<AttributeInstance> attributesToSync = ((LivingEntity)this.entity).getAttributes().getAttributesToSync();
              if (!attributesToSync.isEmpty()) {
@@ -208,10 +189,10 @@ index 0fb253aa55a24b56b17f524b3261c5b75c7d7e59..b6053158f5d9b6ad325ea075ab7c60f9
  
              attributesToSync.clear();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c229d69ce3d007e4cb57e559611b3fca7a03562f..ba5ca5213fafd60b2257409f334a7c6b28fe918a 100644
+index c03895b2fc783d748fe52660b9ef30367143d0f5..8fa3af0ebcb92138d0dae858c131db0a710df693 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -2497,7 +2497,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2481,7 +2481,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
  
      @Override
      public LevelEntityGetter<Entity> getEntities() {
@@ -220,7 +201,7 @@ index c229d69ce3d007e4cb57e559611b3fca7a03562f..ba5ca5213fafd60b2257409f334a7c6b
          return this.moonrise$getEntityLookup(); // Paper - rewrite chunk system
      }
  
-@@ -2724,7 +2724,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2717,7 +2717,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
                          }
  
                          map.carriedByPlayers.remove(player);
@@ -230,10 +211,10 @@ index c229d69ce3d007e4cb57e559611b3fca7a03562f..ba5ca5213fafd60b2257409f334a7c6b
                          }
                      }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 56a22d19a82a937c08cb4527b0f67f219a6bb8a0..f8c76bb2c9fa625e191036dc58ef3dfb1d4ee930 100644
+index 374d9e1036a1c4b50f80f3121c7ad0793506a280..b05657f763bbdbc9268c83d78c2da62b97d095e2 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -1822,7 +1822,7 @@ public class ServerGamePacketListenerImpl
+@@ -1882,7 +1882,7 @@ public class ServerGamePacketListenerImpl
      }
  
      public void internalTeleport(PositionMoveRotation posMoveRotation, Set<Relative> relatives) {
@@ -243,10 +224,10 @@ index 56a22d19a82a937c08cb4527b0f67f219a6bb8a0..f8c76bb2c9fa625e191036dc58ef3dfb
          if (this.player.isRemoved()) {
              LOGGER.info("Attempt to teleport removed player {} restricted", player.getScoreboardName());
 diff --git a/net/minecraft/world/entity/ai/attributes/AttributeInstance.java b/net/minecraft/world/entity/ai/attributes/AttributeInstance.java
-index 8013594bb4844e7a8abf28123958e7f632d39341..72593629324ccd4d70b8ed86a90fb69785d57f5f 100644
+index 3ac9f36eae87369354e992a1d9b5c5b2d87d17cb..3a6c481fae0d3cb5ffdd39caf85252f164774323 100644
 --- a/net/minecraft/world/entity/ai/attributes/AttributeInstance.java
 +++ b/net/minecraft/world/entity/ai/attributes/AttributeInstance.java
-@@ -24,8 +24,11 @@ public class AttributeInstance {
+@@ -26,8 +26,11 @@ public class AttributeInstance {
      private final Map<AttributeModifier.Operation, Map<ResourceLocation, AttributeModifier>> modifiersByOperation = Maps.newEnumMap(
          AttributeModifier.Operation.class
      );
@@ -261,13 +242,13 @@ index 8013594bb4844e7a8abf28123958e7f632d39341..72593629324ccd4d70b8ed86a90fb697
      private boolean dirty = true;
      private double cachedValue;
 diff --git a/net/minecraft/world/entity/ai/attributes/AttributeMap.java b/net/minecraft/world/entity/ai/attributes/AttributeMap.java
-index a25d74592e89e3d6339479c6dc2b6f45d1932cfc..621b183211b8148bb8db256d2119c82f8a2c626b 100644
+index 23576e631ad4a12ec3ff3630be253738534588f3..b37a49c44ecb456c798d153fddf3cb6090a9a296 100644
 --- a/net/minecraft/world/entity/ai/attributes/AttributeMap.java
 +++ b/net/minecraft/world/entity/ai/attributes/AttributeMap.java
-@@ -19,9 +19,12 @@ import org.slf4j.Logger;
+@@ -14,9 +14,12 @@ import net.minecraft.nbt.ListTag;
+ import net.minecraft.resources.ResourceLocation;
  
  public class AttributeMap {
-     private static final Logger LOGGER = LogUtils.getLogger();
 -    private final Map<Holder<Attribute>, AttributeInstance> attributes = new Object2ObjectOpenHashMap<>();
 -    private final Set<AttributeInstance> attributesToSync = new ObjectOpenHashSet<>();
 -    private final Set<AttributeInstance> attributesToUpdate = new ObjectOpenHashSet<>();
@@ -281,10 +262,10 @@ index a25d74592e89e3d6339479c6dc2b6f45d1932cfc..621b183211b8148bb8db256d2119c82f
      private final net.minecraft.world.entity.LivingEntity entity; // Purpur - Ridables
  
 diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-index 681dec447486138088fe5f705ef4fadab531139f..3d6aad86519be3e1449d3288369a41aebb924c90 100644
+index 3ae69b17fec1cdb2bee2b5a795026a875f197c30..f8620d34137fe13122deb5b761512e09bb8c4aa7 100644
 --- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 +++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-@@ -279,6 +279,7 @@ public class MapItemSavedData extends SavedData {
+@@ -211,6 +211,7 @@ public class MapItemSavedData extends SavedData {
  
          for (int i = 0; i < this.carriedBy.size(); i++) {
              MapItemSavedData.HoldingPlayer holdingPlayer1 = this.carriedBy.get(i);

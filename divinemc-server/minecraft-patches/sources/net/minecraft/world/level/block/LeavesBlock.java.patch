@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/block/LeavesBlock.java
 +++ b/net/minecraft/world/level/block/LeavesBlock.java
-@@ -77,12 +_,29 @@
+@@ -70,12 +_,29 @@
      }
  
      protected boolean decaying(BlockState state) {

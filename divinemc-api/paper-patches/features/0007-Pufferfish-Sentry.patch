@@ -31,10 +31,10 @@ index 9cb0f09b821a4020d17771a5b64ddd53e7d78478..1638548b766460be65c0c008f7f19df1
                      callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerEventException(msg, ex, registration.getPlugin(), registration.getListener(), event)));
                  }
 diff --git a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
-index 40350504b5f7a92d834e95bb2e4e4268195ec9e7..1450ce1ce1ecad79dd9514081190df94ceae9d52 100644
+index 1ad24e0107499e4dcaad647feeb54887675d9e51..9342ea35fb963379039ae020f9317bb02147f9c1 100644
 --- a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
 +++ b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
-@@ -336,7 +336,13 @@ public final class JavaPluginLoader implements PluginLoader {
+@@ -330,7 +330,13 @@ public final class JavaPluginLoader implements PluginLoader {
              try {
                  jPlugin.setEnabled(true);
              } catch (Throwable ex) {
@@ -48,7 +48,7 @@ index 40350504b5f7a92d834e95bb2e4e4268195ec9e7..1450ce1ce1ecad79dd9514081190df94
              }
  
              // Perhaps abort here, rather than continue going, but as it stands,
-@@ -361,7 +367,9 @@ public final class JavaPluginLoader implements PluginLoader {
+@@ -355,7 +361,9 @@ public final class JavaPluginLoader implements PluginLoader {
              try {
                  jPlugin.setEnabled(false);
              } catch (Throwable ex) {

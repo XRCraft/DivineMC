@@ -5,7 +5,7 @@ Subject: [PATCH] Async locate command
 
 
 diff --git a/net/minecraft/server/commands/LocateCommand.java b/net/minecraft/server/commands/LocateCommand.java
-index 13bcd8653d766cd0b754a22e9aab261fbc62b0a5..0bc2d17e9bad62f62ab171feb2a92b87e1c3ba6a 100644
+index 2723d5377567241921fef61952e474c1c0ee9bbf..ee9f84b33a34b5b9d7c3f8928c958c298f780a03 100644
 --- a/net/minecraft/server/commands/LocateCommand.java
 +++ b/net/minecraft/server/commands/LocateCommand.java
 @@ -103,44 +103,77 @@ public class LocateCommand {
@@ -119,7 +119,7 @@ index 13bcd8653d766cd0b754a22e9aab261fbc62b0a5..0bc2d17e9bad62f62ab171feb2a92b87
  
      public static int showLocateResult(
 @@ -195,7 +228,7 @@ public class LocateCommand {
-                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")))
+                     .withHoverEvent(new HoverEvent.ShowText(Component.translatable("chat.coordinates.tooltip")))
              );
          source.sendSuccess(() -> Component.translatable(translationKey, elementName, component, i), false);
 -        LOGGER.info("Locating element " + elementName + " took " + duration.toMillis() + " ms");

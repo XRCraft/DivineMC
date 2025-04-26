@@ -5,7 +5,7 @@ Subject: [PATCH] Configurable movement speed for entities
 
 
 diff --git a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
-index 286844cfad8b993f1fbc26a13e1a67381b24ff49..9714deeebe6aa4d37b6fdd5f3a71e1127a61f9f3 100644
+index 1adc4b9426e89924566e132b10d8ab2f07573b6c..99d40020f811588da0dce5ddcc81882eefb2eaaa 100644
 --- a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
 @@ -1593,6 +1593,7 @@ public class PurpurWorldConfig {
@@ -73,14 +73,14 @@ index 286844cfad8b993f1fbc26a13e1a67381b24ff49..9714deeebe6aa4d37b6fdd5f3a71e112
  
      public boolean zombifiedPiglinRidable = false;
 @@ -3461,6 +3469,7 @@ public class PurpurWorldConfig {
-     public boolean zombifiedPiglinCountAsPlayerKillWhenAngry = true;
+     public boolean zombifiedPiglinCountAsPlayerKillWhenAngry = false;
      public boolean zombifiedPiglinTakeDamageFromWater = false;
      public boolean zombifiedPiglinAlwaysDropExp = false;
 +    public double zombifiedPiglinMovementSpeed = 0.23F; // DivineMC - Configurable movement speed for entities
      private void zombifiedPiglinSettings() {
          zombifiedPiglinRidable = getBoolean("mobs.zombified_piglin.ridable", zombifiedPiglinRidable);
          zombifiedPiglinRidableInWater = getBoolean("mobs.zombified_piglin.ridable-in-water", zombifiedPiglinRidableInWater);
-@@ -3479,6 +3488,7 @@ public class PurpurWorldConfig {
+@@ -3482,6 +3491,7 @@ public class PurpurWorldConfig {
          zombifiedPiglinCountAsPlayerKillWhenAngry = getBoolean("mobs.zombified_piglin.count-as-player-kill-when-angry", zombifiedPiglinCountAsPlayerKillWhenAngry);
          zombifiedPiglinTakeDamageFromWater = getBoolean("mobs.zombified_piglin.takes-damage-from-water", zombifiedPiglinTakeDamageFromWater);
          zombifiedPiglinAlwaysDropExp = getBoolean("mobs.zombified_piglin.always-drop-exp", zombifiedPiglinAlwaysDropExp);

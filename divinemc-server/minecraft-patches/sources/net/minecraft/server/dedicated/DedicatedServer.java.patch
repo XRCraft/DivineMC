@@ -1,7 +1,7 @@
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -245,6 +_,26 @@
-         */// Purpur end - Purpur config files // Purpur - Configurable void damage height and damage
+@@ -195,6 +_,26 @@
+         // Purpur end - Purpur config files
          com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // Paper - load version history now
  
 +        // DivineMC start - Pufferfish SIMD

@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NONPLAYT <76615486+NONPLAYT@users.noreply.github.com>
+Date: Sat, 1 Mar 2025 23:06:52 +0300
+Subject: [PATCH] Multithreaded Tracker
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+index d7398b1ecf2660c29fb7d106b48fe02d3736603e..a9ec83b5bcb329bf3d2f3fb0e502685a37f9dcbc 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+@@ -42,6 +42,12 @@ class PaperEventManager {
+         if (event.isAsynchronous() && this.server.isPrimaryThread()) {
+             throw new IllegalStateException(event.getEventName() + " may only be triggered asynchronously.");
+         } else if (!event.isAsynchronous() && !this.server.isPrimaryThread() && !this.server.isStopping()) {
++            // DivineMC start - Multithreaded Tracker
++            if (org.bxteam.divinemc.DivineConfig.multithreadedEnabled) {
++                net.minecraft.server.MinecraftServer.getServer().scheduleOnMain(event::callEvent);
++                return;
++            }
++            // DivineMC end - Multithreaded Tracker
+             throw new IllegalStateException(event.getEventName() + " may only be triggered synchronously.");
+         }
+ 
+diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+index f32316b0357f1cb0501a052361a0221f8e9d1438..2e28891cb4c058c022b06040c0283aacf4c2445e 100644
+--- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
++++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+@@ -1751,6 +1751,26 @@ public class CraftEventFactory {
+     }
+ 
+     public static boolean handleBlockFormEvent(Level world, BlockPos pos, net.minecraft.world.level.block.state.BlockState state, int flags, @Nullable Entity entity, boolean checkSetResult) {
++        // DivineMC start - Multithreaded Tracker
++        if (org.bxteam.divinemc.DivineConfig.multithreadedEnabled && Thread.currentThread() instanceof org.bxteam.divinemc.entity.tracking.MultithreadedTracker.MultithreadedTrackerThread) {
++            java.util.concurrent.CompletableFuture<Boolean> future = new java.util.concurrent.CompletableFuture<>();
++            net.minecraft.server.MinecraftServer.getServer().scheduleOnMain(() -> {
++                boolean resultFlag = false;
++                CraftBlockState snapshot = CraftBlockStates.getBlockState(world, pos);
++                snapshot.setData(state);
++
++                BlockFormEvent event = (entity == null) ? new BlockFormEvent(snapshot.getBlock(), snapshot) : new EntityBlockFormEvent(entity.getBukkitEntity(), snapshot.getBlock(), snapshot);
++                if (event.callEvent()) {
++                    boolean result = snapshot.place(flags);
++                    resultFlag = !checkSetResult || result;
++                }
++
++                future.complete(resultFlag);
++            });
++
++            return future.join();
++        }
++        // DivineMC end - Multithreaded Tracker
+         CraftBlockState snapshot = CraftBlockStates.getBlockState(world, pos);
+         snapshot.setData(state);
+ 

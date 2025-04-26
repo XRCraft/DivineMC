@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize default values for configs
 
 
 diff --git a/src/main/java/org/purpurmc/purpur/PurpurConfig.java b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
-index 338154a8098b577acc54f5543f9c20ee91bbc40a..554ae05a1a7f7dbe91455cb14b1d9a02f3b7d288 100644
+index 282057126dff849027717ede935a60aab0d68de5..df77474e4b29069d14683a2d395f0d573199ab74 100644
 --- a/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 +++ b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 @@ -240,7 +240,7 @@ public class PurpurConfig {
@@ -18,7 +18,7 @@ index 338154a8098b577acc54f5543f9c20ee91bbc40a..554ae05a1a7f7dbe91455cb14b1d9a02
          useAlternateKeepAlive = getBoolean("settings.use-alternate-keepalive", useAlternateKeepAlive);
      }
 diff --git a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
-index 1dd74216ec8bfaca080bd6ae67169815e9a9b855..26ea01d16cfda9ee06eee9fc40461393dad422e0 100644
+index e140497bf271746ef6cd327e9572754c209dcb06..cb851b70af58288535ec9be5006bf8d5ef4c4f93 100644
 --- a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
 @@ -3043,8 +3043,8 @@ public class PurpurWorldConfig {

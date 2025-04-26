@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize default values for configs
 
 
 diff --git a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-index f0c420f4a1b282fb976825c33cb7a118e45de36d..af728eec05f67d9c3185bd2ccf7a9088a33be401 100644
+index 4fd8c2f6fdefe518b5cea0ae81901c44be0ff021..ae70fb008ff35b83c82dabec9a62c20ab94ea722 100644
 --- a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 @@ -349,8 +349,8 @@ public class GlobalConfiguration extends ConfigurationPart {
@@ -20,10 +20,10 @@ index f0c420f4a1b282fb976825c33cb7a118e45de36d..af728eec05f67d9c3185bd2ccf7a9088
          public IntOr.Default compressionLevel = IntOr.Default.USE_DEFAULT;
          @Comment("Defines the leniency distance added on the server to the interaction range of a player when validating interact packets.")
 diff --git a/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java b/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
-index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397fa02e0d4 100644
+index 6c298304f842612d0e063b578f274eed04b32960..18c501a2fe2213e3282bf83f5e07fe3772eef05f 100644
 --- a/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/WorldConfiguration.java
-@@ -146,8 +146,10 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -147,8 +147,10 @@ public class WorldConfiguration extends ConfigurationPart {
          public ArmorStands armorStands;
  
          public class ArmorStands extends ConfigurationPart {
@@ -36,7 +36,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          }
  
          public Markers markers;
-@@ -273,8 +275,38 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -274,8 +276,38 @@ public class WorldConfiguration extends ConfigurationPart {
              public AltItemDespawnRate altItemDespawnRate;
  
              public class AltItemDespawnRate extends ConfigurationPart {
@@ -86,7 +86,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          public boolean disableExplosionKnockback = false;
          public boolean generateFlatBedrock = false;
          public FrostedIce frostedIce;
-@@ -473,7 +505,7 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -471,7 +503,7 @@ public class WorldConfiguration extends ConfigurationPart {
      public Fixes fixes;
  
      public class Fixes extends ConfigurationPart {
@@ -95,7 +95,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          public boolean disableUnloadedChunkEnderpearlExploit = false;
          public boolean preventTntFromMovingInWater = false;
          public boolean splitOverstackedLoot = true;
-@@ -501,9 +533,9 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -499,9 +531,9 @@ public class WorldConfiguration extends ConfigurationPart {
      public class Collisions extends ConfigurationPart {
          public boolean onlyPlayersCollide = false;
          public boolean allowVehicleCollisions = true;
@@ -107,7 +107,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          public boolean allowPlayerCrammingDamage = false;
      }
  
-@@ -513,16 +545,32 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -511,16 +543,33 @@ public class WorldConfiguration extends ConfigurationPart {
          public AutosavePeriod autoSaveInterval = AutosavePeriod.def();
          public int maxAutoSaveChunksPerTick = 24;
          public int fixedChunkInhabitedTime = -1;
@@ -135,7 +135,8 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
 +            map.put(EntityType.FIREBALL, 8);
 +            map.put(EntityType.FIREWORK_ROCKET, 8);
 +            map.put(EntityType.LLAMA_SPIT, 3);
-+            map.put(EntityType.POTION, 8);
++            map.put(EntityType.SPLASH_POTION, 8);
++            map.put(EntityType.LINGERING_POTION, 8);
 +            map.put(EntityType.SHULKER_BULLET, 8);
 +            map.put(EntityType.SMALL_FIREBALL, 8);
 +            map.put(EntityType.SNOWBALL, 8);
@@ -147,7 +148,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          });
          public boolean flushRegionsOnSave = false;
      }
-@@ -537,9 +585,9 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -535,9 +584,9 @@ public class WorldConfiguration extends ConfigurationPart {
      public TickRates tickRates;
  
      public class TickRates extends ConfigurationPart {
@@ -159,7 +160,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          public int wetFarmland = 1;
          public int dryFarmland = 1;
          public Table<EntityType<?>, String, Integer> sensor = Util.make(HashBasedTable.create(), table -> table.put(EntityType.VILLAGER, "secondarypoisensor", 40));
-@@ -574,7 +622,7 @@ public class WorldConfiguration extends ConfigurationPart {
+@@ -572,7 +621,7 @@ public class WorldConfiguration extends ConfigurationPart {
      public class Misc extends ConfigurationPart {
          public boolean updatePathfindingOnBlockUpdate = true;
          public boolean showSignClickCommandFailureMsgsToPlayer = false;
@@ -169,7 +170,7 @@ index d838c90f98c6593404c77d0aab8655c0d15905c4..a2240ee8e3fcbd30cbe724c5db819397
          public boolean disableEndCredits = false;
          public DoubleOr.Default maxLeashDistance = DoubleOr.Default.USE_DEFAULT;
 diff --git a/src/main/java/org/spigotmc/SpigotWorldConfig.java b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..ad57e4a05dd1347c971424297f3b16cee992e200 100644
+index 43c6240ec2855c0f668ce04de29d22a223d2612f..74cae42b0c8971e0ad724ef28a7ddb42906e574d 100644
 --- a/src/main/java/org/spigotmc/SpigotWorldConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotWorldConfig.java
 @@ -135,13 +135,13 @@ public class SpigotWorldConfig {
@@ -197,7 +198,7 @@ index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..ad57e4a05dd1347c971424297f3b16ce
          this.log("Mob Spawn Range: " + this.mobSpawnRange);
      }
  
-@@ -184,14 +184,16 @@ public class SpigotWorldConfig {
+@@ -184,13 +184,15 @@ public class SpigotWorldConfig {
          this.log("Item Despawn Rate: " + this.itemDespawnRate);
      }
  
@@ -205,22 +206,22 @@ index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..ad57e4a05dd1347c971424297f3b16ce
 -    public int monsterActivationRange = 32;
 -    public int raiderActivationRange = 64;
 -    public int miscActivationRange = 16;
+-    public int flyingMonsterActivationRange = 32;
+-    public int waterActivationRange = 16;
+-    public int villagerActivationRange = 32;
 +    // DivineMC start - Optimize default values for configs
 +    public int animalActivationRange = 16;
 +    public int monsterActivationRange = 24;
 +    public int raiderActivationRange = 48;
 +    public int miscActivationRange = 8;
-     // Paper start
-     public int flyingMonsterActivationRange = 32;
--    public int waterActivationRange = 16;
--    public int villagerActivationRange = 32;
++    public int flyingMonsterActivationRange = 48;
 +    public int waterActivationRange = 8;
 +    public int villagerActivationRange = 16;
 +    // DivineMC end - Optimize default values for configs
      public int wakeUpInactiveAnimals = 4;
      public int wakeUpInactiveAnimalsEvery = 60 * 20;
      public int wakeUpInactiveAnimalsFor = 5 * 20;
-@@ -247,10 +249,10 @@ public class SpigotWorldConfig {
+@@ -243,10 +245,10 @@ public class SpigotWorldConfig {
          this.log("Entity Activation Range: An " + this.animalActivationRange + " / Mo " + this.monsterActivationRange + " / Ra " + this.raiderActivationRange + " / Mi " + this.miscActivationRange + " / Tiv " + this.tickInactiveVillagers + " / Isa " + this.ignoreSpectatorActivation);
      }
  
@@ -235,7 +236,7 @@ index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..ad57e4a05dd1347c971424297f3b16ce
      public int displayTrackingRange = 128;
      public int otherTrackingRange = 64;
      private void trackingRange() {
-@@ -273,7 +275,7 @@ public class SpigotWorldConfig {
+@@ -269,7 +271,7 @@ public class SpigotWorldConfig {
          if (SpigotConfig.version < 11) {
              this.set("ticks-per.hopper-check", 1);
          }
@@ -245,10 +246,10 @@ index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..ad57e4a05dd1347c971424297f3b16ce
          this.hopperCanLoadChunks = this.getBoolean("hopper-can-load-chunks", false);
          this.log("Hopper Transfer: " + this.hopperTransfer + " Hopper Check: " + this.hopperCheck + " Hopper Amount: " + this.hopperAmount + " Hopper Can Load Chunks: " + this.hopperCanLoadChunks);
 diff --git a/src/main/resources/configurations/bukkit.yml b/src/main/resources/configurations/bukkit.yml
-index eef7c125b2689f29cae5464659eacdf33f5695b2..ff8086f55106f72aa2e2d64b459e6ce0d3d1efb3 100644
+index 00a5b4dc0d7bc57ae3f9231f84a081617ec4b15b..874f862a67e6c2109bce03d21fb4441a53e71633 100644
 --- a/src/main/resources/configurations/bukkit.yml
 +++ b/src/main/resources/configurations/bukkit.yml
-@@ -18,28 +18,28 @@ settings:
+@@ -16,28 +16,28 @@ settings:
      update-folder: update
      plugin-profiling: false
      connection-throttle: 4000
@@ -293,10 +294,10 @@ index eef7c125b2689f29cae5464659eacdf33f5695b2..ff8086f55106f72aa2e2d64b459e6ce0
      autosave: 6000
  aliases: now-in-commands.yml
 diff --git a/src/main/resources/configurations/commands.yml b/src/main/resources/configurations/commands.yml
-index 18f54571200e2eca09a39b88f170fe7b99d8618f..12312a1c393f1008dab5b6c82b8c65b3848efed1 100644
+index ddf2cd4b802cf7d22342eed7f09c989761aed7a9..59f2bed6512f23ca7e28aebe0cef7d50bcfb8f8c 100644
 --- a/src/main/resources/configurations/commands.yml
 +++ b/src/main/resources/configurations/commands.yml
-@@ -11,6 +11,4 @@
+@@ -10,6 +10,4 @@
  
  command-block-overrides: []
  ignore-vanilla-permissions: false

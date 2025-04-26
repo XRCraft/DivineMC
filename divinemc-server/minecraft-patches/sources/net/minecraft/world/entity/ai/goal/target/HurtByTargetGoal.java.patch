@@ -5,6 +5,6 @@
  
      protected void alertOther(Mob mob, LivingEntity target) {
 +        if (mob == target) return; // DivineMC - Fix MC-110386
-         mob.setTarget(target, org.bukkit.event.entity.EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true); // CraftBukkit - reason
+         mob.setTarget(target, org.bukkit.event.entity.EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY); // CraftBukkit - reason
      }
  }

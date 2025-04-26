@@ -393,7 +393,7 @@ index 045cfafb3afe8271d60852ae3c7cdcb039b44d4f..f544bf28ac6531061da08c7266846874
      }
  
 diff --git a/net/minecraft/world/entity/ai/navigation/PathNavigation.java b/net/minecraft/world/entity/ai/navigation/PathNavigation.java
-index 6c8fb611943aee8cabc471c63166f9b44ef14826..02814be0e1ac9b743a4c6b5b75015a5e87fc2aa6 100644
+index 6bbdfc748f1ce66689c63424fadcf261b1e967b3..55d0ed422f25b6469f9d8ee3ecf2ef8eaf77e9cb 100644
 --- a/net/minecraft/world/entity/ai/navigation/PathNavigation.java
 +++ b/net/minecraft/world/entity/ai/navigation/PathNavigation.java
 @@ -167,6 +167,10 @@ public abstract class PathNavigation {
@@ -557,7 +557,7 @@ index 1f96fd5085bacb4c584576c7cb9f51e7898e9b03..9494dd144ff1115c9f0862614ef61803
 +    // DivineMC end - async pathfinding
  }
 diff --git a/net/minecraft/world/entity/animal/Bee.java b/net/minecraft/world/entity/animal/Bee.java
-index d5727999eb67ff30dbf47865d59452483338e170..ddbee0f0f42fae0a26321bb324d22f5e7520ae72 100644
+index e9dfff7e3726cd2229f89bb39fa1ca4815d99a6d..a0294937487bfd13f26a5e7eb2bd21f29aa7c229 100644
 --- a/net/minecraft/world/entity/animal/Bee.java
 +++ b/net/minecraft/world/entity/animal/Bee.java
 @@ -936,7 +936,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
@@ -579,10 +579,10 @@ index d5727999eb67ff30dbf47865d59452483338e170..ddbee0f0f42fae0a26321bb324d22f5e
          }
      }
 diff --git a/net/minecraft/world/entity/animal/frog/Frog.java b/net/minecraft/world/entity/animal/frog/Frog.java
-index 4aabb98e0b37b652ad4d334b99c48a818c2859b4..dfcba5c2c8a489ebe74c2d5c1fa980c401806757 100644
+index eb3aa96b2a5cb553b016744863818186d1d831c4..3ccc48afb7a9eb2290f16c6a3218515bee59c2bd 100644
 --- a/net/minecraft/world/entity/animal/frog/Frog.java
 +++ b/net/minecraft/world/entity/animal/frog/Frog.java
-@@ -473,6 +473,17 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
+@@ -482,6 +482,17 @@ public class Frog extends Animal {
              super(mob, level);
          }
  
@@ -600,7 +600,7 @@ index 4aabb98e0b37b652ad4d334b99c48a818c2859b4..dfcba5c2c8a489ebe74c2d5c1fa980c4
          @Override
          public boolean canCutCorner(PathType pathType) {
              return pathType != PathType.WATER_BORDER && super.canCutCorner(pathType);
-@@ -481,6 +492,11 @@ public class Frog extends Animal implements VariantHolder<Holder<FrogVariant>> {
+@@ -490,6 +501,11 @@ public class Frog extends Animal {
          @Override
          protected PathFinder createPathFinder(int maxVisitedNodes) {
              this.nodeEvaluator = new Frog.FrogNodeEvaluator(true);
@@ -613,7 +613,7 @@ index 4aabb98e0b37b652ad4d334b99c48a818c2859b4..dfcba5c2c8a489ebe74c2d5c1fa980c4
          }
      }
 diff --git a/net/minecraft/world/entity/monster/Drowned.java b/net/minecraft/world/entity/monster/Drowned.java
-index 6c73245b8d04f194e72165aa0000ca79a95db59d..2686df57d9d48db1438278d0d053bdbd3c65c0a7 100644
+index b85d1e196d2bf61ac4896205afb08eba89c4397e..ea90e3d7ad84e301f975ff91fade63c5429972cf 100644
 --- a/net/minecraft/world/entity/monster/Drowned.java
 +++ b/net/minecraft/world/entity/monster/Drowned.java
 @@ -313,7 +313,7 @@ public class Drowned extends Zombie implements RangedAttackMob {
@@ -626,10 +626,10 @@ index 6c73245b8d04f194e72165aa0000ca79a95db59d..2686df57d9d48db1438278d0d053bdbd
              if (target != null) {
                  double d = this.distanceToSqr(target.getX(), target.getY(), target.getZ());
 diff --git a/net/minecraft/world/entity/monster/Strider.java b/net/minecraft/world/entity/monster/Strider.java
-index 241526239bdbd5d9276f85e7fca46a7051f46a25..2329973f735e1ae7fbb76798dc113f4261c906b7 100644
+index fe31c4a45afd61be8b74efe9d0858ccd0aced075..5f965f50294d03e7b03c5d7e912b7aec99db635c 100644
 --- a/net/minecraft/world/entity/monster/Strider.java
 +++ b/net/minecraft/world/entity/monster/Strider.java
-@@ -579,9 +579,25 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
+@@ -560,9 +560,25 @@ public class Strider extends Animal implements ItemSteerable {
              super(strider, level);
          }
  
@@ -656,10 +656,10 @@ index 241526239bdbd5d9276f85e7fca46a7051f46a25..2329973f735e1ae7fbb76798dc113f42
          }
  
 diff --git a/net/minecraft/world/entity/monster/warden/Warden.java b/net/minecraft/world/entity/monster/warden/Warden.java
-index e4b8a74fae6d058a9a75a12d2ff08c7984442538..59a12809e5c7f5ee85ca1f587f6b77383a1ff062 100644
+index 60a8d79306755e9483ba9e93a07939b73ad717fe..97ee07ebbba5ad29f766dff5eb4e51fc0e12cfcb 100644
 --- a/net/minecraft/world/entity/monster/warden/Warden.java
 +++ b/net/minecraft/world/entity/monster/warden/Warden.java
-@@ -597,6 +597,16 @@ public class Warden extends Monster implements VibrationSystem {
+@@ -578,6 +578,16 @@ public class Warden extends Monster implements VibrationSystem {
              @Override
              protected PathFinder createPathFinder(int maxVisitedNodes) {
                  this.nodeEvaluator = new WalkNodeEvaluator();
