@@ -206,10 +206,10 @@ index 30bd254542d631676494f349ff3f44f52d54ab2f..6c728ae3b58bc1b8449d34c6c7409161
          private static final String PREFIX = "data:image/png;base64,";
          public static final Codec<ServerStatus.Favicon> CODEC = Codec.STRING.comapFlatMap(string -> {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 9fcdff2be139296f4e14b54c33cc795efdff0c7f..64c3bbe540599e5195f0cc89635bff2c56d1a320 100644
+index d3431511fdc6c3e807ea4dfcf877ebe088ff90bd..fb02ec67234e46a55d68d2b4b1c7a6ba56f9995a 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -668,6 +668,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -688,6 +688,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
  
      @Override
      public boolean enforceSecureProfile() {
@@ -287,7 +287,7 @@ index 801dd76a2c7f76fc6fdb7167cbf3ab1310be36c9..4fa55fac5dab26a505cba2c1876e9459
          if (packet == null || this.processedDisconnect) { // Spigot
              return;
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index 3d8c1c5aa922ec0417388a1ff27d423cdb6d1351..6cbd57650f1f966955ee14039bca8ceb164599cd 100644
+index 5ff0ce34cfacb745748d3dc627127842ac1df9fa..0483b754ab9c9da4eaa62101198007d12174cf84 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -274,7 +274,7 @@ public abstract class PlayerList {

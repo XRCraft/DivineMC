@@ -130,7 +130,7 @@
  
      implementation("net.neoforged:srgutils:1.0.9") // Mappings handling
      implementation("net.neoforged:AutoRenamingTool:2.0.3") // Remap plugins
-@@ -204,30 +_,41 @@
+@@ -204,30 +_,42 @@
      implementation("me.lucko:spark-paper:1.10.119-20241121.092015-1")
  }
  
@@ -140,6 +140,7 @@
 +    compilerArgs.add("-Xlint:-module")
 +    compilerArgs.add("-Xlint:-removal")
 +    compilerArgs.add("-Xlint:-dep-ann")
++    compilerArgs.add("--add-modules=jdk.incubator.vector")
 +}
 +// DivineMC end - hide irrelevant compilation warnings
 +

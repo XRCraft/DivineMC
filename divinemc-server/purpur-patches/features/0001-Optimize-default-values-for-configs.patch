@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize default values for configs
 
 
 diff --git a/src/main/java/org/purpurmc/purpur/PurpurConfig.java b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
-index 702f71bed6634042bc306fa365ff00b4053d8661..8208a91dd9d15a23b17590f88ab2fefdc0fcfcf3 100644
+index 338154a8098b577acc54f5543f9c20ee91bbc40a..554ae05a1a7f7dbe91455cb14b1d9a02f3b7d288 100644
 --- a/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 +++ b/src/main/java/org/purpurmc/purpur/PurpurConfig.java
 @@ -240,7 +240,7 @@ public class PurpurConfig {
@@ -17,3 +17,18 @@ index 702f71bed6634042bc306fa365ff00b4053d8661..8208a91dd9d15a23b17590f88ab2fefd
      private static void useAlternateKeepAlive() {
          useAlternateKeepAlive = getBoolean("settings.use-alternate-keepalive", useAlternateKeepAlive);
      }
+diff --git a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
+index 1dd74216ec8bfaca080bd6ae67169815e9a9b855..26ea01d16cfda9ee06eee9fc40461393dad422e0 100644
+--- a/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
++++ b/src/main/java/org/purpurmc/purpur/PurpurWorldConfig.java
+@@ -3043,8 +3043,8 @@ public class PurpurWorldConfig {
+     public boolean villagerDisplayTradeItem = true;
+     public int villagerSpawnIronGolemRadius = 0;
+     public int villagerSpawnIronGolemLimit = 0;
+-    public int villagerAcquirePoiSearchRadius = 48;
+-    public int villagerNearestBedSensorSearchRadius = 48;
++    public int villagerAcquirePoiSearchRadius = 16; // DivineMC - Optimize default values for configs
++    public int villagerNearestBedSensorSearchRadius = 16; // DivineMC - Optimize default values for configs
+     private void villagerSettings() {
+         villagerRidable = getBoolean("mobs.villager.ridable", villagerRidable);
+         villagerRidableInWater = getBoolean("mobs.villager.ridable-in-water", villagerRidableInWater);

@@ -4,19 +4,6 @@ Date: Fri, 31 Jan 2025 21:50:46 +0300
 Subject: [PATCH] Misc Optimizations
 
 
-diff --git a/com/mojang/brigadier/tree/CommandNode.java b/com/mojang/brigadier/tree/CommandNode.java
-index 2ae5b80338282ac73c74765fc0729af2d54f6d6c..00a63a6a5983e6a25f2a9014a2f9eefeda468cdf 100644
---- a/com/mojang/brigadier/tree/CommandNode.java
-+++ b/com/mojang/brigadier/tree/CommandNode.java
-@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
- import java.util.function.Predicate;
- 
- public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
--    private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-+    private final Map<String, CommandNode<S>> children = Collections.synchronizedMap(new LinkedHashMap<>()); // DivineMC - Misc Optimizations
-     private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
-     private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
-     public Predicate<S> requirement; // Paper - public-f
 diff --git a/com/mojang/math/OctahedralGroup.java b/com/mojang/math/OctahedralGroup.java
 index 11902e7427761746ee098fea3276a34fef0096ba..3ba23fa243f7af712a41316066ca554f1c23b495 100644
 --- a/com/mojang/math/OctahedralGroup.java
@@ -434,7 +421,7 @@ index 15de39fa82c7aea18298509fe9587d027c30cc15..eb534ed5a7478fc632db096328e3582f
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 258cb45f1f959b75c1bcdb130811af2f8fddf07d..9c0e539f09bddac018f93d212e3cdbc446f3c672 100644
+index 7e29f1f1972f2fb4f9a779653467bc85ce37c7bc..3943789e241f6bb6bc165099b1fb585463cf3d86 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -143,7 +143,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -556,7 +543,7 @@ index 01e5b29d6e9a5c53c0e23b61ed0c1d7be1a0fe08..d80df05e40f3941ade5ed320e12f8dcf
      }
  
 diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-index 681dec447486138088fe5f705ef4fadab531139f..12ea268eaec629fde20d55460e618fde3a3e006d 100644
+index 3d6aad86519be3e1449d3288369a41aebb924c90..9294ac7bb91f86b631b1f0b4ad0bc1dbca82b3a1 100644
 --- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 +++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 @@ -198,6 +198,7 @@ public class MapItemSavedData extends SavedData {

@@ -1069,10 +1069,10 @@ index a3192400b37274620977e5a40d4283bfec3ab9b3..97fb981d89b1a831e6e94708f44d0983
 +    // DivineMC end - Completely remove Mojang profiler
  }
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 61eeec6a0d789e5e44abdeb5826d7ee2307301ba..0d889730641fd88d4da0c9116226a4dae385e846 100644
+index 76f48c7c60d9e6cb8609b070f74464548e7361d9..fd50e68725ab7b188c97cca1bb4b0cf3b758e3b2 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -849,12 +849,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+@@ -869,12 +869,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
          return this.settings.getProperties().serverResourcePackInfo;
      }
  
