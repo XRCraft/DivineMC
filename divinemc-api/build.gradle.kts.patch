@@ -86,7 +86,7 @@
          }
      }
  }
-@@ -162,6 +_,15 @@
+@@ -162,6 +_,16 @@
      }
  }
  
@@ -96,6 +96,7 @@
 +    compilerArgs.add("-Xlint:-module")
 +    compilerArgs.add("-Xlint:-removal")
 +    compilerArgs.add("-Xlint:-dep-ann")
++    compilerArgs.add("--add-modules=jdk.incubator.vector")
 +}
 +// DivineMC end - Hide unnecessary compilation warnings
 +

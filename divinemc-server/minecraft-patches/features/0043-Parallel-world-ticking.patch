@@ -210,12 +210,12 @@ index 172c69d577e53354fd4f37702d395e8f61754336..ef2cf6d9ca57266bb0466ca1aa5d2066
      }
      // CraftBukkit end
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index 25460607359b7f172842657f2693ce3bf6151750..5287bf52df85ebe32334f90a0d66e9befa34c36b 100644
+index 3f9b26de801b2d8e85c56d219ca7bd61c41b3f9d..8fa8cd1a06c86c8424d43b588ff13a917865e80e 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -204,6 +204,13 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
-         // DivineMC end - Configuration
-         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // Paper - load version history now
+@@ -224,6 +224,13 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         }
+         // DivineMC end - Pufferfish SIMD
  
 +        // DivineMC start - Parallel world ticking
 +        if (org.bxteam.divinemc.DivineConfig.enableParallelWorldTicking) {
@@ -404,7 +404,7 @@ index 338df3c49e19b7ff3f54ecf93a980d4573b142d7..0b8301ea5e90565e673e38e51f7ed3c8
          serverPlayer.connection = player.connection;
          serverPlayer.restoreFrom(player, keepInventory);
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index b98010d6d3d369c680ccc8f15da9574e4f6a139c..7326796c98761db2d00cf9a7e92bbc82bc6510fe 100644
+index 255e48ac3c05dec9b861fee0c8ec8f478abfa999..07b8fd62a2a3bbd4195ad6550748802a70f75bcb 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -3248,14 +3248,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
