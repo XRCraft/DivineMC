@@ -97,7 +97,9 @@ subprojects {
         repositories {
             maven("https://repo.bxteam.org/snapshots") {
                 name = "divinemc"
-                credentials(PasswordCredentials::class)
+
+                credentials.username = System.getenv("REPO_USERNAME")
+                credentials.password = System.getenv("REPO_PASSWORD")
             }
         }
     }

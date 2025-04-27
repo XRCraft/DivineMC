@@ -1,5 +1,21 @@
 --- a/purpur-server/build.gradle.kts
 +++ b/purpur-server/build.gradle.kts
+@@ -13,6 +_,7 @@
+ }
+ 
+ val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
++val bxTeamMavenPublicUrl = "https://repo.bxteam.org/snapshots/"
+ 
+ dependencies {
+     mache("io.papermc:mache:1.21.5+build.1")
+@@ -30,6 +_,7 @@
+ 
+     // Purpur start - Rebrand
+     val purpur = forks.register("purpur") {
++        rootDirectory = upstreamsDirectory().map { it.dir("purpur") }
+         upstream.patchDir("paperServer") {
+             upstreamPath = "paper-server"
+             excludes = setOf("src/minecraft", "patches", "build.gradle.kts")
 @@ -37,9 +_,27 @@
              outputDir = rootDirectory.dir("paper-server")
          }
@@ -29,6 +45,14 @@
      spigot {
          buildDataRef = "702e1a0a5072b2c4082371d5228cb30525687efc"
          packageVersion = "v1_21_R4" // also needs to be updated in MappingEnvironment
+@@ -62,6 +_,7 @@
+     libraryRepositories.addAll(
+         "https://repo.maven.apache.org/maven2/",
+         paperMavenPublicUrl,
++        bxTeamMavenPublicUrl // DivineMC - Rebrand
+     )
+ }
+ 
 @@ -125,10 +_,18 @@
      main {
          java { srcDir("../paper-server/src/main/java") }
