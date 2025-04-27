@@ -611,6 +611,19 @@ index 01e5b29d6e9a5c53c0e23b61ed0c1d7be1a0fe08..d80df05e40f3941ade5ed320e12f8dcf
          return 1.0 * (32.0 * (d1 - 128.0) - 3.0 * (d1 - 120.0) * d2 + 3.0 * d2 * d2) / (128.0 * (32.0 - 3.0 * d2));
      }
  
+diff --git a/net/minecraft/world/level/levelgen/feature/OreFeature.java b/net/minecraft/world/level/levelgen/feature/OreFeature.java
+index c7b46efd4f08067e2c9c5c8b0e8b71a94a79823d..c7252c636fcea34a866dcc4862b60cef31071666 100644
+--- a/net/minecraft/world/level/levelgen/feature/OreFeature.java
++++ b/net/minecraft/world/level/levelgen/feature/OreFeature.java
+@@ -69,7 +69,7 @@ public class OreFeature extends Feature<OreConfiguration> {
+         int height
+     ) {
+         int i = 0;
+-        BitSet bitSet = new BitSet(width * height * width);
++        BitSet bitSet = org.bxteam.divinemc.util.cache.CachedOrNewBitsGetter.getCachedOrNewBitSet(width * height * width); // DivineMC - Misc Optimizations
+         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+         int i1 = config.size;
+         double[] doubles = new double[i1 * 4];
 diff --git a/net/minecraft/world/level/storage/DimensionDataStorage.java b/net/minecraft/world/level/storage/DimensionDataStorage.java
 index 05361803a929cbcf651a37cf43009e57acb25f3e..5d21d2520dd33889988d8300060e6a41a8334562 100644
 --- a/net/minecraft/world/level/storage/DimensionDataStorage.java
