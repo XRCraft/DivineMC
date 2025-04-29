@@ -5,13 +5,13 @@ Subject: [PATCH] Extend Sound API
 
 
 diff --git a/src/main/java/org/bukkit/block/Block.java b/src/main/java/org/bukkit/block/Block.java
-index d309e28d7e6756afed82390fd2a99a6131e29140..468e2fa5e059e19c14d095c840723f10a6aa9287 100644
+index 32f5d2631b6807021c4a810fd577d83a268763a5..d5e4280269fa4588b502df5393834177374bcce2 100644
 --- a/src/main/java/org/bukkit/block/Block.java
 +++ b/src/main/java/org/bukkit/block/Block.java
-@@ -817,4 +817,29 @@ public interface Block extends Metadatable, Translatable, net.kyori.adventure.tr
-         return this.getBlockData().getDestroySpeed(itemStack, considerEnchants);
-     }
-     // Paper end - destroy speed API
+@@ -824,4 +824,29 @@ public interface Block extends Metadatable, Translatable, net.kyori.adventure.tr
+      * @return {@code true} if the block can suffocate
+      */
+     boolean isSuffocating();
 +
 +    // DivineMC start - Extend Sound API
 +    /**
@@ -39,7 +39,7 @@ index d309e28d7e6756afed82390fd2a99a6131e29140..468e2fa5e059e19c14d095c840723f10
 +    // DivineMC end - Extend Sound API
  }
 diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
-index bee034fd48b567a64a152196a0b80f2f1a9661e4..1eaae9a9e2d73535ddfea355878c61db0f9aa342 100644
+index 3a3c6ab87a164df706f59f6b59bfe977492658d7..b4e319eccfed44bbd5e5c4a540c410462598d433 100644
 --- a/src/main/java/org/bukkit/entity/Entity.java
 +++ b/src/main/java/org/bukkit/entity/Entity.java
 @@ -1279,4 +1279,35 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent

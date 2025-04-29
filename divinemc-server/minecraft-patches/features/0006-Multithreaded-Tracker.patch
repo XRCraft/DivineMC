@@ -169,10 +169,10 @@ index f106373ef3ac4a8685c2939c9e8361688a285913..3b4dff8867e91884b5720ca8a9cb64af
      public boolean visible = true;
  
 diff --git a/net/minecraft/server/level/ServerEntity.java b/net/minecraft/server/level/ServerEntity.java
-index 257ecbcf7d463eefb951867a5426eaf24e356305..7748183dd12434693b89d2dbc8325988381857c9 100644
+index b118e91f1e0b5a8b8c0b2a4a32faabc5a34a5954..19214d03a149e62b02ead0c9a1de8e99087de357 100644
 --- a/net/minecraft/server/level/ServerEntity.java
 +++ b/net/minecraft/server/level/ServerEntity.java
-@@ -418,12 +418,13 @@ public class ServerEntity {
+@@ -423,12 +423,13 @@ public class ServerEntity {
          if (this.entity instanceof LivingEntity) {
              Set<AttributeInstance> attributesToSync = ((LivingEntity)this.entity).getAttributes().getAttributesToSync();
              if (!attributesToSync.isEmpty()) {
@@ -211,7 +211,7 @@ index c03895b2fc783d748fe52660b9ef30367143d0f5..8fa3af0ebcb92138d0dae858c131db0a
                          }
                      }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 374d9e1036a1c4b50f80f3121c7ad0793506a280..b05657f763bbdbc9268c83d78c2da62b97d095e2 100644
+index d44366b8d1e715c6778e786afc62ae588c873a0d..8386c37abdd895c885afff75d03e19f4317e9828 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -1882,7 +1882,7 @@ public class ServerGamePacketListenerImpl

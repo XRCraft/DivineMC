@@ -329,7 +329,7 @@ index 7ce39901cb1bd41a214ed4444d2072656943fa0f..c3ea717868c2064ea5ff23a79cbbe4cc
      }
      // Paper end
 diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
-index e9ca19c8668d3028f9453f478b1853baa24b47b4..01dd87b5bb0695ea6a1ba386a759e281488d7bdd 100644
+index a4d5c65edc1db59f3486ce5d3757cc306211a54b..427719a50edc89f4bb7214577279f7464764bf9e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
 +++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
 @@ -75,6 +75,11 @@ public class CraftBlock implements Block {
@@ -487,7 +487,7 @@ index e9ca19c8668d3028f9453f478b1853baa24b47b4..01dd87b5bb0695ea6a1ba386a759e281
          Preconditions.checkArgument(data != null, "BlockData cannot be null");
          net.minecraft.world.level.block.state.BlockState iblockdata = ((CraftBlockData) data).getState();
          net.minecraft.world.level.Level world = this.world.getMinecraftWorld();
-@@ -719,6 +781,11 @@ public class CraftBlock implements Block {
+@@ -724,6 +786,11 @@ public class CraftBlock implements Block {
  
      @Override
      public void tick() {
@@ -543,10 +543,10 @@ index 3422970353dcd886934b9ee906467769d39abbde..cb60c1b09f06872c07d05b04b7bacc59
          } else {
              this.snapshot = this.createSnapshot(blockEntity);
 diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
-index c0a7659776a9f0fb82bb8563acbf3286b318fe03..d4ffcf6a96a66f4482af440d1b89aa8ccdd0fd9b 100644
+index 196835bdf95ba0e149b2977e9ef41698971f501f..bf70de08a9f5d49905b253bf549f6aeb8e2d3250 100644
 --- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
 +++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
-@@ -217,6 +217,12 @@ public class CraftBlockState implements BlockState {
+@@ -218,6 +218,12 @@ public class CraftBlockState implements BlockState {
          LevelAccessor access = this.getWorldHandle();
          CraftBlock block = this.getBlock();
  
