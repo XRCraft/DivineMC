@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize canSee checks
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index a5cf4e4b9cc35bd81b530bc3eac31b0af3d72b7c..24d72cc726ed238101ccc4f097be784ad9470247 100644
+index 6933e64ff1f22e4fc15bc745ff0bdb52a2091db6..666eeac7f4b9d92c1e867dc66f5439a187b005de 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -212,7 +212,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
@@ -17,7 +17,7 @@ index a5cf4e4b9cc35bd81b530bc3eac31b0af3d72b7c..24d72cc726ed238101ccc4f097be784a
      private final Set<UUID> unlistedEntities = new HashSet<>(); // Paper - Add Listing API for Player
      private static final WeakHashMap<Plugin, WeakReference<Plugin>> pluginWeakReferences = new WeakHashMap<>();
      private int hash = 0;
-@@ -2254,9 +2254,15 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -2255,9 +2255,15 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
  
      @Override
      public boolean canSee(org.bukkit.entity.Entity entity) {

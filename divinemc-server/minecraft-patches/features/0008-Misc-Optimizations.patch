@@ -466,7 +466,7 @@ index a18240418a19a95147341a634527d774f3d5bb92..66f74ad2a194a6676574da2932cf4677
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index d513b82c0681fdc990af082af69278bd773225a9..b065accf4ca3e87a4c35506f8cbf4d88759e1128 100644
+index 02adfa3f0ddd86be320156ff18b8e5af5071811b..55713194c53a23b6a6e2d6ffa67d23a71a4d584e 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -149,7 +149,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -478,7 +478,7 @@ index d513b82c0681fdc990af082af69278bd773225a9..b065accf4ca3e87a4c35506f8cbf4d88
      // Paper start - replace random
      private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
          public RandomRandomSource() {
-@@ -4502,10 +4502,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4503,10 +4503,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
      // Paper start - optimise collisions
      public boolean updateFluidHeightAndDoFluidPushing(final TagKey<Fluid> fluid, final double flowScale) {
@@ -489,7 +489,7 @@ index d513b82c0681fdc990af082af69278bd773225a9..b065accf4ca3e87a4c35506f8cbf4d88
          final AABB boundingBox = this.getBoundingBox().deflate(1.0E-3);
  
          final Level world = this.level;
-@@ -4541,7 +4537,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4542,7 +4538,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
          for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
              for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {

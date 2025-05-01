@@ -287,7 +287,7 @@ index b865c2fd503c3f0368d77d28c2f7a7c7fa7008bb..b3356c65992b1bb165876dfc58a8331d
          if (packet == null || this.processedDisconnect) { // Spigot
              return;
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index fa73e70b115b52f7178ea054b3cd8f4a7ea0f063..f4a42971ba53b6b540480b82c36ec815508be45a 100644
+index 7f74e0fe280543775710f7650c22314dc5439d7f..9f3afab438199dbaf40fa1a64b6ecdae74c0a34d 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -275,7 +275,7 @@ public abstract class PlayerList {
@@ -299,7 +299,7 @@ index fa73e70b115b52f7178ea054b3cd8f4a7ea0f063..f4a42971ba53b6b540480b82c36ec815
              )
          );
          player.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
-@@ -1326,6 +1326,7 @@ public abstract class PlayerList {
+@@ -1338,6 +1338,7 @@ public abstract class PlayerList {
      }
  
      public boolean verifyChatTrusted(PlayerChatMessage message) {

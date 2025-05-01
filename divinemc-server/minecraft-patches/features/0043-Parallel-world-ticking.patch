@@ -316,7 +316,7 @@ index 27ff3ae4400de969c95eb337cfd88f8137c77d3b..857439f7b59549cff75e318fdf9c1eff
          // Paper start - extra debug info
          if (entity.valid) {
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index 30c6bdbcd2e33e384f4d6b67e03e7a0acad2a464..fa95080ef6cca7d0b67f4b885fc62a0c3126a41d 100644
+index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623bc0eb8e2c 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
 @@ -460,6 +460,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
@@ -335,7 +335,7 @@ index 30c6bdbcd2e33e384f4d6b67e03e7a0acad2a464..fa95080ef6cca7d0b67f4b885fc62a0c
          // CraftBukkit start
          if (this.joining) {
              this.joining = false;
-@@ -1397,6 +1399,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1392,6 +1394,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return this;
              } else {
                  // CraftBukkit start
@@ -343,7 +343,7 @@ index 30c6bdbcd2e33e384f4d6b67e03e7a0acad2a464..fa95080ef6cca7d0b67f4b885fc62a0c
                  /*
                  this.isChangingDimension = true;
                  LevelData levelData = level.getLevelData();
-@@ -1738,6 +1741,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1733,6 +1736,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return OptionalInt.empty();
              } else {
                  // CraftBukkit start
@@ -356,7 +356,7 @@ index 30c6bdbcd2e33e384f4d6b67e03e7a0acad2a464..fa95080ef6cca7d0b67f4b885fc62a0c
                  this.containerMenu = abstractContainerMenu; // Moved up
                  if (!this.isImmobile())
                  this.connection
-@@ -1802,6 +1811,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1797,6 +1806,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
      }
      @Override
      public void closeContainer(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason) {
@@ -369,7 +369,7 @@ index 30c6bdbcd2e33e384f4d6b67e03e7a0acad2a464..fa95080ef6cca7d0b67f4b885fc62a0c
          // Paper end - Inventory close reason
          this.connection.send(new ClientboundContainerClosePacket(this.containerMenu.containerId));
 diff --git a/net/minecraft/server/players/PlayerList.java b/net/minecraft/server/players/PlayerList.java
-index 338df3c49e19b7ff3f54ecf93a980d4573b142d7..0b8301ea5e90565e673e38e51f7ed3c8c3552a50 100644
+index 9f3afab438199dbaf40fa1a64b6ecdae74c0a34d..8923a30daf515262e4bdbfbd55e3cb827092979c 100644
 --- a/net/minecraft/server/players/PlayerList.java
 +++ b/net/minecraft/server/players/PlayerList.java
 @@ -150,6 +150,7 @@ public abstract class PlayerList {
@@ -404,10 +404,10 @@ index 338df3c49e19b7ff3f54ecf93a980d4573b142d7..0b8301ea5e90565e673e38e51f7ed3c8
          serverPlayer.connection = player.connection;
          serverPlayer.restoreFrom(player, keepInventory);
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 255e48ac3c05dec9b861fee0c8ec8f478abfa999..07b8fd62a2a3bbd4195ad6550748802a70f75bcb 100644
+index ffa39efc1a3edcf3242305138a0571f2af4abcec..cba128337fbf96a3af167d8cbcd8057a78f8faf2 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -3248,14 +3248,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3249,14 +3249,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              if (this.portalProcess != null) {
                  if (this.portalProcess.processPortalTeleportation(serverLevel, this, this.canUsePortal(false))) {
                      this.setPortalCooldown();
@@ -448,7 +448,7 @@ index 255e48ac3c05dec9b861fee0c8ec8f478abfa999..07b8fd62a2a3bbd4195ad6550748802a
                  } else if (this.portalProcess.hasExpired()) {
                      this.portalProcess = null;
                  }
-@@ -3820,6 +3840,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3821,6 +3841,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      }
  
      private Entity teleportCrossDimension(ServerLevel level, TeleportTransition teleportTransition) {
@@ -688,7 +688,7 @@ index 8e97a20306652cdfc757b7102a07c58ce0e339e3..8b691f9b0283cf1847c40a5789239576
          this.containerId = containerId;
      }
 diff --git a/net/minecraft/world/item/ItemStack.java b/net/minecraft/world/item/ItemStack.java
-index f1b61e98e07d1d89f9af225f99085d8a3fee878c..ac2c8d38fc6d75d23d0f3c5c49ec141b30403e4e 100644
+index 36677cb0db42b74fa84d67b85717f629f84b4dd0..f329ad90e08bbb4fd3c4c804d6894f1a9e0aaaaf 100644
 --- a/net/minecraft/world/item/ItemStack.java
 +++ b/net/minecraft/world/item/ItemStack.java
 @@ -406,8 +406,10 @@ public final class ItemStack implements DataComponentHolder {
