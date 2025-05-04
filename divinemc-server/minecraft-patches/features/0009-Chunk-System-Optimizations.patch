@@ -5,7 +5,7 @@ Subject: [PATCH] Chunk System Optimizations
 
 
 diff --git a/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java b/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
-index 1b8193587814225c2ef2c5d9e667436eb50ff6c5..b588449cfe766c14a0cf4ea9640b04a51bbcf433 100644
+index 1b8193587814225c2ef2c5d9e667436eb50ff6c5..78e3c49a233dc6bed558458d555fe740a8cc839e 100644
 --- a/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
 +++ b/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
 @@ -59,12 +59,15 @@ public final class NearbyPlayers {
@@ -28,75 +28,83 @@ index 1b8193587814225c2ef2c5d9e667436eb50ff6c5..b588449cfe766c14a0cf4ea9640b04a5
          }
      }
  
-@@ -188,7 +191,10 @@ public final class NearbyPlayers {
-             final ReferenceList<ServerPlayer> list = this.players[idx];
-             if (list == null) {
-                 ++this.nonEmptyLists;
--                final ReferenceList<ServerPlayer> players = (this.players[idx] = new ReferenceList<>(EMPTY_PLAYERS_ARRAY));
-+                // DivineMC start - Chunk System optimization
-+                this.players[idx] = new ReferenceList<>(EMPTY_PLAYERS_ARRAY);
-+                final ReferenceList<ServerPlayer> players = this.players[idx];
-+                // DivineMC end - Chunk System optimization
-                 this.nearbyPlayers.directByChunk[idx].put(this.chunkKey, players);
-                 players.add(player);
-                 return;
-diff --git a/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java b/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
-index 866f38eb0f379ffbe2888023a7d1c290f521a231..08666b4aa1c7663861dc361f60e6f1cc46694521 100644
---- a/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
-+++ b/ca/spottedleaf/moonrise/patches/blockstate_propertyaccess/util/ZeroCollidingReferenceStateTable.java
-@@ -21,13 +21,15 @@ import net.minecraft.world.level.block.state.properties.Property;
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java b/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
+index ba20e87d2105ce53cdaf4049de2388d05fcd1b56..131e673c8eaa2afa801de5913982259d48908358 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
+@@ -383,6 +383,14 @@ public final class ChunkEntitySlices {
  
- public final class ZeroCollidingReferenceStateTable<O, S> {
- 
--    private final Int2ObjectOpenHashMap<Indexer> propertyToIndexer;
-+    private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<Indexer> propertyToIndexer; // DivineMC - Chunk System optimization
-     private S[] lookup;
-     private final Collection<Property<?>> properties;
- 
-     public ZeroCollidingReferenceStateTable(final Collection<Property<?>> properties) {
--        this.propertyToIndexer = new Int2ObjectOpenHashMap<>(properties.size());
--        this.properties = new ReferenceArrayList<>(properties);
+         private E[] storage;
+         private int size;
++        private it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap entityToIndex = null; // DivineMC - Chunk System optimization
++
 +        // DivineMC start - Chunk System optimization
-+        this.propertyToIndexer = it.unimi.dsi.fastutil.ints.Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(properties.size()));
-+        this.properties = it.unimi.dsi.fastutil.objects.ReferenceLists.synchronize(new ReferenceArrayList<>(properties));
++        private void setupIndexMap() {
++            this.entityToIndex = new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap(2, 0.8f);
++            this.entityToIndex.defaultReturnValue(Integer.MIN_VALUE);
++        }
 +        // DivineMC end - Chunk System optimization
  
-         final List<Property<?>> sortedProperties = new ArrayList<>(properties);
- 
-@@ -77,11 +79,11 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
-         return ret;
-     }
- 
--    public boolean isLoaded() {
-+    public synchronized boolean isLoaded() { // DivineMC - Chunk System optimization
-         return this.lookup != null;
-     }
- 
--    public void loadInTable(final Map<Map<Property<?>, Comparable<?>>, S> universe) {
-+    public synchronized void loadInTable(final Map<Map<Property<?>, Comparable<?>>, S> universe) { // DivineMC - Chunk System optimization
-         if (this.lookup != null) {
-             throw new IllegalStateException();
+         public BasicEntityList() {
+             this(0);
+@@ -403,6 +411,7 @@ public final class ChunkEntitySlices {
+         private void resize() {
+             if (this.storage == EMPTY) {
+                 this.storage = (E[])new Entity[DEFAULT_CAPACITY];
++                this.setupIndexMap(); // DivineMC - Chunk System optimization
+             } else {
+                 this.storage = Arrays.copyOf(this.storage, this.storage.length * 2);
+             }
+@@ -416,6 +425,7 @@ public final class ChunkEntitySlices {
+             } else {
+                 this.storage[idx] = entity;
+             }
++            this.entityToIndex.put(entity.getId(), idx); // DivineMC - Chunk System optimization
          }
-@@ -117,7 +119,7 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
-         return ((PropertyAccess<T>)property).moonrise$getById((int)modded);
+ 
+         public int indexOf(final E entity) {
+@@ -431,24 +441,31 @@ public final class ChunkEntitySlices {
+         }
+ 
+         public boolean remove(final E entity) {
+-            final int idx = this.indexOf(entity);
+-            if (idx == -1) {
++            // DivineMC start - Chunk System optimization - by Sakura, copied from EntityList
++            if (this.entityToIndex == null) {
+                 return false;
+             }
+ 
+-            final int size = --this.size;
+-            final E[] storage = this.storage;
+-            if (idx != size) {
+-                System.arraycopy(storage, idx + 1, storage, idx, size - idx);
++            final int index = this.entityToIndex.remove(entity.getId());
++            if (index == Integer.MIN_VALUE) {
++                return false;
+             }
+ 
+-            storage[size] = null;
++            final int endIndex = --this.size;
++            final E end = this.storage[endIndex];
++            if (index != endIndex) {
++                // not empty after this call
++                this.entityToIndex.put(end.getId(), index); // update index
++            }
++            this.storage[index] = end;
++            this.storage[endIndex] = null;
++            // DivineMC end - Chunk System optimization - by Sakura, copied from EntityList
+ 
+             return true;
+         }
+ 
+         public boolean has(final E entity) {
+-            return this.indexOf(entity) != -1;
++            return this.entityToIndex != null && this.entityToIndex.containsKey(entity.getId()); // DivineMC - Chunk System optimization
+         }
      }
  
--    public <T extends Comparable<T>> S set(final long index, final Property<T> property, final T with) {
-+    public synchronized <T extends Comparable<T>> S set(final long index, final Property<T> property, final T with) { // DivineMC - Chunk System optimization
-         final int newValueId = ((PropertyAccess<T>)property).moonrise$getIdFor(with);
-         if (newValueId < 0) {
-             return null;
-@@ -139,7 +141,7 @@ public final class ZeroCollidingReferenceStateTable<O, S> {
-         return this.lookup[(int)newIndex];
-     }
- 
--    public <T extends Comparable<T>> S trySet(final long index, final Property<T> property, final T with, final S dfl) {
-+    public synchronized <T extends Comparable<T>> S trySet(final long index, final Property<T> property, final T with, final S dfl) { // DivineMC - Chunk System optimization
-         final Indexer indexer = this.propertyToIndexer.get(((PropertyAccess<T>)property).moonrise$getId());
-         if (indexer == null) {
-             return dfl;
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
-index 7a52c42845bd74d0bb7649f87764aba12f442f02..78f2d7c698a4f2c21a473627c3017a9751f80cf1 100644
+index 7a52c42845bd74d0bb7649f87764aba12f442f02..03ab44b69725a18ed567826e4417f1d6701f08c9 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
 @@ -187,13 +187,13 @@ public final class RegionizedPlayerChunkLoader {
@@ -115,32 +123,23 @@ index 7a52c42845bd74d0bb7649f87764aba12f442f02..78f2d7c698a4f2c21a473627c3017a97
      }
  
      public void updatePlayer(final ServerPlayer player) {
-@@ -299,7 +299,7 @@ public final class RegionizedPlayerChunkLoader {
-         return false;
-     }
- 
--    public void tick() {
-+    public synchronized void tick() { // DivineMC - Chunk System optimization - synchronized
-         TickThread.ensureTickThread("Cannot tick player chunk loader async");
+@@ -304,7 +304,7 @@ public final class RegionizedPlayerChunkLoader {
          long currTime = System.nanoTime();
          for (final ServerPlayer player : new java.util.ArrayList<>(this.world.players())) {
-@@ -310,6 +310,7 @@ public final class RegionizedPlayerChunkLoader {
+             final PlayerChunkLoaderData loader = ((ChunkSystemServerPlayer)player).moonrise$getChunkLoader();
+-            if (loader == null || loader.removed || loader.world != this.world) {
++            if (loader == null || loader.removed || loader.world != this.world || !loader.canTick) { // DivineMC - Chunk System optimization
+                 // not our problem anymore
+                 continue;
              }
-             loader.update(); // can't invoke plugin logic
-             loader.updateQueues(currTime);
-+            player.connection.resumeFlushing(); // DivineMC - Chunk System optimization
-         }
-     }
+@@ -323,6 +323,7 @@ public final class RegionizedPlayerChunkLoader {
  
-@@ -360,7 +361,7 @@ public final class RegionizedPlayerChunkLoader {
-             GENERATED_TICKET_LEVEL,
-             TICK_TICKET_LEVEL
-         };
--        private final Long2ByteOpenHashMap chunkTicketStage = new Long2ByteOpenHashMap();
-+        private final it.unimi.dsi.fastutil.longs.Long2ByteMap chunkTicketStage = it.unimi.dsi.fastutil.longs.Long2ByteMaps.synchronize(new Long2ByteOpenHashMap()); // DivineMC - Chunk System optimization
-         {
-             this.chunkTicketStage.defaultReturnValue(CHUNK_TICKET_STAGE_NONE);
-         }
+         private final ServerPlayer player;
+         private final ServerLevel world;
++        public volatile boolean canTick; // DivineMC - Chunk System optimization
+ 
+         private int lastChunkX = Integer.MIN_VALUE;
+         private int lastChunkZ = Integer.MIN_VALUE;
 @@ -382,10 +383,19 @@ public final class RegionizedPlayerChunkLoader {
              final int centerX = PlayerChunkLoaderData.this.lastChunkX;
              final int centerZ = PlayerChunkLoaderData.this.lastChunkZ;
@@ -165,60 +164,31 @@ index 7a52c42845bd74d0bb7649f87764aba12f442f02..78f2d7c698a4f2c21a473627c3017a97
          };
          private final LongHeapPriorityQueue sendQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
          private final LongHeapPriorityQueue tickingQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
-@@ -488,7 +498,7 @@ public final class RegionizedPlayerChunkLoader {
-             }
- 
-             @Override
--            protected void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) {
-+            protected synchronized void removeCallback(final PlayerChunkLoaderData parameter, final int chunkX, final int chunkZ) { // DivineMC - Chunk System optimization
-                 final long chunk = CoordinateUtils.getChunkKey(chunkX, chunkZ);
-                 // note: by the time this is called, the tick cleanup should have ran - so, if the chunk is at
-                 // the tick stage it was deemed in range for loading. Thus, we need to move it to generated
-@@ -622,7 +632,7 @@ public final class RegionizedPlayerChunkLoader {
-             return Math.max(Math.abs(dx), Math.abs(dz)) <= this.lastTickDistance;
+@@ -853,6 +863,7 @@ public final class RegionizedPlayerChunkLoader {
          }
  
--        private boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) {
-+        private synchronized boolean areNeighboursGenerated(final int chunkX, final int chunkZ, final int radius) { // DivineMC - Chunk System optimization
-             for (int dz = -radius; dz <= radius; ++dz) {
-                 for (int dx = -radius; dx <= radius; ++dx) {
-                     if ((dx | dz) == 0) {
-@@ -641,10 +651,10 @@ public final class RegionizedPlayerChunkLoader {
-             return true;
-         }
- 
--        void updateQueues(final long time) {
-+        synchronized void updateQueues(final long time) { // DivineMC - Chunk System optimization
-             TickThread.ensureTickThread(this.player, "Cannot tick player chunk loader async");
+         void add() {
++            this.canTick = false; // DivineMC - Chunk System optimization
+             TickThread.ensureTickThread(this.player, "Cannot add player asynchronously");
              if (this.removed) {
--                throw new IllegalStateException("Ticking removed player chunk loader");
-+                return; // DivineMC - Chunk System optimization - just return
-             }
-             // update rate limits
-             final double loadRate = this.getMaxChunkLoadRate();
-@@ -907,10 +917,10 @@ public final class RegionizedPlayerChunkLoader {
-             );
+                 throw new IllegalStateException("Adding removed player chunk loader");
+@@ -892,6 +903,7 @@ public final class RegionizedPlayerChunkLoader {
+ 
+             // now we can update
+             this.update();
++            this.canTick = true; // DivineMC - Chunk System optimization
          }
  
--        void update() {
-+        synchronized void update() { // DivineMC - Chunk System optimization
-             TickThread.ensureTickThread(this.player, "Cannot update player asynchronously");
-             if (this.removed) {
--                throw new IllegalStateException("Updating removed player chunk loader");
-+                return; // DivineMC - Chunk System optimization - just return
-             }
-             final ViewDistances playerDistances = ((ChunkSystemServerPlayer)this.player).moonrise$getViewDistanceHolder().getViewDistances();
-             final ViewDistances worldDistances = ((ChunkSystemServerLevel)this.world).moonrise$getViewDistanceHolder().getViewDistances();
-@@ -1059,7 +1069,7 @@ public final class RegionizedPlayerChunkLoader {
-             this.flushDelayedTicketOps();
+         private boolean isLoadedChunkGeneratable(final int chunkX, final int chunkZ) {
+@@ -1060,6 +1072,7 @@ public final class RegionizedPlayerChunkLoader {
          }
  
--        void remove() {
-+        synchronized void remove() { // DivineMC - Chunk System optimization
+         void remove() {
++            this.canTick = false; // DivineMC - Chunk System optimization
              TickThread.ensureTickThread(this.player, "Cannot add player asynchronously");
              if (this.removed) {
                  throw new IllegalStateException("Removing removed player chunk loader");
-@@ -1087,7 +1097,7 @@ public final class RegionizedPlayerChunkLoader {
+@@ -1087,7 +1100,7 @@ public final class RegionizedPlayerChunkLoader {
          }
  
          public LongOpenHashSet getSentChunksRaw() {
@@ -866,6 +836,18 @@ index 95ed5a0ff3f0588f625ba48a5fee3aafbab9d13f..f2fd6d5eb024f646875868c441eb2da2
      }
  
      protected static final class LoadDataFromDiskTask {
+diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/util/ParallelSearchRadiusIteration.java b/ca/spottedleaf/moonrise/patches/chunk_system/util/ParallelSearchRadiusIteration.java
+index 93fd23027c00cef76562098306737272fda1350a..44e443768f5163454fd11425afd3bc07b2c0c6c2 100644
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/util/ParallelSearchRadiusIteration.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/util/ParallelSearchRadiusIteration.java
+@@ -23,6 +23,7 @@ public final class ParallelSearchRadiusIteration {
+     }
+ 
+     public static long[] getSearchIteration(final int radius) {
++        if (radius >= SEARCH_RADIUS_ITERATION_LIST.length) return SEARCH_RADIUS_ITERATION_LIST[SEARCH_RADIUS_ITERATION_LIST.length - 1]; // DivineMC - Chunk System Optimizations
+         return SEARCH_RADIUS_ITERATION_LIST[radius];
+     }
+ 
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java b/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
 index 6d1fe8028739145b11fce98ad62b2f8044299548..2cd1197fa0d15e19749409cc857a0254de444ba5 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_tick_iteration/ChunkTickConstants.java
