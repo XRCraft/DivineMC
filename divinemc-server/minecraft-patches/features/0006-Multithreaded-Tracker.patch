@@ -211,10 +211,10 @@ index c03895b2fc783d748fe52660b9ef30367143d0f5..8fa3af0ebcb92138d0dae858c131db0a
                          }
                      }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index d44366b8d1e715c6778e786afc62ae588c873a0d..8386c37abdd895c885afff75d03e19f4317e9828 100644
+index d94a82f02bfebd023780d0005f7069c770779f16..c9f714d8aec6460e663c7ce24bc185ea45b56990 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -1882,7 +1882,7 @@ public class ServerGamePacketListenerImpl
+@@ -1884,7 +1884,7 @@ public class ServerGamePacketListenerImpl
      }
  
      public void internalTeleport(PositionMoveRotation posMoveRotation, Set<Relative> relatives) {
@@ -262,7 +262,7 @@ index 23576e631ad4a12ec3ff3630be253738534588f3..b37a49c44ecb456c798d153fddf3cb60
      private final net.minecraft.world.entity.LivingEntity entity; // Purpur - Ridables
  
 diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-index 3ae69b17fec1cdb2bee2b5a795026a875f197c30..f8620d34137fe13122deb5b761512e09bb8c4aa7 100644
+index 7bbeed6c998c91e68376d3f17a510d68e3cd0b27..de7b3a8a7c841360310a88005da02a0733b46714 100644
 --- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 +++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 @@ -211,6 +211,7 @@ public class MapItemSavedData extends SavedData {

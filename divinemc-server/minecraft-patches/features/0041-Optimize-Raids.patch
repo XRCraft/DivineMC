@@ -25,10 +25,10 @@ index 9c64da096bfd8325e0c8f692b8ae7f420096728a..d7ec2dd011a6728e7a1adb5a84f58790
  
      // Paper start
 diff --git a/net/minecraft/world/entity/raid/Raid.java b/net/minecraft/world/entity/raid/Raid.java
-index eb7208b03240d647ace22c41ac665d3030407196..f19ae5318b7d8e1225b19228bcdc7a93dd11c747 100644
+index 62a3a8d46e10e6f02e3f515bbce5d9ba1f6566b8..4d078e99e4128354abbe0a5fe386f5832148105c 100644
 --- a/net/minecraft/world/entity/raid/Raid.java
 +++ b/net/minecraft/world/entity/raid/Raid.java
-@@ -125,6 +125,7 @@ public class Raid {
+@@ -126,6 +126,7 @@ public class Raid {
      private Raid.RaidStatus status;
      private int celebrationTicks;
      private Optional<BlockPos> waveSpawnPos = Optional.empty();
@@ -36,7 +36,7 @@ index eb7208b03240d647ace22c41ac665d3030407196..f19ae5318b7d8e1225b19228bcdc7a93
  
      public Raid(BlockPos center, Difficulty difficulty) {
          this.active = true;
-@@ -277,6 +278,12 @@ public class Raid {
+@@ -278,6 +279,12 @@ public class Raid {
      }
  
      public void tick(ServerLevel level) {
@@ -49,7 +49,7 @@ index eb7208b03240d647ace22c41ac665d3030407196..f19ae5318b7d8e1225b19228bcdc7a93
          if (!this.isStopped()) {
              if (this.status == Raid.RaidStatus.ONGOING) {
                  boolean flag = this.active;
-@@ -587,7 +594,7 @@ public class Raid {
+@@ -588,7 +595,7 @@ public class Raid {
      }
  
      public void updateBossbar() {
