@@ -281,6 +281,7 @@ public class DivineConfig {
     public static boolean disableLeafDecay = false;
     public static boolean commandBlockParseResultsCaching = true;
     public static boolean enableAsyncSpawning = true;
+    public static boolean sheepOptimization = true;
     public static boolean hopperThrottleWhenFull = false;
     public static int hopperThrottleSkipTicks = 0;
     private static void miscSettings() {
@@ -304,6 +305,8 @@ public class DivineConfig {
             "Caches the parse results of command blocks, can significantly reduce performance impact.");
         enableAsyncSpawning = getBoolean("settings.misc.enable-async-spawning", enableAsyncSpawning,
             "Enables optimization that will offload much of the computational effort involved with spawning new mobs to a different thread.");
+        sheepOptimization = getBoolean("settings.misc.sheep-optimization", sheepOptimization,
+            "Enables optimization from Carpet Fixes mod, using a prebaked list of all the possible colors and combinations for sheep.");
 
         hopperThrottleWhenFull = getBoolean("settings.misc.hopper-throttle-when-full.enabled", hopperThrottleWhenFull,
             "When enabled, hoppers will throttle if target container is full.");

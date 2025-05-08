@@ -45,6 +45,24 @@ index 761e583a56b1c4a605b0cbb04b61c4df60b8b9bb..c07155589ef44cbbacafe03b36d2cd4c
      private Lifecycle registryLifecycle;
      private final Map<TagKey<T>, HolderSet.Named<T>> frozenTags = new IdentityHashMap<>();
      MappedRegistry.TagSet<T> allTags = MappedRegistry.TagSet.unbound();
+diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
+index 00a82873d226f113278632a53c0faca420dd67d4..b28829f9f4c084a8dba35219dae9f4a9f293c416 100644
+--- a/net/minecraft/network/Connection.java
++++ b/net/minecraft/network/Connection.java
+@@ -610,13 +610,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+             if (!(this.packetListener instanceof net.minecraft.server.network.ServerLoginPacketListenerImpl loginPacketListener)
+                 || loginPacketListener.state != net.minecraft.server.network.ServerLoginPacketListenerImpl.State.VERIFYING
+                 || Connection.joinAttemptsThisTick++ < MAX_PER_TICK) {
+-            // Paper start - detailed watchdog information
+-            net.minecraft.network.protocol.PacketUtils.packetProcessing.push(this.packetListener);
+-            try {
+             tickablePacketListener.tick();
+-            } finally {
+-                net.minecraft.network.protocol.PacketUtils.packetProcessing.pop();
+-            } // Paper end - detailed watchdog information
+             } // Paper end - Buffer joins to world
+         }
+ 
 diff --git a/net/minecraft/network/VarInt.java b/net/minecraft/network/VarInt.java
 index 4897ff4648083ebe737ae5b32bae344af27357e4..0d103821d7220daa5cc0d5d3231e794fca0ca055 100644
 --- a/net/minecraft/network/VarInt.java
@@ -102,6 +120,55 @@ index 4897ff4648083ebe737ae5b32bae344af27357e4..0d103821d7220daa5cc0d5d3231e794f
          return buffer;
      }
      public static ByteBuf writeOld(ByteBuf buffer, int value) {
+diff --git a/net/minecraft/network/protocol/PacketUtils.java b/net/minecraft/network/protocol/PacketUtils.java
+index 4535858701b2bb232b9d2feb2af6551526232ddc..e65c62dbe4c1560ae153e4c4344e9194c783a2f4 100644
+--- a/net/minecraft/network/protocol/PacketUtils.java
++++ b/net/minecraft/network/protocol/PacketUtils.java
+@@ -21,8 +21,6 @@ public class PacketUtils {
+     public static <T extends PacketListener> void ensureRunningOnSameThread(Packet<T> packet, T processor, BlockableEventLoop<?> executor) throws RunningOnDifferentThreadException {
+         if (!executor.isSameThread()) {
+             executor.executeIfPossible(() -> {
+-                packetProcessing.push(processor); // Paper - detailed watchdog information
+-                try { // Paper - detailed watchdog information
+                 if (processor instanceof net.minecraft.server.network.ServerCommonPacketListenerImpl serverCommonPacketListener && serverCommonPacketListener.processedDisconnect) return; // Paper - Don't handle sync packets for kicked players
+                 if (processor.shouldHandleMessage(packet)) {
+                     try {
+@@ -37,12 +35,6 @@ public class PacketUtils {
+                 } else {
+                     LOGGER.debug("Ignoring packet due to disconnection: {}", packet);
+                 }
+-                // Paper start - detailed watchdog information
+-                } finally {
+-                    totalMainThreadPacketsProcessed.getAndIncrement();
+-                    packetProcessing.pop();
+-                }
+-                // Paper end - detailed watchdog information
+             });
+             throw RunningOnDifferentThreadException.RUNNING_ON_DIFFERENT_THREAD;
+         }
+@@ -69,22 +61,4 @@ public class PacketUtils {
+ 
+         packetListener.fillCrashReport(crashReport);
+     }
+-
+-    // Paper start - detailed watchdog information
+-    public static final java.util.concurrent.ConcurrentLinkedDeque<PacketListener> packetProcessing = new java.util.concurrent.ConcurrentLinkedDeque<>();
+-    static final java.util.concurrent.atomic.AtomicLong totalMainThreadPacketsProcessed = new java.util.concurrent.atomic.AtomicLong();
+-
+-    public static long getTotalProcessedPackets() {
+-        return totalMainThreadPacketsProcessed.get();
+-    }
+-
+-    public static java.util.List<PacketListener> getCurrentPacketProcessors() {
+-        java.util.List<PacketListener> listeners = new java.util.ArrayList<>(4);
+-        for (PacketListener listener : packetProcessing) {
+-            listeners.add(listener);
+-        }
+-
+-        return listeners;
+-    }
+-    // Paper end - detailed watchdog information
+ }
 diff --git a/net/minecraft/server/level/ChunkTrackingView.java b/net/minecraft/server/level/ChunkTrackingView.java
 index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e681562b5b09cc 100644
 --- a/net/minecraft/server/level/ChunkTrackingView.java
@@ -125,6 +192,38 @@ index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e68156
      }
  
      public record Positioned(ChunkPos center, int viewDistance) implements ChunkTrackingView {
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 8fa3af0ebcb92138d0dae858c131db0a710df693..6268bfc05fd9d3669bef20a1ddc5477fbae0f957 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -1312,13 +1312,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     // Paper end - log detailed entity tick information
+ 
+     public void tickNonPassenger(Entity entity) {
+-        // Paper start - log detailed entity tick information
+         ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread("Cannot tick an entity off-main");
+-        try {
+-            if (currentlyTickingEntity.get() == null) {
+-                currentlyTickingEntity.lazySet(entity);
+-            }
+-            // Paper end - log detailed entity tick information
+         entity.setOldPosAndRot();
+         entity.tickCount++;
+         entity.totalEntityAge++; // Paper - age-like counter for all entities
+@@ -1331,13 +1325,6 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         for (Entity entity1 : entity.getPassengers()) {
+             this.tickPassenger(entity, entity1, isActive); // Paper - EAR 2
+         }
+-        // Paper start - log detailed entity tick information
+-        } finally {
+-            if (currentlyTickingEntity.get() == entity) {
+-                currentlyTickingEntity.lazySet(null);
+-            }
+-        }
+-        // Paper end - log detailed entity tick information
+     }
+ 
+     private void tickPassenger(Entity ridingEntity, Entity passengerEntity, final boolean isActive) { // Paper - EAR 2
 diff --git a/net/minecraft/util/ClassInstanceMultiMap.java b/net/minecraft/util/ClassInstanceMultiMap.java
 index 2a708ae0d5bb209650b525e3c56051f8b5655074..4c7670224f0c90c1d0d833ff0b3d908846133b4a 100644
 --- a/net/minecraft/util/ClassInstanceMultiMap.java
@@ -466,7 +565,7 @@ index a18240418a19a95147341a634527d774f3d5bb92..66f74ad2a194a6676574da2932cf4677
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 02adfa3f0ddd86be320156ff18b8e5af5071811b..55713194c53a23b6a6e2d6ffa67d23a71a4d584e 100644
+index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a19214157 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -149,7 +149,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -478,7 +577,50 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..55713194c53a23b6a6e2d6ffa67d23a7
      // Paper start - replace random
      private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
          public RandomRandomSource() {
-@@ -4503,10 +4503,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1082,28 +1082,9 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+         return this.onGround;
+     }
+ 
+-    // Paper start - detailed watchdog information
+-    public final Object posLock = new Object(); // Paper - log detailed entity tick information
+-
+-    @Nullable
+-    private Vec3 moveVector;
+-    private double moveStartX;
+-    private double moveStartY;
+-    private double moveStartZ;
+-    // Paper end - detailed watchdog information
+-
+     public void move(MoverType type, Vec3 movement) {
+         final Vec3 originalMovement = movement; // Paper - Expose pre-collision velocity
+-        // Paper start - detailed watchdog information
+         ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread("Cannot move an entity off-main");
+-        synchronized (this.posLock) {
+-            this.moveStartX = this.getX();
+-            this.moveStartY = this.getY();
+-            this.moveStartZ = this.getZ();
+-            this.moveVector = movement;
+-        }
+-        try {
+-        // Paper end - detailed watchdog information
+         if (this.noPhysics) {
+             this.setPos(this.getX() + movement.x, this.getY() + movement.y, this.getZ() + movement.z);
+         } else {
+@@ -1228,13 +1209,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                 this.setDeltaMovement(this.getDeltaMovement().multiply(blockSpeedFactor, 1.0, blockSpeedFactor));
+             }
+         }
+-        // Paper start - detailed watchdog information
+-        } finally {
+-            synchronized (this.posLock) { // Paper
+-                this.moveVector = null;
+-            } // Paper
+-        }
+-        // Paper end - detailed watchdog information
+     }
+ 
+     private void applyMovementEmissionAndPlaySound(Entity.MovementEmission movementEmission, Vec3 movement, BlockPos pos, BlockState state) {
+@@ -4503,10 +4477,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
      // Paper start - optimise collisions
      public boolean updateFluidHeightAndDoFluidPushing(final TagKey<Fluid> fluid, final double flowScale) {
@@ -489,7 +631,7 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..55713194c53a23b6a6e2d6ffa67d23a7
          final AABB boundingBox = this.getBoundingBox().deflate(1.0E-3);
  
          final Level world = this.level;
-@@ -4542,7 +4538,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4542,7 +4512,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
          for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
              for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
@@ -502,6 +644,26 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..55713194c53a23b6a6e2d6ffa67d23a7
  
                  // bound y
                  for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
+@@ -4699,9 +4673,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+     }
+ 
+     public void setDeltaMovement(Vec3 deltaMovement) {
+-        synchronized (this.posLock) { // Paper - detailed watchdog information
+         this.deltaMovement = deltaMovement;
+-        } // Paper - detailed watchdog information
+     }
+ 
+     public void addDeltaMovement(Vec3 addend) {
+@@ -4809,9 +4781,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+         }
+         // Paper end - Fix MC-4
+         if (this.position.x != x || this.position.y != y || this.position.z != z) {
+-            synchronized (this.posLock) { // Paper - detailed watchdog information
+             this.position = new Vec3(x, y, z);
+-            } // Paper - detailed watchdog information
+             int floor = Mth.floor(x);
+             int floor1 = Mth.floor(y);
+             int floor2 = Mth.floor(z);
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
 index 5bcbebf35eb726a43b957aca5b8b7a1dca7648cd..d618752727e2f2f5c0c1afa97f455e349cb7e76c 100644
 --- a/net/minecraft/world/entity/Mob.java
