@@ -228,7 +228,7 @@ index 3f9b26de801b2d8e85c56d219ca7bd61c41b3f9d..8fa8cd1a06c86c8424d43b588ff13a91
          this.setFlightAllowed(properties.allowFlight);
          this.setMotd(properties.motd);
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 04ef12b1cff4d7baf0835b48825db82b2657123e..86d4a41195ade54c2bdc8b44141a458337cc98bc 100644
+index 9db7c44f4d5985460510e11aa7060109ed51481a..b609361d4ff1d42d3ac40411013de767ad8665d7 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -179,7 +179,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -316,10 +316,10 @@ index 04ef12b1cff4d7baf0835b48825db82b2657123e..86d4a41195ade54c2bdc8b44141a4583
          // Paper start - extra debug info
          if (entity.valid) {
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623bc0eb8e2c 100644
+index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b3191013ffc727e 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
-@@ -460,6 +460,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -459,6 +459,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
          return this.viewDistanceHolder;
      }
      // Paper end - rewrite chunk system
@@ -327,7 +327,7 @@ index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623b
  
      public ServerPlayer(MinecraftServer server, ServerLevel level, GameProfile gameProfile, ClientInformation clientInformation) {
          super(level, level.getSharedSpawnPos(), level.getSharedSpawnAngle(), gameProfile);
-@@ -753,6 +754,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -752,6 +753,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
  
      @Override
      public void tick() {
@@ -335,7 +335,7 @@ index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623b
          // CraftBukkit start
          if (this.joining) {
              this.joining = false;
-@@ -1392,6 +1394,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1402,6 +1404,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return this;
              } else {
                  // CraftBukkit start
@@ -343,7 +343,7 @@ index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623b
                  /*
                  this.isChangingDimension = true;
                  LevelData levelData = level.getLevelData();
-@@ -1733,6 +1736,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1743,6 +1746,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return OptionalInt.empty();
              } else {
                  // CraftBukkit start
@@ -356,7 +356,7 @@ index 793a2a2aab4c8d21a2a7b84645d43219b66092db..d3fa8ef2e450999821b709cc0809623b
                  this.containerMenu = abstractContainerMenu; // Moved up
                  if (!this.isImmobile())
                  this.connection
-@@ -1797,6 +1806,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1807,6 +1816,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
      }
      @Override
      public void closeContainer(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason) {
@@ -404,10 +404,10 @@ index 9f3afab438199dbaf40fa1a64b6ecdae74c0a34d..8923a30daf515262e4bdbfbd55e3cb82
          serverPlayer.connection = player.connection;
          serverPlayer.restoreFrom(player, keepInventory);
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 4ffccdb6295d850e1e089633f2ee85c2c6f5fd47..c6accc73532be89b9c3c2115a2d784b7636af6bc 100644
+index d31e4f190cee68883ca48b94524fb356738a4125..28fc134b5a567b53024bc2cdc6fc363eb14c37ff 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -3223,14 +3223,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3239,14 +3239,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              if (this.portalProcess != null) {
                  if (this.portalProcess.processPortalTeleportation(serverLevel, this, this.canUsePortal(false))) {
                      this.setPortalCooldown();
@@ -448,7 +448,7 @@ index 4ffccdb6295d850e1e089633f2ee85c2c6f5fd47..c6accc73532be89b9c3c2115a2d784b7
                  } else if (this.portalProcess.hasExpired()) {
                      this.portalProcess = null;
                  }
-@@ -3795,6 +3815,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3811,6 +3831,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      }
  
      private Entity teleportCrossDimension(ServerLevel level, TeleportTransition teleportTransition) {

@@ -5,7 +5,7 @@ Subject: [PATCH] Completely remove Mojang profiler
 
 
 diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
-index 5e39795860916e8e88e1fde45f71693adee3df58..07e228b620962e507b7db70e5a743daf2e5c82ca 100644
+index 603feb73bb5b45eec5984d27d0f5cf98ccc8420c..8cfd050e1b5ebd6725a6888c8ec7aa6ce7c06efe 100644
 --- a/net/minecraft/commands/Commands.java
 +++ b/net/minecraft/commands/Commands.java
 @@ -55,7 +55,6 @@ import net.minecraft.server.commands.CloneCommands;
@@ -619,10 +619,10 @@ index 467f9af4446168134abd8d9ee1c4e6cc3479d73c..9956405d7f9d14af7278837adeede76d
      public static class TickTimes {
          private final long[] times;
 diff --git a/net/minecraft/server/ReloadableServerResources.java b/net/minecraft/server/ReloadableServerResources.java
-index 84e2b940ab8301b789a01d5b739d69cb50db5bf4..1f0cbaa4be08a5ef675575a752394138863b8132 100644
+index c891715968193f2ab4579b4a2b4aeeae6a210070..7b0cf6cdd0eeaea228380c5960704e632d97de98 100644
 --- a/net/minecraft/server/ReloadableServerResources.java
 +++ b/net/minecraft/server/ReloadableServerResources.java
-@@ -98,7 +98,7 @@ public class ReloadableServerResources {
+@@ -99,7 +99,7 @@ public class ReloadableServerResources {
                              backgroundExecutor,
                              gameExecutor,
                              DATA_RELOAD_INITIAL_TASK,
@@ -1291,7 +1291,7 @@ index 59e8a5e1b35c81883c9b1ca00c6e55d77584d8cc..f5d4f439c3346cc158043ada02094257
          }
  
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index d8a8e6d006d18de5ec148a0d9d6f08a6a40a65bb..2bb5055f2fb1e8b95b2a5d8dba5f1fa0bb5fdec7 100644
+index 56eabc55203756461fc679837b55b30a5c503268..e139b875314686f252127db11536abd7a58ba0f5 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -74,8 +74,6 @@ import net.minecraft.util.Mth;
@@ -1481,10 +1481,10 @@ index d8a8e6d006d18de5ec148a0d9d6f08a6a40a65bb..2bb5055f2fb1e8b95b2a5d8dba5f1fa0
              for (Entity entity : passengerEntity.getPassengers()) {
                  this.tickPassenger(passengerEntity, entity, isActive); // Paper - EAR 2
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index 314cf6d2521d371c7630f10a6522e6489db82040..793a2a2aab4c8d21a2a7b84645d43219b66092db 100644
+index 45c7ffb6822e04ef08705396e87c51a8a074bfc2..d5dfd49f3e5039661fe39cc8bf8853c81511c0d0 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
-@@ -104,8 +104,6 @@ import net.minecraft.util.HashOps;
+@@ -103,8 +103,6 @@ import net.minecraft.util.HashOps;
  import net.minecraft.util.Mth;
  import net.minecraft.util.RandomSource;
  import net.minecraft.util.Unit;
@@ -1493,7 +1493,7 @@ index 314cf6d2521d371c7630f10a6522e6489db82040..793a2a2aab4c8d21a2a7b84645d43219
  import net.minecraft.world.Container;
  import net.minecraft.world.Difficulty;
  import net.minecraft.world.InteractionHand;
-@@ -1405,14 +1403,10 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1415,14 +1413,10 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  this.unsetRemoved();
                  */
                  // CraftBukkit end
@@ -1508,7 +1508,7 @@ index 314cf6d2521d371c7630f10a6522e6489db82040..793a2a2aab4c8d21a2a7b84645d43219
                  // CraftBukkit start
                  this.isChangingDimension = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
                  LevelData worlddata = level.getLevelData();
-@@ -1430,7 +1424,6 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1440,7 +1434,6 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  this.connection.internalTeleport(PositionMoveRotation.of(teleportTransition), teleportTransition.relatives()); // CraftBukkit - use internal teleport without event
                  this.connection.resetPosition();
                  level.addDuringTeleport(this);
@@ -4008,7 +4008,7 @@ index 39a604c9a53930b53d959b1d2eb504aa964e9a58..0d0380e3955836ce125f777841477503
  
      @Override
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af5071811b 100644
+index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -82,8 +82,6 @@ import net.minecraft.tags.FluidTags;
@@ -4081,7 +4081,7 @@ index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af
              }
          }
          // Paper start - detailed watchdog information
-@@ -3258,8 +3246,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3274,8 +3262,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              this.processPortalCooldown();
              if (this.portalProcess != null) {
                  if (this.portalProcess.processPortalTeleportation(serverLevel, this, this.canUsePortal(false))) {
@@ -4090,7 +4090,7 @@ index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af
                      this.setPortalCooldown();
                      TeleportTransition portalDestination = this.portalProcess.getPortalDestination(serverLevel, this);
                      if (portalDestination != null) {
-@@ -3269,8 +3255,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3285,8 +3271,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
                              this.teleport(portalDestination);
                          }
                      }
@@ -4099,7 +4099,7 @@ index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af
                  } else if (this.portalProcess.hasExpired()) {
                      this.portalProcess = null;
                  }
-@@ -3825,15 +3809,12 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3841,15 +3825,12 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              entity.teleport(this.calculatePassengerTransition(teleportTransition, entity));
          }
  
@@ -4115,7 +4115,7 @@ index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af
          return this;
      }
  
-@@ -3849,11 +3830,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3865,11 +3846,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              }
          }
  
@@ -4127,7 +4127,7 @@ index bf440407548c6b1ff906c26adcb102f42b3286d5..02adfa3f0ddd86be320156ff18b8e5af
              return null;
          } else {
              // Paper start - Fix item duplication and teleport issues
-@@ -3872,7 +3850,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3888,7 +3866,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
              level.resetEmptyTime();
              teleportTransition.postTeleportTransition().onTransition(entityx);

@@ -193,7 +193,7 @@ index bee90335677f7d8b01589ce5cfd81a40fd422886..a5e488d14fd2016ee188b114d0e68156
  
      public record Positioned(ChunkPos center, int viewDistance) implements ChunkTrackingView {
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 8fa3af0ebcb92138d0dae858c131db0a710df693..6268bfc05fd9d3669bef20a1ddc5477fbae0f957 100644
+index 2f69b1e05ef258d6b28ee912167b8a5bb83fc703..6ed2d1aeab17941b67019d45734da46efc53ffdf 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -1312,13 +1312,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -565,7 +565,7 @@ index a18240418a19a95147341a634527d774f3d5bb92..66f74ad2a194a6676574da2932cf4677
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a19214157 100644
+index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd220a1878 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -149,7 +149,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -620,7 +620,7 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a
      }
  
      private void applyMovementEmissionAndPlaySound(Entity.MovementEmission movementEmission, Vec3 movement, BlockPos pos, BlockState state) {
-@@ -4503,10 +4477,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4519,10 +4493,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
      // Paper start - optimise collisions
      public boolean updateFluidHeightAndDoFluidPushing(final TagKey<Fluid> fluid, final double flowScale) {
@@ -631,7 +631,7 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a
          final AABB boundingBox = this.getBoundingBox().deflate(1.0E-3);
  
          final Level world = this.level;
-@@ -4542,7 +4512,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4558,7 +4528,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
          for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
              for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
@@ -644,7 +644,7 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a
  
                  // bound y
                  for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
-@@ -4699,9 +4673,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4715,9 +4689,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      }
  
      public void setDeltaMovement(Vec3 deltaMovement) {
@@ -654,7 +654,7 @@ index 02adfa3f0ddd86be320156ff18b8e5af5071811b..28a4473c1c49098d670031026cc2a52a
      }
  
      public void addDeltaMovement(Vec3 addend) {
-@@ -4809,9 +4781,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4825,9 +4797,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
          }
          // Paper end - Fix MC-4
          if (this.position.x != x || this.position.y != y || this.position.z != z) {
