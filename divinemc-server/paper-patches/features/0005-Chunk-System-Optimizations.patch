@@ -664,10 +664,10 @@ index 559c959aff3c9deef867b9e425fba3e2e669cac6..a5b0585b56d71d21c9da3b129d213def
      private MoonriseConstants() {}
  
 diff --git a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-index 6e9bfd986674c26240700c788987028be4ec32e7..4fd8c2f6fdefe518b5cea0ae81901c44be0ff021 100644
+index c2b53adb5f0fd8207cf13cb6f7249385b1c30f34..83419bbcbf79d8eed1302d66356a62fa61a33473 100644
 --- a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-@@ -229,7 +229,7 @@ public class GlobalConfiguration extends ConfigurationPart {
+@@ -227,7 +227,7 @@ public class GlobalConfiguration extends ConfigurationPart {
  
          @PostProcess
          private void postProcess() {
@@ -676,7 +676,7 @@ index 6e9bfd986674c26240700c788987028be4ec32e7..4fd8c2f6fdefe518b5cea0ae81901c44
              String newChunkSystemGenParallelism = this.genParallelism;
              if (newChunkSystemGenParallelism.equalsIgnoreCase("default")) {
                  newChunkSystemGenParallelism = "true";
-@@ -245,7 +245,6 @@ public class GlobalConfiguration extends ConfigurationPart {
+@@ -243,7 +243,6 @@ public class GlobalConfiguration extends ConfigurationPart {
              } else {
                  throw new IllegalStateException("Invalid option for gen-parallelism: must be one of [on, off, enabled, disabled, true, false, default]");
              }

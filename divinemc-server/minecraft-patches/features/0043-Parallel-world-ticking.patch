@@ -316,10 +316,10 @@ index 9db7c44f4d5985460510e11aa7060109ed51481a..b609361d4ff1d42d3ac40411013de767
          // Paper start - extra debug info
          if (entity.valid) {
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b3191013ffc727e 100644
+index fa9bbf447b32e27a8714950215b36233712a025d..56c10c0537f6ca48cb4bc0e426cbba3bddc7a98a 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
-@@ -459,6 +459,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -452,6 +452,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
          return this.viewDistanceHolder;
      }
      // Paper end - rewrite chunk system
@@ -327,7 +327,7 @@ index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b319101
  
      public ServerPlayer(MinecraftServer server, ServerLevel level, GameProfile gameProfile, ClientInformation clientInformation) {
          super(level, level.getSharedSpawnPos(), level.getSharedSpawnAngle(), gameProfile);
-@@ -752,6 +753,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -745,6 +746,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
  
      @Override
      public void tick() {
@@ -335,7 +335,7 @@ index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b319101
          // CraftBukkit start
          if (this.joining) {
              this.joining = false;
-@@ -1402,6 +1404,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1395,6 +1397,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return this;
              } else {
                  // CraftBukkit start
@@ -343,7 +343,7 @@ index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b319101
                  /*
                  this.isChangingDimension = true;
                  LevelData levelData = level.getLevelData();
-@@ -1743,6 +1746,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1736,6 +1739,12 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                  return OptionalInt.empty();
              } else {
                  // CraftBukkit start
@@ -356,7 +356,7 @@ index d5dfd49f3e5039661fe39cc8bf8853c81511c0d0..9e58eb6d4c554c707456e29b9b319101
                  this.containerMenu = abstractContainerMenu; // Moved up
                  if (!this.isImmobile())
                  this.connection
-@@ -1807,6 +1816,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1800,6 +1809,11 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
      }
      @Override
      public void closeContainer(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason) {

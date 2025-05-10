@@ -5,10 +5,10 @@ Subject: [PATCH] Optimize default values for configs
 
 
 diff --git a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-index 4fd8c2f6fdefe518b5cea0ae81901c44be0ff021..ae70fb008ff35b83c82dabec9a62c20ab94ea722 100644
+index 83419bbcbf79d8eed1302d66356a62fa61a33473..caa4cf0af0696b90d61f32f5445a6e6c6b5bae5d 100644
 --- a/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
 +++ b/src/main/java/io/papermc/paper/configuration/GlobalConfiguration.java
-@@ -349,8 +349,8 @@ public class GlobalConfiguration extends ConfigurationPart {
+@@ -347,8 +347,8 @@ public class GlobalConfiguration extends ConfigurationPart {
          @Constraints.Min(4)
          public int regionFileCacheSize = 256;
          @Comment("See https://luckformula.emc.gs")
