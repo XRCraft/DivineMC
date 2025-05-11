@@ -36,7 +36,7 @@ public class DivineConfig {
         If you need help with the configuration or have any questions related to DivineMC,
         join us in our Discord server.
 
-        Discord: https://discord.gg/p7cxhw7E2M
+        Discord: https://discord.gg/qNyybSSPm5
         Docs: https://bxteam.org/docs/divinemc
         Downloads: https://github.com/BX-Team/DivineMC/releases""";
 
