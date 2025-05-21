@@ -239,7 +239,7 @@ public class DivineConfig {
         slopesVisualFix = getBoolean("settings.chunks.slopes-visual-fix", slopesVisualFix,
             "Fixes MC-258859, fixing slopes visual bug in biomes like Snowy Slopes, Frozen Peaks, Jagged Peaks, and including Terralith.");
 
-        enableDensityFunctionCompiler = getBoolean("settings.chunk-generation.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
+        enableDensityFunctionCompiler = getBoolean("settings.chunks.experimental.enable-density-function-compiler", enableDensityFunctionCompiler,
             "Whether to use density function compiler to accelerate world generation",
             "",
             "Density function: https://minecraft.wiki/w/Density_function",
