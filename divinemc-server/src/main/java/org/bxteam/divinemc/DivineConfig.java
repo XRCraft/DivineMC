@@ -250,28 +250,7 @@ public class DivineConfig {
             "modpacks where many structure mods are using very high weight values in their template pools.");
     }
 
-    public static boolean enableRegionizedChunkTicking = false;
-    public static int regionizedChunkTickingExecutorThreadCount = 4;
-    public static int regionizedChunkTickingExecutorThreadPriority = Thread.NORM_PRIORITY + 2;
-    private static void regionizedChunkTicking() {
-        enableRegionizedChunkTicking = getBoolean("settings.regionized-chunk-ticking.enable", enableRegionizedChunkTicking,
-            "Enables regionized chunk ticking, similar to like Folia works.",
-            "",
-            "Read more info about this feature at https://bxteam.org/docs/divinemc/features/regionized-chunk-ticking");
-
-        regionizedChunkTickingExecutorThreadCount = getInt("settings.regionized-chunk-ticking.executor-thread-count", regionizedChunkTickingExecutorThreadCount,
-            "The amount of threads to allocate to regionized chunk ticking.");
-        regionizedChunkTickingExecutorThreadPriority = getInt("settings.regionized-chunk-ticking.executor-thread-priority", regionizedChunkTickingExecutorThreadPriority,
-            "Configures the thread priority of the executor");
-
-        if (regionizedChunkTickingExecutorThreadCount < 1 || regionizedChunkTickingExecutorThreadCount > 10) {
-            LOGGER.warn("Invalid regionized chunk ticking thread count: {}, resetting to default (5)", regionizedChunkTickingExecutorThreadCount);
-            regionizedChunkTickingExecutorThreadCount = 5;
-        }
-    }
-
     public static boolean skipUselessSecondaryPoiSensor = true;
-    public static boolean clumpOrbs = true;
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
@@ -286,8 +265,6 @@ public class DivineConfig {
     public static int hopperThrottleSkipTicks = 0;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
-        clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
-            "Clumps experience orbs together to reduce entity count");
         ignoreMovedTooQuicklyWhenLagging = getBoolean("settings.misc.ignore-moved-too-quickly-when-lagging", ignoreMovedTooQuicklyWhenLagging,
             "Improves general gameplay experience of the player when the server is lagging, as they won't get lagged back (message 'moved too quickly')");
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
