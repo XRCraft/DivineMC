@@ -327,106 +327,6 @@ index f28fbf81a417a678726d3f77b3999054676d522e..7ff32b1f93b31fafd13f4e0857d14d85
          Arrays.fill(this.keys, null);
          Arrays.fill(this.byId, null);
          this.nextId = 0;
-diff --git a/net/minecraft/util/CubicSpline.java b/net/minecraft/util/CubicSpline.java
-index f36f8f2d49d4eba5c80eb243883749d6f831eb8a..5abd899c88683cb79bb8f02e43c4bfbe8563f496 100644
---- a/net/minecraft/util/CubicSpline.java
-+++ b/net/minecraft/util/CubicSpline.java
-@@ -254,31 +254,47 @@ public interface CubicSpline<C, I extends ToFloatFunction<C>> extends ToFloatFun
- 
-         @Override
-         public float apply(C object) {
--            float f = this.coordinate.apply(object);
--            int i = findIntervalStart(this.locations, f);
--            int i1 = this.locations.length - 1;
--            if (i < 0) {
--                return linearExtend(f, this.locations, this.values.get(0).apply(object), this.derivatives, 0);
--            } else if (i == i1) {
--                return linearExtend(f, this.locations, this.values.get(i1).apply(object), this.derivatives, i1);
-+            // DivineMC start - Some optimizations
-+            float point = this.coordinate.apply(object);
-+            int rangeForLocation = findIntervalStart(this.locations, point);
-+            int last = this.locations.length - 1;
-+            if (rangeForLocation < 0) {
-+                return linearExtend(point, this.locations, this.values.get(0).apply(object), this.derivatives, 0);
-+            } else if (rangeForLocation == last) {
-+                return linearExtend(point, this.locations, this.values.get(last).apply(object), this.derivatives, last);
-             } else {
--                float f1 = this.locations[i];
--                float f2 = this.locations[i + 1];
--                float f3 = (f - f1) / (f2 - f1);
--                ToFloatFunction<C> toFloatFunction = (ToFloatFunction<C>)this.values.get(i);
--                ToFloatFunction<C> toFloatFunction1 = (ToFloatFunction<C>)this.values.get(i + 1);
--                float f4 = this.derivatives[i];
--                float f5 = this.derivatives[i + 1];
--                float f6 = toFloatFunction.apply(object);
--                float f7 = toFloatFunction1.apply(object);
--                float f8 = f4 * (f2 - f1) - (f7 - f6);
--                float f9 = -f5 * (f2 - f1) + (f7 - f6);
--                return Mth.lerp(f3, f6, f7) + f3 * (1.0F - f3) * Mth.lerp(f3, f8, f9);
-+                float loc0 = this.locations[rangeForLocation];
-+                float loc1 = this.locations[rangeForLocation + 1];
-+                float locDist = loc1 - loc0;
-+                float k = (point - loc0) / locDist;
-+                float n = this.values.get(rangeForLocation).apply(object);
-+                float o = this.values.get(rangeForLocation + 1).apply(object);
-+                float onDist = o - n;
-+                float p = this.derivatives[rangeForLocation] * locDist - onDist;
-+                float q = -this.derivatives[rangeForLocation + 1] * locDist + onDist;
-+                return Mth.lerp(k, n, o) + k * (1.0F - k) * Mth.lerp(k, p, q);
-             }
-+            // DivineMC end - Some optimizations
-         }
- 
-         private static int findIntervalStart(float[] locations, float start) {
--            return Mth.binarySearch(0, locations.length, i -> start < locations[i]) - 1;
-+            // DivineMC start - Some optimizations
-+            int min = 0;
-+            int i = locations.length;
-+
-+            while (i > 0) {
-+                int j = i / 2;
-+                int k = min + j;
-+                if (start < locations[k]) {
-+                    i = j;
-+                } else {
-+                    min = k + 1;
-+                    i -= j + 1;
-+                }
-+            }
-+
-+            return min - 1;
-+            // DivineMC end - Some optimizations
-         }
- 
-         @VisibleForTesting
-@@ -313,5 +329,27 @@ public interface CubicSpline<C, I extends ToFloatFunction<C>> extends ToFloatFun
-                 this.derivatives
-             );
-         }
-+
-+        // DivineMC start - Some optimizations
-+        @Override
-+        public boolean equals(Object o) {
-+            if (this == o) return true;
-+            if (o == null || getClass() != o.getClass()) return false;
-+            Multipoint<?, ?> that = (Multipoint<?, ?>) o;
-+            return java.util.Objects.equals(coordinate, that.coordinate()) && java.util.Arrays.equals(locations, that.locations()) && java.util.Objects.equals(values, that.values()) && java.util.Arrays.equals(derivatives, that.derivatives());
-+        }
-+
-+        @Override
-+        public int hashCode() {
-+            int result = 1;
-+
-+            result = 31 * result + java.util.Objects.hashCode(coordinate);
-+            result = 31 * result + java.util.Arrays.hashCode(locations);
-+            result = 31 * result + java.util.Objects.hashCode(values);
-+            result = 31 * result + java.util.Arrays.hashCode(derivatives);
-+
-+            return result;
-+        }
-+        // DivineMC end - Some optimizations
-     }
- }
 diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
 index ab3a221c115992d0f4ea921aa92cf0976b815ff4..076a931341da486162f289a5f19d3d6736df7768 100644
 --- a/net/minecraft/util/Mth.java
@@ -665,7 +565,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
              int floor1 = Mth.floor(y);
              int floor2 = Mth.floor(z);
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
-index 5bcbebf35eb726a43b957aca5b8b7a1dca7648cd..d618752727e2f2f5c0c1afa97f455e349cb7e76c 100644
+index a58133b53a19e90d4386f57891ee41a5c03228c2..a65c86b411c15bbdfd431dac00e510d2262e65e1 100644
 --- a/net/minecraft/world/entity/Mob.java
 +++ b/net/minecraft/world/entity/Mob.java
 @@ -698,7 +698,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
@@ -698,7 +598,7 @@ index 5bcbebf35eb726a43b957aca5b8b7a1dca7648cd..d618752727e2f2f5c0c1afa97f455e34
      protected final void serverAiStep() {
          this.noActionTime++;
 diff --git a/net/minecraft/world/level/GameRules.java b/net/minecraft/world/level/GameRules.java
-index 02bc5d83b92a594ec519f0a02b0517fdb4b9e954..86c1f5effde3173c8bc458af21b454c81738935e 100644
+index 92fe6acbd530e985da23f50e615817309915122c..c9a2c4f7051639478bd9788911d3c6bead8f5152 100644
 --- a/net/minecraft/world/level/GameRules.java
 +++ b/net/minecraft/world/level/GameRules.java
 @@ -277,7 +277,7 @@ public class GameRules {

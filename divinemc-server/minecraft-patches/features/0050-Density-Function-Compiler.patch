@@ -116,7 +116,7 @@ index f36f8f2d49d4eba5c80eb243883749d6f831eb8a..b43b7e242ea0a4f87704853c03201144
      }
  }
 diff --git a/net/minecraft/world/level/levelgen/DensityFunctions.java b/net/minecraft/world/level/levelgen/DensityFunctions.java
-index 7178013421233d7dab36eb07a768907ce40e8745..f56321eefa5fcdfdb30883beaf97c87ac6fa0183 100644
+index 4c53031cf8f6198825b190955d96f20bbcccd77e..8827b7525de30ce15fccb9ac9f073110ba6c7b50 100644
 --- a/net/minecraft/world/level/levelgen/DensityFunctions.java
 +++ b/net/minecraft/world/level/levelgen/DensityFunctions.java
 @@ -275,38 +275,66 @@ public final class DensityFunctions {
@@ -215,7 +215,7 @@ index 7178013421233d7dab36eb07a768907ce40e8745..f56321eefa5fcdfdb30883beaf97c87a
          }
  
          @Override
-@@ -704,7 +732,105 @@ public final class DensityFunctions {
+@@ -683,7 +711,105 @@ public final class DensityFunctions {
          }
      }
  
@@ -322,7 +322,7 @@ index 7178013421233d7dab36eb07a768907ce40e8745..f56321eefa5fcdfdb30883beaf97c87a
          @Override
          public double compute(DensityFunction.FunctionContext context) {
              return this.wrapped.compute(context);
-@@ -725,7 +851,19 @@ public final class DensityFunctions {
+@@ -704,7 +830,19 @@ public final class DensityFunctions {
              return this.wrapped.maxValue();
          }
  
@@ -337,9 +337,9 @@ index 7178013421233d7dab36eb07a768907ce40e8745..f56321eefa5fcdfdb30883beaf97c87a
 +        public DensityFunction wrapped() {
 +            return wrapped;
 +        }
-+
-+        public static enum Type implements StringRepresentable { // - public
 +        // DivineMC end - Density Function Compiler
++
++        public static enum Type implements StringRepresentable { // DivineMC - Density Function Compiler - make this public
              Interpolated("interpolated"),
              FlatCache("flat_cache"),
              Cache2D("cache_2d"),
