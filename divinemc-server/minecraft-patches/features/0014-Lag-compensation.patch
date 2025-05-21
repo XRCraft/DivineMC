@@ -25,7 +25,7 @@ index 9956405d7f9d14af7278837adeede76dea8d4bd9..86754cb52caeef962172bcb79cbc8f16
          this.tickCount++;
          this.tickRateManager.tick();
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index e351b75f03b7096dcd0378b49987d27c04474116..9c64da096bfd8325e0c8f692b8ae7f420096728a 100644
+index d003e36a37cbc39d6467a9c45ad716dc27fd62a7..fcd732a923e0ced69d2342fa59122dee0e98438e 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -213,6 +213,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -66,7 +66,7 @@ index e351b75f03b7096dcd0378b49987d27c04474116..9c64da096bfd8325e0c8f692b8ae7f42
          this.serverLevelData.setDayTime(time);
          // Purpur start - Configurable daylight cycle
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index 352421829e24284e4832a168c278233b780a58a2..7d089f51cd07b0ce26765535fcd0a7716bc1a2f4 100644
+index f3706dfb6aeb5035cbf0a8bf6b4d9a5243aaaa17..f598c6ae03977998f1cbf79cf3faf7997c2ba9e2 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
 @@ -503,6 +503,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
@@ -183,10 +183,10 @@ index c52fb17d1e496a91223b7387cacb128c1865caee..30ab94fa0a6710cc5a39bd1c74c99aac
              BlocksAttacks blocksAttacks = stack.get(DataComponents.BLOCKS_ATTACKS);
              return blocksAttacks != null ? 72000 : 0;
 diff --git a/net/minecraft/world/level/GameRules.java b/net/minecraft/world/level/GameRules.java
-index 86c1f5effde3173c8bc458af21b454c81738935e..2a21bb2826e4a174169089e7813796f8d35234d3 100644
+index c9a2c4f7051639478bd9788911d3c6bead8f5152..df916f661d54bc4373eebafaaf3a94f9863ddd63 100644
 --- a/net/minecraft/world/level/GameRules.java
 +++ b/net/minecraft/world/level/GameRules.java
-@@ -348,8 +348,31 @@ public class GameRules {
+@@ -355,8 +355,31 @@ public class GameRules {
      }
  
      public int getInt(GameRules.Key<GameRules.IntegerValue> key) {

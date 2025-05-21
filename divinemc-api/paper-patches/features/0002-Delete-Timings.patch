@@ -2914,18 +2914,18 @@ index 59fada9b1eb78238d280c6bbb711f52facba52c6..eb4d78c6111a530d015a0b91d14c40ad
          return i >= j && i <= k;
      }
 diff --git a/src/main/java/org/bukkit/command/SimpleCommandMap.java b/src/main/java/org/bukkit/command/SimpleCommandMap.java
-index 685aa9d73f14a5e3a85b251b83fbe8134b0a244c..6878e8bff4900a6d9b41cb981a69821da7f51242 100644
+index 26c214a3570120a2fd32b715113f897e0055fd00..67d7b41a3f15a9873b76f828d7466c33d6f188fc 100644
 --- a/src/main/java/org/bukkit/command/SimpleCommandMap.java
 +++ b/src/main/java/org/bukkit/command/SimpleCommandMap.java
-@@ -39,7 +39,6 @@ public class SimpleCommandMap implements CommandMap {
-         register("bukkit", new VersionCommand("version"));
+@@ -32,7 +32,6 @@ public class SimpleCommandMap implements CommandMap {
+ 
+     private void setDefaultCommands() {
          register("bukkit", new ReloadCommand("reload"));
-         //register("bukkit", new PluginsCommand("plugins")); // Paper
--        register("bukkit", new co.aikar.timings.TimingsCommand("timings")); // Paper
+-        register("bukkit", new co.aikar.timings.TimingsCommand("timings"));
      }
  
      public void setFallbackCommands() {
-@@ -71,7 +70,6 @@ public class SimpleCommandMap implements CommandMap {
+@@ -64,7 +63,6 @@ public class SimpleCommandMap implements CommandMap {
       */
      @Override
      public boolean register(@NotNull String label, @NotNull String fallbackPrefix, @NotNull Command command) {
@@ -2933,7 +2933,7 @@ index 685aa9d73f14a5e3a85b251b83fbe8134b0a244c..6878e8bff4900a6d9b41cb981a69821d
          label = label.toLowerCase(Locale.ROOT).trim();
          fallbackPrefix = fallbackPrefix.toLowerCase(Locale.ROOT).trim();
          boolean registered = register(label, command, false, fallbackPrefix);
-@@ -166,12 +164,6 @@ public class SimpleCommandMap implements CommandMap {
+@@ -159,12 +157,6 @@ public class SimpleCommandMap implements CommandMap {
          parsedArgs = event.getArgs();
          // Purpur end - ExecuteCommandEvent
  

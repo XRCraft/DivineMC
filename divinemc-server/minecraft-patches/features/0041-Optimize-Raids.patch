@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize Raids
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 9c64da096bfd8325e0c8f692b8ae7f420096728a..d7ec2dd011a6728e7a1adb5a84f587904166df79 100644
+index fcd732a923e0ced69d2342fa59122dee0e98438e..2958419f56eb7d18dd003130c287ee768c07e4ae 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -214,6 +214,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -59,7 +59,7 @@ index 62a3a8d46e10e6f02e3f515bbce5d9ba1f6566b8..4d078e99e4128354abbe0a5fe386f583
  
      public float getHealthOfLivingRaiders() {
 diff --git a/net/minecraft/world/entity/raid/Raider.java b/net/minecraft/world/entity/raid/Raider.java
-index 77bb3aa7ff042aab6464aac55c846cb9082e5b97..b822905c38818434f3d406067d71b1db13e7efc8 100644
+index 76ebbab40f5bac6d5f588410d3c5e6716cbe0679..799f2a4a5a22a6a5fb9cd5daea99edc34fe4b9d7 100644
 --- a/net/minecraft/world/entity/raid/Raider.java
 +++ b/net/minecraft/world/entity/raid/Raider.java
 @@ -42,9 +42,25 @@ import net.minecraft.world.phys.Vec3;
@@ -124,7 +124,7 @@ index 77bb3aa7ff042aab6464aac55c846cb9082e5b97..b822905c38818434f3d406067d71b1db
 +        // DivineMC end - Optimize Raids
 +
          private boolean cannotPickUpBanner() {
-             if (!this.mob.level().purpurConfig.pillagerBypassMobGriefing == !getServerLevel(this.mob).getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_MOBGRIEFING) || !this.mob.canPickUpLoot()) return false; // Paper - respect game and entity rules for picking up items // Purpur - Add mobGriefing bypass to everything affected
+             if (!getServerLevel(this.mob).getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_MOBGRIEFING, this.mob.level().purpurConfig.pillagerMobGriefingOverride) || !this.mob.canPickUpLoot()) return false; // Paper - respect game and entity rules for picking up items // Purpur - Add mobGriefing override to everything affected
              if (!this.mob.hasActiveRaid()) {
 @@ -408,7 +434,7 @@ public abstract class Raider extends PatrollingMonster {
              } else if (!this.mob.canBeLeader()) {

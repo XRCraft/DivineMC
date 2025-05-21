@@ -25,7 +25,7 @@ index debea77d5777b90c6b17b225e27e6b3c72370175..1a8c125a58f7363dbff4f11f5e34537c
  
          // DivineMC start - Pufferfish SIMD
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index bbadbdfd643e61a6a3e55df7dd7a646ea1a9744b..38ddadf551c039202c68c44d740f23a08b58d003 100644
+index 801c4e8e01590beeb3633275f58d436d87ad746e..051ab167c7cc2415af3329127b0488b211dc22ca 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -161,6 +161,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
@@ -39,7 +39,7 @@ index bbadbdfd643e61a6a3e55df7dd7a646ea1a9744b..38ddadf551c039202c68c44d740f23a0
 @@ -885,6 +886,14 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
          this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName()); // Spigot
          this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
-         this.purpurConfig = new org.purpurmc.purpur.PurpurWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), env); // Purpur - Purpur config files
+         this.purpurConfig = new org.purpurmc.purpur.PurpurWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), environment); // Purpur - Purpur config files
 +        // DivineMC start - Configuration
 +        try {
 +            this.divineConfig = new org.bxteam.divinemc.DivineWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), env);
@@ -49,5 +49,5 @@ index bbadbdfd643e61a6a3e55df7dd7a646ea1a9744b..38ddadf551c039202c68c44d740f23a0
 +        }
 +        // DivineMC end - Configuration
          this.playerBreedingCooldowns = this.getNewBreedingCooldownCache(); // Purpur - Add adjustable breeding cooldown to config
-         this.generator = gen;
-         this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);
+         this.generator = generator;
+         this.world = new CraftWorld((ServerLevel) this, generator, biomeProvider, environment);
