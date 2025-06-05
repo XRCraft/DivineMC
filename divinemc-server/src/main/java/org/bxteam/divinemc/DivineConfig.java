@@ -247,10 +247,7 @@ public class DivineConfig {
             "This functionality compiles density functions from world generation",
             "datapacks (including vanilla generation) to JVM bytecode to increase",
             "performance by allowing JVM JIT to better optimize the code.",
-            "All functions provided by vanilla are implemented.",
-            "",
-            "Please test if this optimization actually benefits your server, as",
-            "it can sometimes slow down chunk performance than speed it up.");
+            "All functions provided by vanilla are implemented.");
         enableStructureLayoutOptimizer = getBoolean("settings.chunks.experimental.enable-structure-layout-optimizer", enableStructureLayoutOptimizer,
             "Enables a port of the mod StructureLayoutOptimizer, which optimizes general Jigsaw structure generation");
         deduplicateShuffledTemplatePoolElementList = getBoolean("settings.chunks.experimental.deduplicate-shuffled-template-pool-element-list", deduplicateShuffledTemplatePoolElementList,
@@ -264,6 +261,7 @@ public class DivineConfig {
     }
 
     public static boolean skipUselessSecondaryPoiSensor = true;
+    public static boolean clumpOrbs = true;
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
@@ -278,6 +276,8 @@ public class DivineConfig {
     public static int hopperThrottleSkipTicks = 0;
     private static void miscSettings() {
         skipUselessSecondaryPoiSensor = getBoolean("settings.misc.skip-useless-secondary-poi-sensor", skipUselessSecondaryPoiSensor);
+        clumpOrbs = getBoolean("settings.misc.clump-orbs", clumpOrbs,
+            "Clumps experience orbs together to reduce entity count");
         ignoreMovedTooQuicklyWhenLagging = getBoolean("settings.misc.ignore-moved-too-quickly-when-lagging", ignoreMovedTooQuicklyWhenLagging,
             "Improves general gameplay experience of the player when the server is lagging, as they won't get lagged back (message 'moved too quickly')");
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
