@@ -4008,7 +4008,7 @@ index 39a604c9a53930b53d959b1d2eb504aa964e9a58..0d0380e3955836ce125f777841477503
  
      @Override
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa 100644
+index de389a4db6faf229dad599366d26feff63497126..63d619270b98d49c36fba918571d889ac48e8380 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -82,8 +82,6 @@ import net.minecraft.tags.FluidTags;
@@ -4020,7 +4020,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
  import net.minecraft.world.InteractionHand;
  import net.minecraft.world.InteractionResult;
  import net.minecraft.world.Nameable;
-@@ -844,8 +842,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -848,8 +846,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      // CraftBukkit end
  
      public void baseTick() {
@@ -4029,7 +4029,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
          if (firstTick && this instanceof net.minecraft.world.entity.NeutralMob neutralMob) neutralMob.tickInitialPersistentAnger(level); // Paper - Prevent entity loading causing async lookups
          this.inBlockState = null;
          if (this.isPassenger() && this.getVehicle().isRemoved()) {
-@@ -902,8 +898,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -906,8 +902,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
          if (this.level() instanceof ServerLevel serverLevelx && this instanceof Leashable) {
              Leashable.tickLeash(serverLevelx, (Entity & Leashable)this);
          }
@@ -4038,7 +4038,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
      }
  
      public void setSharedFlagOnFire(boolean isOnFire) {
-@@ -1124,8 +1118,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1128,8 +1122,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
                  }
              }
  
@@ -4047,7 +4047,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
              if (this.stuckSpeedMultiplier.lengthSqr() > 1.0E-7) {
                  movement = movement.multiply(this.stuckSpeedMultiplier);
                  this.stuckSpeedMultiplier = Vec3.ZERO;
-@@ -1134,7 +1126,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1138,7 +1130,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              // Paper start - ignore movement changes while inactive.
              if (isTemporarilyActive && !(this instanceof ItemEntity) && movement == getDeltaMovement() && type == MoverType.SELF) {
                  setDeltaMovement(Vec3.ZERO);
@@ -4055,7 +4055,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
                  return;
              }
              // Paper end
-@@ -1169,8 +1160,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1173,8 +1164,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
                  this.setPos(vec31);
              }
  
@@ -4064,7 +4064,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
              boolean flag = !Mth.equal(movement.x, vec3.x);
              boolean flag1 = !Mth.equal(movement.z, vec3.z);
              this.horizontalCollision = flag || flag1;
-@@ -1193,7 +1182,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1197,7 +1186,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              }
  
              if (this.isRemoved()) {
@@ -4073,7 +4073,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
              } else {
                  if (this.horizontalCollision) {
                      Vec3 deltaMovement = this.getDeltaMovement();
-@@ -1237,7 +1226,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1241,7 +1230,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
                  float blockSpeedFactor = this.getBlockSpeedFactor();
                  this.setDeltaMovement(this.getDeltaMovement().multiply(blockSpeedFactor, 1.0, blockSpeedFactor));
@@ -4081,7 +4081,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
              }
          }
          // Paper start - detailed watchdog information
-@@ -3274,8 +3262,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3278,8 +3266,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              this.processPortalCooldown();
              if (this.portalProcess != null) {
                  if (this.portalProcess.processPortalTeleportation(serverLevel, this, this.canUsePortal(false))) {
@@ -4090,7 +4090,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
                      this.setPortalCooldown();
                      TeleportTransition portalDestination = this.portalProcess.getPortalDestination(serverLevel, this);
                      if (portalDestination != null) {
-@@ -3285,8 +3271,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3289,8 +3275,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
                              this.teleport(portalDestination);
                          }
                      }
@@ -4099,7 +4099,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
                  } else if (this.portalProcess.hasExpired()) {
                      this.portalProcess = null;
                  }
-@@ -3841,15 +3825,12 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3845,15 +3829,12 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              entity.teleport(this.calculatePassengerTransition(teleportTransition, entity));
          }
  
@@ -4115,7 +4115,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
          return this;
      }
  
-@@ -3865,11 +3846,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3869,11 +3850,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              }
          }
  
@@ -4127,7 +4127,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
              return null;
          } else {
              // Paper start - Fix item duplication and teleport issues
-@@ -3888,7 +3866,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3892,7 +3870,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
              level.resetEmptyTime();
              teleportTransition.postTeleportTransition().onTransition(entityx);
@@ -4136,7 +4136,7 @@ index 8a319e381e93c0ac1c375fd5d3fa965d0413b44b..6b50a3fc0476f4b9941f1e66fb3f2a79
          }
      }
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index b427d3283a6c197203ab0ffed902bca33e0e0017..352421829e24284e4832a168c278233b780a58a2 100644
+index 7cb5bb3e9cc5e519647a429a91afae06f2f1cec6..f3706dfb6aeb5035cbf0a8bf6b4d9a5243aaaa17 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
 @@ -70,8 +70,6 @@ import net.minecraft.tags.FluidTags;
@@ -4246,7 +4246,7 @@ index b427d3283a6c197203ab0ffed902bca33e0e0017..352421829e24284e4832a168c278233b
          // Purpur start - Ridables
          if (this.xo != this.getX() || this.yo != this.getY() || this.zo != this.getZ() || this.yRotO != this.getYRot() || this.xRotO != this.getXRot()) {
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
-index e9344f61a943d610dfabe4918c227ddba166f17f..5bcbebf35eb726a43b957aca5b8b7a1dca7648cd 100644
+index 09b4e592255aa2dc49dbd82be35f2f87e0b9b6ba..a58133b53a19e90d4386f57891ee41a5c03228c2 100644
 --- a/net/minecraft/world/entity/Mob.java
 +++ b/net/minecraft/world/entity/Mob.java
 @@ -30,8 +30,6 @@ import net.minecraft.sounds.SoundEvent;
@@ -4761,7 +4761,7 @@ index 252a6469cab202bcc612b4d52a5027c615029a21..0644f425cddebe8e5a65e69acae57db8
          if (this.isConverting()) {
              this.timeInOverworld++;
 diff --git a/net/minecraft/world/entity/monster/piglin/Piglin.java b/net/minecraft/world/entity/monster/piglin/Piglin.java
-index 54ab9593b39051d47f1dd8bddf210064768382be..73049e486fbf8411819551b43e3ca641ed7a5578 100644
+index a77d06f945292e379c80d24a58257fc6aeb1aa77..ce0dca4f8cd903037f6fe011d34a17d08ff5a907 100644
 --- a/net/minecraft/world/entity/monster/piglin/Piglin.java
 +++ b/net/minecraft/world/entity/monster/piglin/Piglin.java
 @@ -17,8 +17,6 @@ import net.minecraft.tags.ItemTags;
@@ -4835,7 +4835,7 @@ index 8d61d5347896481f250a18d04d17fd4d2088f633..60a8d79306755e9483ba9e93a07939b7
          if ((this.tickCount + this.getId()) % 120 == 0) {
              applyDarknessAround(level, this.position(), this, 20);
 diff --git a/net/minecraft/world/entity/npc/Villager.java b/net/minecraft/world/entity/npc/Villager.java
-index 5b52bbac242a7fbb8eaea7e41b7265a1a859ff7c..a08818450ed6fd78bb429743ee044726fc7994e7 100644
+index b2fa235d9d7a32d9fbf32b00e6596e0ca09f9971..aace211c23ab9026792a77e5ed5c5eac4311f391 100644
 --- a/net/minecraft/world/entity/npc/Villager.java
 +++ b/net/minecraft/world/entity/npc/Villager.java
 @@ -36,8 +36,6 @@ import net.minecraft.stats.Stats;
@@ -4895,7 +4895,7 @@ index b857e811b4b7a25eaec6dceaae5528d2ec0a1c45..bf69cef9b8ade11a1c08199cdd6c723e
          LOGGER.info("Loaded {} recipes", object.values().size());
      }
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 38ddadf551c039202c68c44d740f23a08b58d003..2e90bb96ed90f3debbe5803856ed41a5c08003f8 100644
+index 269011e6ba70c9da42f2bc7c902fed5ab6994042..aef9af80b1e04c75c60f04bca188abbe81ddf0c7 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -35,8 +35,6 @@ import net.minecraft.util.AbortableIterationConsumer;

@@ -465,7 +465,7 @@ index a18240418a19a95147341a634527d774f3d5bb92..66f74ad2a194a6676574da2932cf4677
      public DebugSampleSubscriptionTracker(PlayerList playerList) {
          this.playerList = playerList;
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd220a1878 100644
+index 63d619270b98d49c36fba918571d889ac48e8380..f825964c5e7a06d54af68c68d3bf2da0535b51d6 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -149,7 +149,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
@@ -477,7 +477,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
      // Paper start - replace random
      private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
          public RandomRandomSource() {
-@@ -1082,28 +1082,9 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1086,28 +1086,9 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
          return this.onGround;
      }
  
@@ -506,7 +506,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
          if (this.noPhysics) {
              this.setPos(this.getX() + movement.x, this.getY() + movement.y, this.getZ() + movement.z);
          } else {
-@@ -1228,13 +1209,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -1232,13 +1213,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
                  this.setDeltaMovement(this.getDeltaMovement().multiply(blockSpeedFactor, 1.0, blockSpeedFactor));
              }
          }
@@ -520,7 +520,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
      }
  
      private void applyMovementEmissionAndPlaySound(Entity.MovementEmission movementEmission, Vec3 movement, BlockPos pos, BlockState state) {
-@@ -4519,10 +4493,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4523,10 +4497,6 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
      // Paper start - optimise collisions
      public boolean updateFluidHeightAndDoFluidPushing(final TagKey<Fluid> fluid, final double flowScale) {
@@ -531,7 +531,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
          final AABB boundingBox = this.getBoundingBox().deflate(1.0E-3);
  
          final Level world = this.level;
-@@ -4558,7 +4528,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4562,7 +4532,11 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
  
          for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
              for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
@@ -544,7 +544,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
  
                  // bound y
                  for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
-@@ -4715,9 +4689,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4719,9 +4693,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      }
  
      public void setDeltaMovement(Vec3 deltaMovement) {
@@ -554,7 +554,7 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
      }
  
      public void addDeltaMovement(Vec3 addend) {
-@@ -4825,9 +4797,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -4829,9 +4801,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
          }
          // Paper end - Fix MC-4
          if (this.position.x != x || this.position.y != y || this.position.z != z) {
@@ -564,6 +564,18 @@ index 6b50a3fc0476f4b9941f1e66fb3f2a79042e33aa..1fdbd88841993e377ea2e14b40d059dd
              int floor = Mth.floor(x);
              int floor1 = Mth.floor(y);
              int floor2 = Mth.floor(z);
+diff --git a/net/minecraft/world/entity/ExperienceOrb.java b/net/minecraft/world/entity/ExperienceOrb.java
+index 81aa1a91a2ecda3053b22c2eb9e59f0ea2faf7b5..ff4648b3be103446ab401d36c14cc80b48840cab 100644
+--- a/net/minecraft/world/entity/ExperienceOrb.java
++++ b/net/minecraft/world/entity/ExperienceOrb.java
+@@ -166,6 +166,7 @@ public class ExperienceOrb extends Entity {
+             if (this.age >= 6000) {
+                 this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
+             }
++            if (this.count == 0) this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DISCARD); // DivineMC - discard when count is 0
+         }
+     }
+ 
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
 index a58133b53a19e90d4386f57891ee41a5c03228c2..a65c86b411c15bbdfd431dac00e510d2262e65e1 100644
 --- a/net/minecraft/world/entity/Mob.java

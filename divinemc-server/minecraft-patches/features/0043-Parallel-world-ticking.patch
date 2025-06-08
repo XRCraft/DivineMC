@@ -404,10 +404,10 @@ index 9f3afab438199dbaf40fa1a64b6ecdae74c0a34d..8923a30daf515262e4bdbfbd55e3cb82
          serverPlayer.connection = player.connection;
          serverPlayer.restoreFrom(player, keepInventory);
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index d31e4f190cee68883ca48b94524fb356738a4125..28fc134b5a567b53024bc2cdc6fc363eb14c37ff 100644
+index abcaa8a1f9daf4557bb24e2161e9afa01f0b7211..a1d92ad83f47bec3e07e6603103e423620a0b84c 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -3239,14 +3239,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3243,14 +3243,34 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
              if (this.portalProcess != null) {
                  if (this.portalProcess.processPortalTeleportation(serverLevel, this, this.canUsePortal(false))) {
                      this.setPortalCooldown();
@@ -448,7 +448,7 @@ index d31e4f190cee68883ca48b94524fb356738a4125..28fc134b5a567b53024bc2cdc6fc363e
                  } else if (this.portalProcess.hasExpired()) {
                      this.portalProcess = null;
                  }
-@@ -3811,6 +3831,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -3815,6 +3835,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      }
  
      private Entity teleportCrossDimension(ServerLevel level, TeleportTransition teleportTransition) {
@@ -549,7 +549,7 @@ index 3614551856c594f3c0cfee984fcf03fad672b007..6add256046e392d8eb797e3fa9d1cbe7
          });
          entity.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
 diff --git a/net/minecraft/world/entity/npc/Villager.java b/net/minecraft/world/entity/npc/Villager.java
-index abf7308a41e7c28e1d9fd82d5f86022a80159bff..b68dfb81974e8cc8537c1f42add6a9c6e57fe40d 100644
+index 2e2745cd8e3383455656c95214779754cc890b33..c2796f90e4e9c57244d41ea6cbe8d1b87432ba88 100644
 --- a/net/minecraft/world/entity/npc/Villager.java
 +++ b/net/minecraft/world/entity/npc/Villager.java
 @@ -795,13 +795,24 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
@@ -705,7 +705,7 @@ index 36677cb0db42b74fa84d67b85717f629f84b4dd0..f329ad90e08bbb4fd3c4c804d6894f1a
                  serverLevel.capturedBlockStates.clear();
                  org.bukkit.event.world.StructureGrowEvent structureEvent = null;
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 4eedfc61c7e682a44858703b462eecad17a48904..c01463194470624ecd84209100fdbdc851028fb7 100644
+index 3e6874f9e9a24e21f6fbfb0852d63fa6f4f4d603..5ebdd5d2b49f2165c8fbbee5e7615cc2398bea75 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -160,6 +160,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
