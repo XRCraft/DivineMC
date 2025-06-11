@@ -265,6 +265,7 @@ public class DivineConfig {
     public static boolean ignoreMovedTooQuicklyWhenLagging = true;
     public static boolean alwaysAllowWeirdMovement = true;
     public static boolean updateSuppressionCrashFix = true;
+    public static boolean enableSuffocationOptimization = true;
     public static boolean useCompactBitStorage = false;
     public static boolean fixIncorrectBounceLogic = false;
     public static boolean forceMinecraftCommand = false;
@@ -283,6 +284,9 @@ public class DivineConfig {
         alwaysAllowWeirdMovement = getBoolean("settings.misc.always-allow-weird-movement", alwaysAllowWeirdMovement,
             "Means ignoring messages like 'moved too quickly' and 'moved wrongly'");
         updateSuppressionCrashFix = getBoolean("settings.misc.update-suppression-crash-fix", updateSuppressionCrashFix);
+        enableSuffocationOptimization = getBoolean("settings.misc.enable-suffocation-optimization", enableSuffocationOptimization,
+            "Optimizes the suffocation check by selectively skipping the check in a way that still appears vanilla.",
+            "This option should be left enabled on most servers, but is provided as a configuration option if the vanilla deviation is undesirable.");
         useCompactBitStorage = getBoolean("settings.misc.use-compact-bit-storage", useCompactBitStorage,
             "Fixes memory waste caused by sending empty chunks as if they contain blocks. Can significantly reduce memory usage.");
         fixIncorrectBounceLogic = getBoolean("settings.misc.fix-incorrect-bounce-logic", fixIncorrectBounceLogic,
