@@ -331,6 +331,7 @@ public class DivineConfig {
         public static boolean useCompactBitStorage = false;
         public static boolean commandBlockParseResultsCaching = true;
         public static boolean sheepOptimization = true;
+        public static boolean optimizedDragonRespawn = false;
         public static boolean reduceChuckLoadAndLookup = true;
         public static boolean hopperThrottleWhenFull = false;
         public static int hopperThrottleSkipTicks = 0;
@@ -438,6 +439,8 @@ public class DivineConfig {
                 "Caches the parse results of command blocks, can significantly reduce performance impact.");
             sheepOptimization = getBoolean(ConfigCategory.PERFORMANCE.key("optimizations.sheep-optimization"), sheepOptimization,
                 "Enables optimization from Carpet Fixes mod, using a prebaked list of all the possible colors and combinations for sheep.");
+            optimizedDragonRespawn = getBoolean(ConfigCategory.PERFORMANCE.key("optimizations.optimized-dragon-respawn"), optimizedDragonRespawn,
+                "When enabled, improving performance and reducing lag during the dragon’s resurrection event.");
             reduceChuckLoadAndLookup = getBoolean(ConfigCategory.PERFORMANCE.key("optimizations.reduce-chunk-load-and-lookup"), reduceChuckLoadAndLookup,
                 "If enabled, optimizes chunk loading and block state lookups by reducing the number of chunk accesses required during operations such as Enderman teleportation.");
 
