@@ -13,7 +13,7 @@ index ae0e36d198ad8243920c8e8a55c0be4945542763..7f982949304535376dabf42aab1848ca
      private final DistanceManager distanceManager;
      private final ServerLevel level;
 +    // DivineMC - Regionized Chunk Ticking
-+    public static final Executor REGION_EXECUTOR = java.util.concurrent.Executors.newFixedThreadPool(org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadCount, new org.bxteam.divinemc.util.NamedAgnosticThreadFactory<>("region_ticking", ca.spottedleaf.moonrise.common.util.TickThread::new, org.bxteam.divinemc.DivineConfig.regionizedChunkTickingExecutorThreadPriority));
++    public static final Executor REGION_EXECUTOR = java.util.concurrent.Executors.newFixedThreadPool(org.bxteam.divinemc.config.DivineConfig.regionizedChunkTickingExecutorThreadCount, new org.bxteam.divinemc.util.NamedAgnosticThreadFactory<>("region_ticking", ca.spottedleaf.moonrise.common.util.TickThread::new, org.bxteam.divinemc.config.DivineConfig.regionizedChunkTickingExecutorThreadPriority));
 +    public volatile int tickingRegionsCount = 0;
 +    // DivineMC end - Regionized Chunk Ticking
      public final Thread mainThread;
@@ -72,7 +72,7 @@ index ae0e36d198ad8243920c8e8a55c0be4945542763..7f982949304535376dabf42aab1848ca
                      // Paper end - chunk tick iteration optimisation
 -                    this.tickChunks(l, list);
 +                    // DivineMC start - Regionized Chunk Ticking
-+                    if (org.bxteam.divinemc.DivineConfig.enableRegionizedChunkTicking) {
++                    if (org.bxteam.divinemc.config.DivineConfig.enableRegionizedChunkTicking) {
 +                        List<LevelChunk>[] regions = splitChunksIntoRegions(list);
 +                        int regionCount = regions.length;
 +                        this.tickingRegionsCount = regionCount;

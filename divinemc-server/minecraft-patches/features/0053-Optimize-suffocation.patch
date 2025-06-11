@@ -7,7 +7,7 @@ Original license: GPL v3
 Original project: https://github.com/pufferfish-gg/Pufferfish
 
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index f598c6ae03977998f1cbf79cf3faf7997c2ba9e2..8b89a11aa0040b0d6104a4056d70d9d2ac74e331 100644
+index 808e4e2ae070b5232c2050fdcb183cc21b8fb996..aeea9dc46013632b2178818823564bb559746b13 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
 @@ -406,6 +406,12 @@ public abstract class LivingEntity extends Entity implements Attackable {
@@ -28,7 +28,7 @@ index f598c6ae03977998f1cbf79cf3faf7997c2ba9e2..8b89a11aa0040b0d6104a4056d70d9d2
          if (this.isAlive() && this.level() instanceof ServerLevel serverLevel1) {
              boolean flag = this instanceof Player;
 -            if (this.isInWall()) {
-+            if ((!org.bxteam.divinemc.DivineConfig.enableSuffocationOptimization || this instanceof WitherBoss || (tickCount % 10 == 0 && couldPossiblyBeHurt(1.0F))) && this.isInWall()) { // DivineMC - Optimize suffocation
++            if ((!org.bxteam.divinemc.config.DivineConfig.PerformanceCategory.enableSuffocationOptimization || this instanceof WitherBoss || (tickCount % 10 == 0 && couldPossiblyBeHurt(1.0F))) && this.isInWall()) { // DivineMC - Optimize suffocation
                  this.hurtServer(serverLevel1, this.damageSources().inWall(), 1.0F);
              } else if (flag && !serverLevel1.getWorldBorder().isWithinBounds(this.getBoundingBox())) {
                  double d = serverLevel1.getWorldBorder().getDistanceToBorder(this) + serverLevel1.getWorldBorder().getDamageSafeZone();
