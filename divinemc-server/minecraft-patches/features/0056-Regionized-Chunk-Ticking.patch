@@ -21,7 +21,7 @@ index b28829f9f4c084a8dba35219dae9f4a9f293c416..583f0d2a54508e0a6e99771d5d1fb787
              if (var2 instanceof ClosedChannelException) {
                  LOGGER.info("Connection closed during protocol change");
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index a2dbb52fab3f82dd3ddcac9b7d1e0ed44ebf1574..ae6ea190a67bb8a90049ac3ee21fb7fe2c525d40 100644
+index a2dbb52fab3f82dd3ddcac9b7d1e0ed44ebf1574..41c4e2fcfd3264180e9df938a9ddf0de60f23760 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
 @@ -57,6 +57,7 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
@@ -32,7 +32,7 @@ index a2dbb52fab3f82dd3ddcac9b7d1e0ed44ebf1574..ae6ea190a67bb8a90049ac3ee21fb7fe
      public final Thread mainThread;
      final ThreadedLevelLightEngine lightEngine;
      public final ServerChunkCache.MainThreadExecutor mainThreadProcessor;
-@@ -70,13 +71,15 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -70,8 +71,10 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      private final long[] lastChunkPos = new long[4];
      private final ChunkStatus[] lastChunkStatus = new ChunkStatus[4];
      private final ChunkAccess[] lastChunk = new ChunkAccess[4];
@@ -45,12 +45,6 @@ index a2dbb52fab3f82dd3ddcac9b7d1e0ed44ebf1574..ae6ea190a67bb8a90049ac3ee21fb7fe
      @Nullable
      @VisibleForDebug
      private NaturalSpawner.SpawnState lastSpawnState;
-     // Paper start
--    private final ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable<net.minecraft.world.level.chunk.LevelChunk> fullChunks = new ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable<>();
-+    private final ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable<LevelChunk> fullChunks = new ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable<>(); // DivineMC - Regionized Chunk Ticking
-     public int getFullChunksCount() {
-         return this.fullChunks.size();
-     }
 @@ -153,32 +156,241 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
          return load ? this.syncLoad(chunkX, chunkZ, toStatus) : null;
      }
