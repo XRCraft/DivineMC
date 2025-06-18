@@ -264,7 +264,7 @@ public class DivineConfig {
                 regionizedChunkTickingExecutorThreadCount = 5;
             }
 
-            LOGGER.warn("You have enabled Regionized Chunk Ticking. This feature is an experimental, and may not work as expected. Please report any issues you encounter to the BX Team Discord server");
+            if (enableRegionizedChunkTicking) LOGGER.warn("You have enabled Regionized Chunk Ticking. This feature is an experimental, and may not work as expected. Please report any issues you encounter to the BX Team Discord server");
         }
 
         private static void asyncPathfinding() {
