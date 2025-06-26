@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: The Judge <53906078+thejudge156@users.noreply.github.com>
+Date: Wed, 25 Jun 2025 20:50:03 -0700
+Subject: [PATCH] Fix weird crash
+
+
+diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
+index 6fe298f868c35aab3271bebcdc1281855418d0c6..458e030f66aa9d773d06aba365affc0767f21da8 100644
+--- a/net/minecraft/server/level/ChunkMap.java
++++ b/net/minecraft/server/level/ChunkMap.java
+@@ -735,6 +735,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+         for (int i = 0; i < size; ++i) {
+             final LevelChunk levelChunk = raw[i];
+ 
++            // Prevent a weird crash from null chunks being passed in the list
++            if(levelChunk == null) {
++                continue;
++            }
++
+             if (!this.isChunkNearPlayer((ChunkMap)(Object)this, levelChunk.getPos(), levelChunk)) {
+                 continue;
+             }

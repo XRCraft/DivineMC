@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: The Judge <53906078+thejudge156@users.noreply.github.com>
+Date: Wed, 25 Jun 2025 20:50:54 -0700
+Subject: [PATCH] Java > 21
+
+
+diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
+index 48033df6b384a21a59e8051e7d1f880e1af3c78c..b99fa3d3cedbf6c95c0d28ee45ac740bcb3840ec 100644
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -207,7 +207,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         // DivineMC start - Pufferfish SIMD
+         try {
+             gg.pufferfish.pufferfish.simd.SIMDDetection.isEnabled = gg.pufferfish.pufferfish.simd.SIMDDetection.canEnable(LOGGER);
+-            gg.pufferfish.pufferfish.simd.SIMDDetection.versionLimited = gg.pufferfish.pufferfish.simd.SIMDDetection.getJavaVersion() < 17 || gg.pufferfish.pufferfish.simd.SIMDDetection.getJavaVersion() > 21;
++            gg.pufferfish.pufferfish.simd.SIMDDetection.versionLimited = gg.pufferfish.pufferfish.simd.SIMDDetection.getJavaVersion() < 17;
+         } catch (NoClassDefFoundError | Exception ignored) {
+             ignored.printStackTrace();
+         }
