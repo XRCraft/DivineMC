@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: The Judge <53906078+thejudge156@users.noreply.github.com>
+Date: Wed, 25 Jun 2025 21:02:02 -0700
+Subject: [PATCH] Fix race condition
+
+
+diff --git a/net/minecraft/util/thread/BlockableEventLoop.java b/net/minecraft/util/thread/BlockableEventLoop.java
+index e570740d3910573694c462b0a4894349940917a8..d599613916cd2fb5035f94d7a674d16c533bd3de 100644
+--- a/net/minecraft/util/thread/BlockableEventLoop.java
++++ b/net/minecraft/util/thread/BlockableEventLoop.java
+@@ -121,7 +121,8 @@ public abstract class BlockableEventLoop<R extends Runnable> implements TaskSche
+         } else if (this.blockingCount == 0 && !this.shouldRun(runnable)) {
+             return false;
+         } else {
+-            this.doRunTask(this.pendingRunnables.remove());
++            this.pendingRunnables.remove(runnable);
++            this.doRunTask(runnable);
+             return true;
+         }
+     }
