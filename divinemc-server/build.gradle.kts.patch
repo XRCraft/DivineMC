@@ -240,7 +240,7 @@
 +
 +        metadataCopy {
 +            mergeWithExisting.set(true)
-+            outputDirectories.add("src/main/resources/META-INF/native-image/net.minecraft")
++            outputDirectories.add("src/minecraft/resources/META-INF/native-image/net.minecraft")
 +        }
 +    }
 +    binaries {
