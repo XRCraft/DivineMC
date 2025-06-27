@@ -12,5 +12,4 @@ run
 /divinemc-api/build.gradle.kts
 /paper-api
 /purpur-api
-*.jar
 changelog.md
