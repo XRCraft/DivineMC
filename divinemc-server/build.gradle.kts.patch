@@ -1,6 +1,10 @@
 --- a/purpur-server/build.gradle.kts
 +++ b/purpur-server/build.gradle.kts
-@@ -13,6 +_,7 @@
+@@ -10,9 +_,11 @@
+     `maven-publish`
+     idea
+     id("io.papermc.paperweight.core")
++    id("org.graalvm.buildtools.native") version "0.10.6"
  }
  
  val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
@@ -209,3 +213,53 @@
          )
          for (tld in setOf("net", "com", "org")) {
              attributes("$tld/bukkit", "Sealed" to true)
+@@ -333,11 +_,7 @@
+     workingDir = rootProject.layout.projectDirectory
+         .dir(providers.gradleProperty("paper.runWorkDir").getOrElse("run"))
+         .asFile
+-    javaLauncher.set(project.javaToolchains.launcherFor {
+-        languageVersion.set(JavaLanguageVersion.of(21))
+-        vendor.set(JvmVendorSpec.JETBRAINS)
+-    })
+-    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
++    //jvmArgs("-XX:+AllowEnhancedClassRedefinition")
+ 
+     if (rootProject.childProjects["test-plugin"] != null) {
+         val testPluginJar = rootProject.project(":test-plugin").tasks.jar.flatMap { it.archiveFile }
+@@ -399,4 +_,36 @@
+     description = "Spin up a test server from the reobf Paperclip jar"
+     classpath(tasks.createReobfPaperclipJar.flatMap { it.outputZip })
+     mainClass.set(null as String?)
++}
++
++graalvmNative {
++    agent {
++        defaultMode = "standard"
++        enabled.set(true)
++        enableExperimentalPredefinedClasses.set(true)
++
++        metadataCopy {
++            mergeWithExisting.set(true)
++            outputDirectories.add("src/main/resources/META-INF/native-image/net.minecraft")
++        }
++    }
++    binaries {
++        named("main") {
++            classpath(tasks.includeMappings.flatMap { it.outputJar })
++            classpath(configurations.runtimeClasspath)
++            imageName.set("minecraft-client")
++            mainClass.set("org.bukkit.craftbukkit.Main")
++            runtimeArgs.addAll("--nogui")
++        }
++    }
++    binaries.configureEach {
++        buildArgs.addAll(
++            "-H:+AddAllCharsets", "-H:+IncludeAllLocales", "-H:IncludeResources=META-INF/services/.*",
++            "-H:IncludeResources=assets/.*", "-H:IncludeResources=data/.*",
++            "--add-modules=jdk.incubator.vector", "-H:+VectorAPISupport",
++            "-march=compatibility", /*"--gc=G1",*/
++            "--enable-http", "--enable-https", "--enable-native-access=ALL-UNNAMED",
++            "--initialize-at-run-time=net.minecraft.resources.RegistryDataLoader,sun.net.dns.ResolverConfigurationImpl"
++        )
++    }
+ }
