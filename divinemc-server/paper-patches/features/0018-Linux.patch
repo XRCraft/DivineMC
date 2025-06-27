@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: The Judge <53906078+thejudge156@users.noreply.github.com>
+Date: Thu, 26 Jun 2025 19:44:22 -0700
+Subject: [PATCH] Linux
+
+
+diff --git a/src/main/resources/META-INF/native-image/net.minecraft/reachability-metadata.json b/src/main/resources/META-INF/native-image/net.minecraft/reachability-metadata.json
+index 724257134f41b07709bf5b4688b2ab30b24c73ae..265955f97785a978a59ff4887749fabd11b63323 100644
+--- a/src/main/resources/META-INF/native-image/net.minecraft/reachability-metadata.json
++++ b/src/main/resources/META-INF/native-image/net.minecraft/reachability-metadata.json
+@@ -571,6 +571,15 @@
+         }
+       ]
+     },
++    {
++      "type": "com.sun.jna.platform.win32.BaseTSD$DWORD_PTR",
++      "methods": [
++          {
++              "name": "<init>",
++              "parameterTypes": []
++          }
++      ]
++    },
+     {
+       "type": "com.sun.jna.platform.win32.BaseTSD$SIZE_T",
+       "methods": [
+@@ -7778,4 +7787,4 @@
+       ]
+     }
+   ]
+-}
+\ No newline at end of file
++}
