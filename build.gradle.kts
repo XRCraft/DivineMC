@@ -85,6 +85,9 @@ subprojects {
         mavenCentral()
         maven(paperMavenPublicUrl)
         maven("https://jitpack.io")
+        flatDir {
+            dirs(file(project.rootDir).resolve("libs"))
+        }
     }
 
     extensions.configure<PublishingExtension> {
