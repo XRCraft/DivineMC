@@ -1,0 +1,18 @@
+[
+  {
+    "type":"agent-extracted",
+    "classes":[
+      { "nameInfo":"org/mozilla/javascript/gen/eval_2", "hash":"RWVWR4hWOa3NhlNLR1QLJ8" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_10", "hash":"D4Wvzn1eBR8kSBaJTQEbM9" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_8", "hash":"bsDdqrrsmOFNUuP0MecX8A" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_6", "hash":"OXdYVZySCGD3W707dvGnnK" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_1", "hash":"giYFh5BVhJ6OqEanK2GYCJ" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_3", "hash":"MDzY7F3fT2JEkjFAeVCmyG" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_4", "hash":"cRI89yMRAXBz8U2hgGvpx1" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_7", "hash":"jSukKkwOT4I3Qq8XRP8y9L" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_9", "hash":"ZhSA8zj5AE4Gb1H3Mzzl7F" },
+      { "nameInfo":"org/mozilla/javascript/gen/eval_5", "hash":"fxEUMBqfhz9v1FNpRKfL7B" }
+    ]
+  }
+]
+
