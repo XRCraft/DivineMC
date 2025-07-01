@@ -29,10 +29,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 public class LinearRegionFile implements IRegionFile {
+    private static final BlockingQueue<Runnable> SCHEDULING_RUNNABLES = new LinkedBlockingQueue<>();
+    private static final ThreadPoolExecutor SCHEDULING_EXECUTOR = new ThreadPoolExecutor(1, DivineConfig.MiscCategory.linearFlushMaxThreads, Long.MAX_VALUE, TimeUnit.DAYS, SCHEDULING_RUNNABLES);
+    private static final BlockingQueue<Runnable> FLUSH_RUNNABLES = new LinkedBlockingQueue<>();
+    private static final ThreadPoolExecutor FLUSH_EXECUTOR = new ThreadPoolExecutor(1, DivineConfig.MiscCategory.linearFlushMaxThreads, Long.MAX_VALUE, TimeUnit.DAYS, FLUSH_RUNNABLES);
+
     public static final int MAX_CHUNK_SIZE = 500 * 1024 * 1024;
     private static final Object SAVE_LOCK = new Object();
     private static final long SUPERBLOCK = 0xc3ff13183cca9d9aL;
@@ -41,6 +52,8 @@ public class LinearRegionFile implements IRegionFile {
     private static final byte V1_VERSION = 2;
     private static final byte V2_VERSION = 3;
 
+    private final Runnable flushCheck;
+    private Runnable flushOperation;
     private byte[][] bucketBuffers;
     private final byte[][] chunkCompressedBuffers = new byte[1024][];
     private final int[] chunkUncompressedSizes = new int[1024];
@@ -61,9 +74,6 @@ public class LinearRegionFile implements IRegionFile {
     private int bucketSize = 4;
     private final int compressionLevel;
     private final LinearImplementation linearImpl;
-    private final Thread schedulingThread;
-
-    private static int activeSaveThreads = 0;
 
     public LinearRegionFile(Path path, LinearImplementation linearImplementation, int compressionLevel) {
         this.regionFilePath = path;
@@ -72,38 +82,23 @@ public class LinearRegionFile implements IRegionFile {
         this.compressor = LZ4Factory.fastestInstance().fastCompressor();
         this.decompressor = LZ4Factory.fastestInstance().fastDecompressor();
 
-        Runnable flushCheck = () -> {
+        this.flushCheck = () -> {
             while (!close) {
                 synchronized (SAVE_LOCK) {
-                    if (markedToSave && activeSaveThreads < DivineConfig.MiscCategory.linearFlushMaxThreads) {
-                        activeSaveThreads++;
-                        Runnable flushOperation = () -> {
+                    if (markedToSave) {
+                        flushOperation = () -> {
                             try {
                                 flush();
                             } catch (IOException ex) {
                                 LOGGER.error("Region file {} flush failed", regionFilePath.toAbsolutePath(), ex);
-                            } finally {
-                                synchronized (SAVE_LOCK) {
-                                    activeSaveThreads--;
-                                }
                             }
                         };
-                        Thread saveThread = DivineConfig.MiscCategory.linearUseVirtualThread
-                            ? Thread.ofVirtual().name("Linear IO - " + this.hashCode()).unstarted(flushOperation)
-                            : Thread.ofPlatform().name("Linear IO - " + this.hashCode()).unstarted(flushOperation);
-                        saveThread.setPriority(Thread.NORM_PRIORITY - 3);
-                        saveThread.start();
-                        ThreadDumperRegistry.REGISTRY.add(saveThread.getName());
+                        FLUSH_EXECUTOR.execute(flushOperation);
                     }
                 }
                 LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(DivineConfig.MiscCategory.linearFlushDelay));
             }
         };
-        this.schedulingThread = DivineConfig.MiscCategory.linearUseVirtualThread
-            ? Thread.ofVirtual().unstarted(flushCheck)
-            : Thread.ofPlatform().unstarted(flushCheck);
-        this.schedulingThread.setName("Linear IO Schedule - " + this.hashCode());
-        ThreadDumperRegistry.REGISTRY.add(this.schedulingThread.getName());
     }
 
     private synchronized void openRegionFile() {
@@ -112,7 +107,7 @@ public class LinearRegionFile implements IRegionFile {
 
         File file = regionFilePath.toFile();
         if (!file.canRead()) {
-            schedulingThread.start();
+            SCHEDULING_EXECUTOR.execute(this.flushCheck);
             return;
         }
 
@@ -134,7 +129,7 @@ public class LinearRegionFile implements IRegionFile {
                 throw new RuntimeException("Invalid version: " + version + " file " + regionFilePath);
             }
 
-            schedulingThread.start();
+            SCHEDULING_EXECUTOR.execute(this.flushCheck);
         } catch (IOException e) {
             throw new RuntimeException("Failed to open region file " + regionFilePath, e);
         }
@@ -577,6 +572,7 @@ public class LinearRegionFile implements IRegionFile {
         } catch (IOException e) {
             throw new IOException("Region flush IOException " + e + " " + regionFilePath, e);
         }
+        bucketBuffers = null;
     }
 
     private static int getChunkIndex(int x, int z) {
